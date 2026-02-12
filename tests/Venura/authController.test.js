@@ -4,6 +4,9 @@ const User = require('../../models/Venura/User');
 
 const API_PREFIX = '/api/v1/auth';
 
+// Scale timeouts for CI environments (GitHub Actions can be slower)
+const getTimeout = (baseMs) => process.env.CI ? baseMs * 3 : baseMs;
+
 describe('Auth Endpoints Testing Started ! ', () => {
 
   describe(`POST ${API_PREFIX}/signup`, () => {
@@ -23,7 +26,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
       expect(res.body.user).toBeDefined();
       expect(res.body.user.username).toBe(`testuser_${timestamp}`);
       expect(res.body.user.email).toBe(`test_${timestamp}@example.com`);
-    }, 15000);
+    }, getTimeout(15000));
 
     it('Should fail when username is missing', async () => {
       const timestamp = Date.now();
@@ -36,7 +39,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toBe('All fields are required');
-    }, 10000);
+    }, getTimeout(10000));
 
     it('Should fail when email is missing', async () => {
       const timestamp = Date.now();
@@ -49,7 +52,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toBe('All fields are required');
-    }, 10000);
+    }, getTimeout(10000));
 
     it('Should fail when password is missing', async () => {
       const timestamp = Date.now();
@@ -62,7 +65,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toBe('All fields are required');
-    }, 10000);
+    }, getTimeout(10000));
 
     it('Should fail when user with same email already exists', async () => {
       const timestamp = Date.now();
@@ -86,7 +89,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toBe('User already exists');
-    }, 20000);
+    }, getTimeout(20000));
 
     it('Should fail when user with same username already exists', async () => {
       const timestamp = Date.now();
@@ -110,7 +113,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toBe('User already exists');
-    }, 20000);
+    }, getTimeout(20000));
   });
 
   describe(`POST ${API_PREFIX}/login`, () => {
@@ -129,7 +132,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
           email: testUserEmail,
           password: testUserPassword,
         });
-    }, 15000);
+    }, getTimeout(15000));
 
     it('Should successfully login with correct credentials', async () => {
       const res = await request(app)
@@ -144,7 +147,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
       expect(res.body.token).toBeDefined();
       expect(res.body.user).toBeDefined();
       expect(res.body.user.email).toBe(testUserEmail);
-    }, 15000);
+    }, getTimeout(15000));
 
     it('Should fail when email is missing', async () => {
       const res = await request(app)
@@ -155,7 +158,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
 
       expect(res.statusCode).toBe(401);
       expect(res.body.error).toBe('Email and password are required');
-    }, 10000);
+    }, getTimeout(10000));
 
     it('Should fail when password is missing', async () => {
       const res = await request(app)
@@ -166,7 +169,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
 
       expect(res.statusCode).toBe(401);
       expect(res.body.error).toBe('Email and password are required');
-    }, 10000);
+    }, getTimeout(10000));
 
     it('Should fail when email does not exist', async () => {
       const timestamp = Date.now();
@@ -179,7 +182,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
 
       expect(res.statusCode).toBe(401);
       expect(res.body.error).toBe('Invalid email or password');
-    }, 10000);
+    }, getTimeout(10000));
 
     it('Should fail when password is incorrect', async () => {
       const res = await request(app)
@@ -191,7 +194,7 @@ describe('Auth Endpoints Testing Started ! ', () => {
 
       expect(res.statusCode).toBe(401);
       expect(res.body.error).toBe('Invalid email or password');
-    }, 15000);
+    }, getTimeout(15000));
 
     it('Should return valid JWT token on successful login', async () => {
       const res = await request(app)
@@ -204,6 +207,6 @@ describe('Auth Endpoints Testing Started ! ', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body.token).toBeTruthy();
       expect(res.body.token.split('.').length).toBe(3);
-    }, 15000);
+    }, getTimeout(15000));
   });
 });

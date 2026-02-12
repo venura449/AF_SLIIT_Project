@@ -14,10 +14,22 @@ jobs:
       matrix:
         node-version: [20.x]
 
+    services:
+      mongodb:
+        image: mongo:7
+        options: >-
+          --health-cmd mongosh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+
     env:
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      MONGO_URI: ${{ secrets.MONGO_URI }}
+      MONGO_URI: mongodb://localhost:27017/af_sliit_project
       NODE_ENV: test
+      CI: true
 
     steps:
     - uses: actions/checkout@v3
@@ -30,6 +42,14 @@ jobs:
     
     - name: Install dependencies
       run: npm install
+    
+    - name: Wait for MongoDB
+      run: |
+        for i in {1..30}; do
+          mongosh --eval "db.adminCommand('ping')" mongodb://localhost:27017 && break
+          echo "Waiting for MongoDB... ($i/30)"
+          sleep 1
+        done
     
     - name: Run tests
       run: npm test

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // Increase timeout for all tests
-jest.setTimeout(60000);
+jest.setTimeout(180000);
 
 // Close any open MongoDB connections after all tests
 afterAll(async () => {

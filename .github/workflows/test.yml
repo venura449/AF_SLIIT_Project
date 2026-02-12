@@ -17,48 +17,32 @@ jobs:
     services:
       mongodb:
         image: mongo:7
-        options: >-
-          --health-cmd "echo 'db.adminCommand("ping")' | mongosh"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
         ports:
           - 27017:27017
+        options: >-
+          --health-cmd="mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     env:
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      MONGO_URI: mongodb://localhost:27017/af_sliit_project
       NODE_ENV: test
       CI: true
+      JWT_SECRET: testsecret
+      MONGO_URI: mongodb://mongodb:27017/af_sliit_project_test
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm install
-    
-    - name: Wait for MongoDB
-      run: |
-        echo "Waiting for MongoDB to be ready..."
-        for i in {1..30}; do
-          nc -z localhost 27017 && echo "MongoDB is ready!" && break
-          echo "Waiting for MongoDB... ($i/30)"
-          sleep 1
-        done
-    
-    - name: Run tests
-      run: npm test
-    
-    - name: Generate coverage report (optional)
-      run: npm test -- --coverage
-      continue-on-error: true
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      continue-on-error: true
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test

@@ -3,6 +3,9 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db.js');
 
+
+const authRoutes = require('./routes/Venura/authRoutes.js');
+
 // Load environment variables
 dotenv.config();
 
@@ -29,7 +32,10 @@ app.get('/', (req, res) => {
 });
 
 // API Routes
-// app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/v1/auth', authRoutes);
+
+
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

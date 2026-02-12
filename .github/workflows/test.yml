@@ -20,15 +20,16 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd="mongosh --eval 'db.adminCommand({ ping: 1 })'"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+          --health-cmd "mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     env:
       NODE_ENV: test
       CI: true
       JWT_SECRET: testsecret
+      # Use the service name 'mongodb' as the host
       MONGO_URI: mongodb://mongodb:27017/af_sliit_project_test
 
     steps:
@@ -44,5 +45,22 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Wait for MongoDB to be ready
+        run: |
+          echo "Waiting for MongoDB to be ready..."
+          for i in {1..30}; do
+            nc -z mongodb 27017 && echo "MongoDB is ready!" && break
+            echo "Waiting for MongoDB... ($i/30)"
+            sleep 1
+          done
+
       - name: Run tests
-        run: npm test
+        run: npm test -- --detectOpenHandles
+
+      - name: Generate coverage report (optional)
+        run: npm test -- --coverage
+        continue-on-error: true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        continue-on-error: true

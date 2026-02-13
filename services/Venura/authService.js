@@ -7,10 +7,16 @@ const generateToken = (userId) => {
 };
 
 // Signup Service
-exports.signupService = async (username, email, password) => {
+exports.signupService = async (username, email, password, role = 'Donor') => {
   // Validate inputs
   if (!username || !email || !password) {
     throw new Error('All fields are required');
+  }
+
+  // Validate role
+  const validRoles = ['Donor', 'Recipient'];
+  if (!validRoles.includes(role)) {
+    throw new Error('Invalid role. Must be Donor or Recipient');
   }
 
   // Check if user exists
@@ -20,7 +26,7 @@ exports.signupService = async (username, email, password) => {
   }
 
   // Create new user
-  const user = new User({ username, email, password });
+  const user = new User({ username, email, password, role });
   await user.save();
 
   // Generate token
@@ -32,6 +38,8 @@ exports.signupService = async (username, email, password) => {
       id: user._id,
       username: user.username,
       email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
     },
   };
 };
@@ -64,6 +72,8 @@ exports.loginService = async (email, password) => {
       id: user._id,
       username: user.username,
       email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
     },
   };
 };

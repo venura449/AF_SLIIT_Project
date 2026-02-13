@@ -21,6 +21,25 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
+  // Role-Based Access Control
+  role: {
+    type: String,
+    enum: ['Donor', 'Recipient', 'Admin'],
+    default: 'Donor',
+  },
+  // Verification for Recipients (Admin controlled)
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  // Profile Information
+  profile: {
+    fullName: String,
+    phone: String,
+    address: String,
+    bio: String,
+    verificationDocs: [String], // URLs to files/images
+  },
   createdAt: {
     type: Date,
     default: Date.now,

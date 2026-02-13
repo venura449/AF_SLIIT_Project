@@ -1,4 +1,4 @@
-const { signupService, loginService } = require('../../services/Venura/authService');
+const { signupService, loginService, deleteProfileService } = require('../../services/Venura/authService');
 const User = require('../../models/Venura/User');
 
 // Signup Controller
@@ -74,6 +74,20 @@ exports.updateProfile = async (req, res) => {
         isVerified: user.isVerified,
         profile: user.profile,
       },
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Delete Profile Controller
+exports.deleteProfile = async (req, res) => {
+  try {
+    const deletedUser = await deleteProfileService(req.user.id);
+
+    res.status(200).json({
+      message: 'Profile deleted successfully',
+      user: deletedUser,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });

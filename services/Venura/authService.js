@@ -77,3 +77,20 @@ exports.loginService = async (email, password) => {
     },
   };
 };
+
+// Delete Profile Service
+exports.deleteProfileService = async (userId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  await User.findByIdAndDelete(userId);
+
+  return {
+    id: user._id,
+    username: user.username,
+    email: user.email,
+  };
+};

@@ -1,10 +1,10 @@
-const needService = require('../../services/Lochana/needService');
+const needService = require('../../services/Lochana/needService.js');
 
 exports.createNeed = async (req, res)=>{
     try{
         const need = await needService.createNeedRequest({
             ...req.body,
-            recipient: req.user.id
+            recipient: req.user ? req.user.id : req.body.recipient
         });
         res.status(201).json({success:true,data:need});
     }catch(err){

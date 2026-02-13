@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const needController = require('../../controllers/Lochana/needController');
+const needController = require('../../controllers/Lochana/needController.js');
 
-router.post('/needs')
+router.route('/')
     .get(needController.getAllNeeds)
     .post(needController.createNeed);
 

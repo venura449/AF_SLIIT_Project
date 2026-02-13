@@ -1,4 +1,4 @@
-const Need = require('../../models/Lochana/Needs');
+const Need = require('../../models/Lochana/Needs.js');
 
 exports.createNeedRequest = async (data)=>{
     return await Need.create(data);

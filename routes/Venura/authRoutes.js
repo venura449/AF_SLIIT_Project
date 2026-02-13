@@ -4,6 +4,7 @@ const {
   login,
   getProfile,
   updateProfile,
+  deleteProfile,
 } = require('../../controllers/Venura/authController');
 const { protect, authorize } = require('../../middleware/authmiddleware');
 
@@ -16,6 +17,8 @@ router.post('/login', login);
 // Protected routes
 router.get('/profile', protect, getProfile);
 router.put('/profile', protect, updateProfile);
+router.delete('/profile', protect, deleteProfile);
+
 
 //router.put('/verify/:userId', protect, authorize('Donor'), async (req, res)
 

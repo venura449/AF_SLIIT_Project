@@ -36,7 +36,7 @@ exports.updateNeedsStatus = async (needId, updateData)=>{
     if(!need) throw new Error('Need not found');
 
     if(updateData.amount){
-        need.amount = updateData.amount;
+        need.currentAmount += Number(updateData.amount);
     }
 
     if(need.currentAmount >= need.goalAmount){

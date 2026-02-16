@@ -35,6 +35,8 @@ exports.getAllNeeds = async (req, res)=>{
 exports.updateNeedsProgress = async (req,res)=>{
     try{
         const {needId} = req.params;
+        //for dubugging
+        // console.log("Body received in controller:", req.body)
         const {amount, status} =req.body;
 
         const updatedNeed = await needService.updateNeedsStatus(needId, {amount, status});

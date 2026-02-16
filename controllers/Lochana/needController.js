@@ -31,3 +31,19 @@ exports.getAllNeeds = async (req, res)=>{
         res.status(500).json({success:false, error:err.message});
     }
 };
+
+exports.updateNeedsProgress = async (req,res)=>{
+    try{
+        const {needId} = req.params;
+        //for dubugging
+        // console.log("Body received in controller:", req.body)
+        const {amount, status} =req.body;
+
+        const updatedNeed = await needService.updateNeedsStatus(needId, {amount, status});
+
+        res.status(200).json({success:true, data:updatedNeed});
+
+    }catch(err){
+        res.status(400).json({success:false, message: err.message});
+    }
+};

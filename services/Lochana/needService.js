@@ -31,11 +31,13 @@ exports.getFilteredNeeds = async (filters, pagination)=>{
 
 };
 
-exports.updateDonationProgress = async (needId, amount)=>{
+exports.updateNeedsStatus = async (needId, updateData)=>{
     const need = await Need.findById(needId);
     if(!need) throw new Error('Need not found');
 
-    need.currentAmount += amount;
+    if(updateData.amount){
+        need.currentAmount += Number(updateData.amount);
+    }
 
     if(need.currentAmount >= need.goalAmount){
         need.status = 'Fulfilled';
@@ -43,6 +45,10 @@ exports.updateDonationProgress = async (needId, amount)=>{
         need.status = 'Partially Funded';
     }
 
-    return await need.save();
+    //manual status update if provided
+    if(updateData.status){
+        need.status = updateData.status;
+    }
 
-}
+    return await need.save();
+};

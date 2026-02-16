@@ -8,8 +8,9 @@ const { protect, authorize } = require('../../middleware/authmiddleware.js');
 //     .post(needController.createNeed);
 
 router.get('/getall', needController.getAllNeeds);
-router.patch('/update/:needId', protect, needController.updateNeedsProgress);
 
+//protected routes
+router.patch('/update/:needId', protect, needController.updateNeedsProgress);
 router.post('/create' , protect, needController.createNeed);
 
 module.exports = router;

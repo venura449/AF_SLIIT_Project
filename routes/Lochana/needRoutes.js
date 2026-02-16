@@ -8,7 +8,7 @@ const { protect, authorize } = require('../../middleware/authmiddleware.js');
 //     .post(needController.createNeed);
 
 router.get('/getall', needController.getAllNeeds);
-// router.get('/getfiltered', needController.getFilteredNeeds);
+router.patch('/update/:needId', protect, needController.updateNeedsProgress);
 
 router.post('/create' , protect, needController.createNeed);
 

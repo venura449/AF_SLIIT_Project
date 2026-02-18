@@ -18,7 +18,7 @@ router.post('/upload-verification/:needId', protect, upload.array('docs', 3), ne
 router.post('/create' , protect, needController.createNeed);
 
 
-router.patch('/approve/:needId', protect, authorize('admin'), needController.verfyNeedRequest);
+router.patch('/approve/:needId', protect, authorize('Donor'), needController.verfyNeedRequest);
 
 
 module.exports = router;

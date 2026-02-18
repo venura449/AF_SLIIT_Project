@@ -69,7 +69,7 @@ exports.verfyNeedRequest = async (req,res)=>{
     try{
         const {needId} = req.params;
 
-        const verfiedNeed = await Needs.findByIdAndUpdate(
+        const verifiedNeed = await Needs.findByIdAndUpdate(
             needId,
             {
                 isVerified:true,
@@ -78,7 +78,7 @@ exports.verfyNeedRequest = async (req,res)=>{
             {new:true}
         );
 
-        if(!verfiedNeed){
+        if(!verifiedNeed){
             return res.status(400).json({success:false, message:'Need not found'});
         }
 

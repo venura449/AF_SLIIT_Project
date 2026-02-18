@@ -5,7 +5,7 @@ const {
     feedback,
     updateFeedback,
     deleteFeedback
-} = require('../../controllers/Heyli/feedbackcontroller.js');
+} = require('../../controllers/Heyli/feedbackController.js');
 
 const router = express.Router();
 

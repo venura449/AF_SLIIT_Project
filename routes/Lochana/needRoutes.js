@@ -16,4 +16,10 @@ router.get('/getall', needController.getAllNeeds);
 router.patch('/update/:needId', protect, needController.updateNeedsProgress);
 router.post('/upload-verification/:needId', protect, upload.array('docs', 3), needController.uploadDocs);
 router.post('/create' , protect, needController.createNeed);
+
+
+router.patch('/approve/:needId', protect, authorize('admin'), needController.verfyNeedRequest);
+
+
 module.exports = router;
+

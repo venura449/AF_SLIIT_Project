@@ -1,3 +1,4 @@
+const Needs = require('../../models/Lochana/Needs.js');
 const needService = require('../../services/Lochana/needService.js');
 
 exports.createNeed = async (req, res)=>{
@@ -62,4 +63,27 @@ exports.uploadDocs = async (req,res)=>{
         res.status(400).json({success:false, message: err.message});
     }
 
+};
+
+exports.verfyNeedRequest = async (req,res)=>{
+    try{
+        const {needId} = req.params;
+
+        const verfiedNeed = await Needs.findByIdAndUpdate(
+            needId,
+            {
+                isVerified:true,
+                verifiedBy:req.user.id
+            },
+            {new:true}
+        );
+
+        if(!verfiedNeed){
+            return res.status(400).json({success:false, message:'Need not found'});
+        }
+
+        res.status(200).json({success:true, data:verifiedNeed, message:'Need Request Verified Successfully'});
+    }catch(err){
+        res.status(400).json({success:false, message:err.message});
+    }
 };

@@ -9,7 +9,7 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
-    params: {floder:'verification_docs'},
+    params: {folder:'verification_docs'},
 });
 
 module.exports = {cloudinary, storage};

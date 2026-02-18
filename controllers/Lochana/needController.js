@@ -53,6 +53,9 @@ exports.uploadDocs = async (req,res)=>{
     try{
         const {needId} = req.params;
 
+        console.log("Need ID received:", needId);
+        console.log("Files received:", req.files);
+
         if(!req.files || req.files.length === 0){
             return res.status(400).json({success:false, message:'No files uploaded'});
         }

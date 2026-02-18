@@ -52,3 +52,19 @@ exports.updateNeedsStatus = async (needId, updateData)=>{
 
     return await need.save();
 };
+
+
+//verification logic for NEED REQUESTS
+exports.uploadVerificationDocs = async (needID, files)=>{
+    const need = await Need.findById(needID);
+
+    if(!need) throw new Error('Need not found');
+
+    const filesData = files.map(files=>({
+        url:files.path,
+        public_id:files.fileName
+    }));
+
+    need.verificationDocs.push(...filesData);
+    return await need.save();
+}

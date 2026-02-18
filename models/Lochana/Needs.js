@@ -26,7 +26,20 @@ const needSchema = new mongoose.Schema({
     enum: ['Pending', 'Partially Funded', 'Fulfilled', 'Cancelled'], 
     default: 'Pending' 
   },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+
+  isVerified:{
+    type:Boolean,
+    default:false
+  },
+  verificationDocs:[{
+    url:String,
+    public_id:String
+  }],
+  verifiedBy:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 });
 
 // Virtual for Pagination/Filtering logic can be added in the controller

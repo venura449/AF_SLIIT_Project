@@ -47,3 +47,19 @@ exports.updateNeedsProgress = async (req,res)=>{
         res.status(400).json({success:false, message: err.message});
     }
 };
+
+exports.uploadDocs = async (req,res)=>{
+    try{
+        const {needId} = req.params;
+
+        if(!req.files || req.files.length === 0){
+            return res.status(400).json({success:false, message:'No files uploaded'});
+        }
+
+        const updatedNeed = await needService.uploadVerificationDocs(needId, req.files);
+        res.status(200).json({success:true, data:updatedNeed});
+    }catch(err){
+        res.status(400).json({success:false, message: err.message});
+    }
+
+};

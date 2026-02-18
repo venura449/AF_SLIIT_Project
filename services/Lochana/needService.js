@@ -65,6 +65,6 @@ exports.uploadVerificationDocs = async (needID, files)=>{
         public_id:files.fileName
     }));
 
-    need.verificationDocs.push(...fileData);
+    need.verificationDocs.push(...filesData);
     return await need.save();
 }

@@ -1,5 +1,7 @@
 const cloudinary = require('cloudinary').v2;
 const {CloudinaryStorage} = require('multer-storage-cloudinary');
+require('dotenv').config();
+
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
@@ -9,7 +11,7 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
-    params: {floder:'verification_docs'},
+    params: {folder:'verification_docs'},
 });
 
 module.exports = {cloudinary, storage};

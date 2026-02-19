@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Venura/Login';
 import Register from './pages/Venura/Register';
+import Dashboard from './pages/Venura/Dashboard';
+import Profile from './pages/Venura/Profile';
 import './index.css';
 
 function App() {
@@ -10,6 +12,8 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
   );

@@ -50,8 +50,13 @@ exports.updateNeedsProgress = async (req,res)=>{
 };
 
 exports.uploadDocs = async (req,res)=>{
+    console.log("full request body:", req.body);
+    console.log("full request files: ", req.files);
     try{
         const {needId} = req.params;
+
+        console.log("Need ID received:", needId);
+        console.log("Files received:", req.files);
 
         if(!req.files || req.files.length === 0){
             return res.status(400).json({success:false, message:'No files uploaded'});
@@ -69,7 +74,7 @@ exports.verfyNeedRequest = async (req,res)=>{
     try{
         const {needId} = req.params;
 
-        const verfiedNeed = await Needs.findByIdAndUpdate(
+        const verifiedNeed = await Needs.findByIdAndUpdate(
             needId,
             {
                 isVerified:true,
@@ -78,7 +83,7 @@ exports.verfyNeedRequest = async (req,res)=>{
             {new:true}
         );
 
-        if(!verfiedNeed){
+        if(!verifiedNeed){
             return res.status(400).json({success:false, message:'Need not found'});
         }
 

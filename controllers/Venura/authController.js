@@ -44,12 +44,18 @@ exports.getProfile = async (req, res) => {
 // Update Profile Controller
 exports.updateProfile = async (req, res) => {
   try {
-    const { fullName, phone, address, bio, verificationDocs } = req.body;
+    const { username, profile } = req.body;
+    const { fullName, phone, address, bio, verificationDocs } = profile || {};
 
     const user = await User.findById(req.user.id);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update username if provided
+    if (username) {
+      user.username = username;
     }
 
     // Update profile fields
@@ -64,17 +70,10 @@ exports.updateProfile = async (req, res) => {
 
     await user.save();
 
-    res.json({
-      message: 'Profile updated successfully',
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        isVerified: user.isVerified,
-        profile: user.profile,
-      },
-    });
+    // Return user object directly (frontend expects this format)
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    res.json(userResponse);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

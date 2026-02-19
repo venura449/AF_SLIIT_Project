@@ -5,17 +5,19 @@ import { signup } from '../../services/authService';
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
   const [role, setRole] = useState('Donor');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Generate username from email
+  const generateUsername = (email) => {
+    return email.split('@')[0];
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,20 +29,16 @@ const Register = () => {
     setLoading(true);
     setError('');
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
     if (!agreeTerms) {
       setError('Please agree to the Terms of Service');
       setLoading(false);
       return;
     }
 
+    const username = generateUsername(formData.email);
+
     try {
-      const result = await signup(formData.username, formData.email, formData.password, role);
+      const result = await signup(username, formData.email, formData.password, role);
       localStorage.setItem('token', result.token);
       navigate('/dashboard');
     } catch (err) {
@@ -71,39 +69,29 @@ const Register = () => {
       </div>
 
       {/* Main Card */}
-      <div className="w-full max-w-md p-8 rounded-3xl relative z-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl shadow-green-500/10 transform transition-all duration-500 hover:shadow-green-500/20 my-8">
+      <div className="w-full max-w-md p-6 rounded-3xl relative z-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl shadow-green-500/10 transform transition-all duration-500 hover:shadow-green-500/20">
         {/* Decorative Top Accent */}
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 rounded-full"></div>
 
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="flex justify-center mb-4 relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-400 shadow-lg shadow-green-500/30 flex items-center justify-center text-white text-2xl font-bold transform rotate-3 hover:rotate-0 transition-transform duration-300 animate-float">
-              <i className="fas fa-user-plus text-3xl"></i>
+        <div className="text-center mb-4">
+          <div className="flex justify-center mb-2 relative">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-400 shadow-lg shadow-green-500/30 flex items-center justify-center text-white font-bold transform rotate-3 hover:rotate-0 transition-transform duration-300 animate-float">
+              <i className="fas fa-user-plus text-xl"></i>
             </div>
             <div className="absolute -right-2 top-1/2 w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
             <div className="absolute -left-2 top-1/2 w-2 h-2 bg-emerald-400 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
           </div>
 
-          <h1 className="text-3xl font-light text-white tracking-wider">
+          <h1 className="text-2xl font-light text-white tracking-wider">
             Join <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">BridgeConnect</span>
           </h1>
 
-          <div className="flex items-center justify-center space-x-2 mt-1">
-            <span className="text-xs px-3 py-1 bg-white/10 rounded-full text-green-300 border border-green-500/30">
-              <i className="fas fa-leaf mr-1 text-xs"></i> No Poverty Initiative
-            </span>
-          </div>
-
-          <p className="text-sm text-green-200/70 font-light mt-3 max-w-xs mx-auto">
-            Create your account and start making a difference
-          </p>
-
-          <div className="w-16 h-0.5 bg-gradient-to-r from-green-400 to-emerald-300 mx-auto mt-3 rounded-full"></div>
+          <div className="w-16 h-0.5 bg-gradient-to-r from-green-400 to-emerald-300 mx-auto mt-2 rounded-full"></div>
         </div>
 
         {/* Role Selection Tabs */}
-        <div className="flex bg-white/5 rounded-lg p-1 mb-5 border border-white/10">
+        <div className="flex bg-white/5 rounded-lg p-1 mb-4 border border-white/10">
           <button
             type="button"
             onClick={() => setRole('Donor')}
@@ -124,21 +112,6 @@ const Register = () => {
           </button>
         </div>
 
-        {/* Role Info Badge */}
-        <div className="mb-5 p-3 bg-white/5 border border-white/10 rounded-xl">
-          {role === 'Donor' ? (
-            <p className="text-xs text-green-200/70 text-center">
-              <i className="fas fa-info-circle mr-2 text-green-400"></i>
-              As a <span className="text-green-400 font-medium">Donor</span>, you can contribute resources to help underprivileged individuals in your community.
-            </p>
-          ) : (
-            <p className="text-xs text-green-200/70 text-center">
-              <i className="fas fa-info-circle mr-2 text-green-400"></i>
-              As a <span className="text-green-400 font-medium">Recipient</span>, you can receive support from donors. Admin verification required.
-            </p>
-          )}
-        </div>
-
         {/* Error Message */}
         {error && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm text-center">
@@ -147,32 +120,9 @@ const Register = () => {
         )}
 
         {/* Register Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username Field */}
-          <div className="space-y-2">
-            <label htmlFor="username" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
-              <i className="fas fa-user mr-2 text-xs"></i> Username
-            </label>
-            <div className="relative group">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-300/50 group-hover:text-green-300 transition-colors">
-                <i className="fas fa-at"></i>
-              </span>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                required
-                minLength={3}
-                className="w-full bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-white placeholder-white/30 focus:border-green-400 focus:ring-1 focus:ring-green-400/30 transition-all duration-300 glow-on-focus rounded-xl outline-none"
-                placeholder="johndoe"
-              />
-            </div>
-          </div>
-
+        <form onSubmit={handleSubmit} className="space-y-3">
           {/* Email Field */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label htmlFor="email" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
               <i className="fas fa-envelope mr-2 text-xs"></i> Email Address
             </label>
@@ -187,14 +137,14 @@ const Register = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-white placeholder-white/30 focus:border-green-400 focus:ring-1 focus:ring-green-400/30 transition-all duration-300 glow-on-focus rounded-xl outline-none"
+                className="w-full bg-white/5 border border-white/10 py-2.5 pl-10 pr-4 text-white placeholder-white/30 focus:border-green-400 focus:ring-1 focus:ring-green-400/30 transition-all duration-300 rounded-xl outline-none"
                 placeholder="johndoe@example.com"
               />
             </div>
           </div>
 
           {/* Password Field */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label htmlFor="password" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
               <i className="fas fa-lock mr-2 text-xs"></i> Password
             </label>
@@ -210,7 +160,7 @@ const Register = () => {
                 onChange={handleChange}
                 required
                 minLength={6}
-                className="w-full bg-white/5 border border-white/10 py-3 pl-10 pr-12 text-white placeholder-white/30 focus:border-green-400 focus:ring-1 focus:ring-green-400/30 transition-all duration-300 glow-on-focus rounded-xl outline-none"
+                className="w-full bg-white/5 border border-white/10 py-2.5 pl-10 pr-12 text-white placeholder-white/30 focus:border-green-400 focus:ring-1 focus:ring-green-400/30 transition-all duration-300 rounded-xl outline-none"
                 placeholder="Min. 6 characters"
               />
               <button
@@ -219,35 +169,6 @@ const Register = () => {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-green-300/50 hover:text-green-300"
               >
                 <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-              </button>
-            </div>
-          </div>
-
-          {/* Confirm Password Field */}
-          <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
-              <i className="fas fa-lock mr-2 text-xs"></i> Confirm Password
-            </label>
-            <div className="relative group">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-300/50 group-hover:text-green-300 transition-colors">
-                <i className="fas fa-check-double"></i>
-              </span>
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                className="w-full bg-white/5 border border-white/10 py-3 pl-10 pr-12 text-white placeholder-white/30 focus:border-green-400 focus:ring-1 focus:ring-green-400/30 transition-all duration-300 glow-on-focus rounded-xl outline-none"
-                placeholder="Re-enter password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-green-300/50 hover:text-green-300"
-              >
-                <i className={`fas ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
               </button>
             </div>
           </div>
@@ -273,7 +194,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 mt-4 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white font-medium rounded-xl shadow-lg shadow-green-500/30 hover:shadow-emerald-500/40 transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-400/50 text-base tracking-wide flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 mt-3 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white font-medium rounded-xl shadow-lg shadow-green-500/30 hover:shadow-emerald-500/40 transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-400/50 text-base tracking-wide flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <i className="fas fa-spinner fa-spin"></i>
@@ -287,7 +208,7 @@ const Register = () => {
         </form>
 
         {/* Alternative Register Methods */}
-        <div className="mt-5">
+        <div className="mt-4">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/10"></div>
@@ -310,13 +231,31 @@ const Register = () => {
         </div>
 
         {/* Login Link */}
-        <div className="mt-5 text-center">
+        <div className="mt-4 text-center">
           <p className="text-sm text-green-200/50">
             Already have an account?{' '}
             <Link to="/login" className="text-green-400 hover:text-green-300 font-medium transition-colors border-b border-green-400/30 hover:border-green-300">
               Sign in <i className="fas fa-arrow-right text-xs ml-1"></i>
             </Link>
           </p>
+        </div>
+
+        {/* Footer with Stats */}
+        <div className="mt-4 pt-3 border-t border-white/10">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <div className="text-green-400 font-semibold">1,247+</div>
+              <div className="text-xs text-green-200/50">Donors</div>
+            </div>
+            <div>
+              <div className="text-green-400 font-semibold">892+</div>
+              <div className="text-xs text-green-200/50">Recipients</div>
+            </div>
+            <div>
+              <div className="text-green-400 font-semibold">15</div>
+              <div className="text-xs text-green-200/50">Communities</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

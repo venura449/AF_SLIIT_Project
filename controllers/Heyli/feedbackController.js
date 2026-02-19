@@ -16,7 +16,7 @@ exports.addFeedback = async(req,res) => {
         }
 
     }catch(e){
-        res.status(500).json({message: "Error adding feedback", error: e.message});
+        res.status(400).json({ error: e.message});
     }
 }
 
@@ -27,7 +27,7 @@ exports.feedback = async(req,res) => {
         res.status(200).json({message: "Feedbacks fetched successfully", feedbacks});
 
     }catch(e){
-        res.status(500).json({message: "Error fetching feedback", error: e.message});
+        res.status(500).json({error: e.message});
     }
 }
 
@@ -40,7 +40,7 @@ exports.updateFeedback = async(req,res) => {
 
         res.status(200).json({message: "Feedback updated successfully", updatedFeedback});
     }catch(e){
-        res.status(500).json({message: "Error updating feedback", error: e.message});
+        res.status(404).json({error: e.message});
     }
 }
 
@@ -52,6 +52,6 @@ exports.deleteFeedback = async(req,res) => {
 
         res.status(200).json({message: "Feedback deleted successfully", deletedFeedback});
     }catch(e){
-        res.status(500).json({message: "Error deleting feedback", error: e.message});
+        res.status(404).json({error: e.message});
     }
 }

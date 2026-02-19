@@ -55,14 +55,15 @@ exports.updateNeedsStatus = async (needId, updateData)=>{
 
 
 //verification logic for NEED REQUESTS
-exports.uploadVerificationDocs = async (needID, files)=>{
-    const need = await Need.findById(needID);
+exports.uploadVerificationDocs = async (needId, files)=>{
+    console.log('filed inside service', files);
+    const need = await Need.findById(needId);
 
     if(!need) throw new Error('Need not found');
 
-    const filesData = files.map(files=>({
-        url:files.path,
-        public_id:files.fileName
+    const filesData = files.map(file=>({
+        url:file.path || file.secure_url,
+        public_id:file.filename || file.public_id
     }));
 
     need.verificationDocs.push(...filesData);

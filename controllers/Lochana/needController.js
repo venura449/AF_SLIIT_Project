@@ -50,6 +50,8 @@ exports.updateNeedsProgress = async (req,res)=>{
 };
 
 exports.uploadDocs = async (req,res)=>{
+    console.log("full request body:", req.body);
+    console.log("full request files: ", req.files);
     try{
         const {needId} = req.params;
 

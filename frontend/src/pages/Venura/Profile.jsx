@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getProfile, updateProfile } from '../../services/authService';
+import { getProfile, updateProfile, getDocumentStatus } from '../../services/authService';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -10,6 +10,7 @@ const Profile = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [documentStatus, setDocumentStatus] = useState(null);
   const totalPages = 3;
   
   const [formData, setFormData] = useState({
@@ -23,8 +24,12 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const profile = await getProfile();
+        const [profile, docStatus] = await Promise.all([
+          getProfile(),
+          getDocumentStatus(),
+        ]);
         setUser(profile);
+        setDocumentStatus(docStatus);
         setFormData({
           username: profile.username || '',
           fullName: profile.profile?.fullName || '',
@@ -166,6 +171,43 @@ const Profile = () => {
                   </span>
                 )}
               </div>
+
+              {/* Document Status & Upload Link */}
+              <Link
+                to="/upload-id"
+                className={`block w-full p-3 rounded-xl border transition-all duration-300 mb-4 ${
+                  documentStatus?.documentStatus === 'verified'
+                    ? 'bg-green-500/10 border-green-500/30 hover:bg-green-500/20'
+                    : documentStatus?.documentStatus === 'pending'
+                    ? 'bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20'
+                    : documentStatus?.documentStatus === 'rejected'
+                    ? 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20'
+                    : 'bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <i className={`fas ${
+                      documentStatus?.documentStatus === 'verified' ? 'fa-check-circle text-green-400' :
+                      documentStatus?.documentStatus === 'pending' ? 'fa-clock text-yellow-400' :
+                      documentStatus?.documentStatus === 'rejected' ? 'fa-times-circle text-red-400' :
+                      'fa-id-card text-orange-400'
+                    }`}></i>
+                    <span className={`text-sm font-medium ${
+                      documentStatus?.documentStatus === 'verified' ? 'text-green-400' :
+                      documentStatus?.documentStatus === 'pending' ? 'text-yellow-400' :
+                      documentStatus?.documentStatus === 'rejected' ? 'text-red-400' :
+                      'text-orange-400'
+                    }`}>
+                      {documentStatus?.documentStatus === 'verified' ? 'ID Verified' :
+                       documentStatus?.documentStatus === 'pending' ? 'Verification Pending' :
+                       documentStatus?.documentStatus === 'rejected' ? 'ID Rejected' :
+                       'Upload ID'}
+                    </span>
+                  </div>
+                  <i className="fas fa-chevron-right text-green-200/30"></i>
+                </div>
+              </Link>
 
               <div className="pt-4 border-t border-white/10">
                 <p className="text-xs text-green-200/40 mb-4">

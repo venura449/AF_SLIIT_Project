@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProfile, logout, getAllUsers, updateUserStatus, updateUser, deleteUser } from '../../services/authService';
+import { getProfile, logout, getAllUsers, updateUserStatus, updateUser, deleteUser, getUnverifiedUsers, verifyUserDocument } from '../../services/authService';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -29,6 +31,20 @@ const AdminDashboard = () => {
   // Delete confirmation modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingUser, setDeletingUser] = useState(null);
+
+  // Unverified users state
+  const [unverifiedUsers, setUnverifiedUsers] = useState([]);
+  const [unverifiedLoading, setUnverifiedLoading] = useState(false);
+
+  // Document viewing modal
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [viewingDocument, setViewingDocument] = useState(null);
+  const [documentUrl, setDocumentUrl] = useState(null);
+
+  // Rejection modal
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectingUser, setRejectingUser] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   // Search, Filter & Pagination state
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,6 +96,7 @@ const AdminDashboard = () => {
     totalAdmins: users.filter(u => u.role === 'Admin').length,
     activeUsers: users.filter(u => u.isActive !== false).length,
     inactiveUsers: users.filter(u => u.isActive === false).length,
+    pendingVerifications: unverifiedUsers.filter(u => u.documentStatus === 'pending').length,
   };
 
   useEffect(() => {
@@ -94,6 +111,7 @@ const AdminDashboard = () => {
         setUser(profile);
         // Fetch users after verifying admin
         fetchUsers();
+        fetchUnverifiedUsers();
       } catch (err) {
         navigate('/login');
       } finally {
@@ -113,6 +131,19 @@ const AdminDashboard = () => {
       console.error('Error fetching users:', err);
     } finally {
       setUsersLoading(false);
+    }
+  };
+
+  // Fetch unverified users
+  const fetchUnverifiedUsers = async () => {
+    setUnverifiedLoading(true);
+    try {
+      const unverified = await getUnverifiedUsers();
+      setUnverifiedUsers(unverified);
+    } catch (err) {
+      console.error('Error fetching unverified users:', err);
+    } finally {
+      setUnverifiedLoading(false);
     }
   };
 
@@ -175,6 +206,59 @@ const AdminDashboard = () => {
       setDeletingUser(null);
     } catch (err) {
       console.error('Error deleting user:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // View user document
+  const handleViewDocument = (userToView) => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const docUrl = `${API_URL}/documents/admin/document/${userToView._id}?token=${token}`;
+    setViewingDocument(userToView);
+    setDocumentUrl(docUrl);
+    setShowDocumentModal(true);
+  };
+
+  // Approve user document
+  const handleApproveDocument = async (userId) => {
+    setActionLoading(userId);
+    try {
+      await verifyUserDocument(userId, true);
+      await fetchUnverifiedUsers();
+      await fetchUsers();
+      setShowDocumentModal(false);
+      setViewingDocument(null);
+    } catch (err) {
+      console.error('Error approving document:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Open reject modal
+  const handleRejectClick = (userToReject) => {
+    setRejectingUser(userToReject);
+    setRejectionReason('');
+    setShowRejectModal(true);
+    setShowDocumentModal(false);
+  };
+
+  // Confirm rejection
+  const handleRejectConfirm = async () => {
+    if (!rejectionReason.trim()) {
+      return;
+    }
+    setActionLoading(rejectingUser._id);
+    try {
+      await verifyUserDocument(rejectingUser._id, false, rejectionReason);
+      await fetchUnverifiedUsers();
+      await fetchUsers();
+      setShowRejectModal(false);
+      setRejectingUser(null);
+      setRejectionReason('');
+    } catch (err) {
+      console.error('Error rejecting document:', err);
     } finally {
       setActionLoading(null);
     }
@@ -758,56 +842,153 @@ const AdminDashboard = () => {
 
             {activeTab === 'verifications' && (
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                  <i className="fas fa-user-check text-green-400 mr-2"></i>
-                  Pending Verifications
-                </h3>
-                <div className="space-y-3">
-                  {users.filter(u => !u.isVerified && u.role === 'Recipient').length === 0 ? (
-                    <div className="text-center py-8">
-                      <i className="fas fa-check-circle text-4xl text-green-400 mb-3"></i>
-                      <p className="text-green-200/70">No pending verifications</p>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white flex items-center">
+                    <i className="fas fa-user-check text-green-400 mr-2"></i>
+                    User Verification
+                    {stats.pendingVerifications > 0 && (
+                      <span className="ml-2 px-2 py-0.5 bg-orange-500/20 text-orange-400 text-xs rounded-full">
+                        {stats.pendingVerifications} Pending
+                      </span>
+                    )}
+                  </h3>
+                  <button 
+                    onClick={fetchUnverifiedUsers}
+                    className="px-4 py-2 bg-white/10 text-white text-sm rounded-xl hover:bg-white/20 transition-all duration-300 border border-white/10"
+                  >
+                    <i className="fas fa-refresh mr-2"></i>Refresh
+                  </button>
+                </div>
+
+                {/* Status Filter Tabs */}
+                <div className="flex space-x-2 mb-6">
+                  {['all', 'pending', 'not_uploaded', 'rejected'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => {/* Can add filter state if needed */}}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        status === 'pending'
+                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                          : status === 'not_uploaded'
+                          ? 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                          : status === 'rejected'
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : 'bg-white/10 text-white border border-white/10'
+                      }`}
+                    >
+                      {status === 'all' ? 'All' : 
+                       status === 'pending' ? `Pending (${unverifiedUsers.filter(u => u.documentStatus === 'pending').length})` :
+                       status === 'not_uploaded' ? `Not Uploaded (${unverifiedUsers.filter(u => u.documentStatus === 'not_uploaded').length})` :
+                       `Rejected (${unverifiedUsers.filter(u => u.documentStatus === 'rejected').length})`}
+                    </button>
+                  ))}
+                </div>
+
+                {unverifiedLoading ? (
+                  <div className="text-center py-12">
+                    <i className="fas fa-spinner fa-spin text-3xl text-green-400 mb-3"></i>
+                    <p className="text-green-200/70">Loading unverified users...</p>
+                  </div>
+                ) : unverifiedUsers.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <i className="fas fa-check-double text-4xl text-green-400"></i>
                     </div>
-                  ) : (
-                    users.filter(u => !u.isVerified && u.role === 'Recipient').map((u) => (
-                      <div key={u._id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-500 to-amber-400 flex items-center justify-center text-white font-bold">
+                    <p className="text-white font-medium">All users are verified!</p>
+                    <p className="text-green-200/50 text-sm mt-1">No pending verifications at this time.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {unverifiedUsers.map((u) => (
+                      <div key={u._id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
+                            u.role === 'Donor' 
+                              ? 'bg-gradient-to-br from-green-500 to-emerald-400' 
+                              : 'bg-gradient-to-br from-purple-500 to-violet-400'
+                          }`}>
                             {u.username?.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="text-white font-medium">{u.username}</p>
+                            <div className="flex items-center space-x-2">
+                              <p className="text-white font-medium">{u.username}</p>
+                              <span className={`px-2 py-0.5 rounded-full text-xs ${
+                                u.role === 'Donor' ? 'bg-green-500/20 text-green-400' : 'bg-purple-500/20 text-purple-400'
+                              }`}>
+                                {u.role}
+                              </span>
+                            </div>
                             <p className="text-xs text-green-200/50">{u.email}</p>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <span className={`px-2 py-0.5 rounded-full text-xs ${
+                                u.documentStatus === 'pending' 
+                                  ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                                  : u.documentStatus === 'rejected'
+                                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                  : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                              }`}>
+                                <i className={`fas ${
+                                  u.documentStatus === 'pending' ? 'fa-clock' : 
+                                  u.documentStatus === 'rejected' ? 'fa-times-circle' : 'fa-upload'
+                                } mr-1`}></i>
+                                {u.documentStatus === 'pending' ? 'Document Pending Review' :
+                                 u.documentStatus === 'rejected' ? 'Document Rejected' : 'No Document Uploaded'}
+                              </span>
+                              {u.nicDocument?.uploadedAt && (
+                                <span className="text-xs text-green-200/40">
+                                  Uploaded: {new Date(u.nicDocument.uploadedAt).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <button 
-                            onClick={async () => {
-                              setActionLoading(u._id);
-                              try {
-                                await updateUser(u._id, { isVerified: true });
-                                await fetchUsers();
-                              } catch (err) {
-                                console.error(err);
-                              } finally {
-                                setActionLoading(null);
-                              }
-                            }}
-                            disabled={actionLoading === u._id}
-                            className="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs rounded-lg transition-colors disabled:opacity-50"
-                          >
-                            {actionLoading === u._id ? (
-                              <i className="fas fa-spinner fa-spin mr-1"></i>
-                            ) : (
-                              <i className="fas fa-check mr-1"></i>
-                            )}
-                            Approve
-                          </button>
+                          {u.documentStatus === 'pending' && u.nicDocument?.filename && (
+                            <>
+                              <button
+                                onClick={() => handleViewDocument(u)}
+                                className="px-3 py-1.5 bg-blue-500/20 text-blue-400 text-xs rounded-lg hover:bg-blue-500/30 transition-colors border border-blue-500/30"
+                              >
+                                <i className="fas fa-eye mr-1"></i>View Document
+                              </button>
+                              <button
+                                onClick={() => handleApproveDocument(u._id)}
+                                disabled={actionLoading === u._id}
+                                className="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                {actionLoading === u._id ? (
+                                  <i className="fas fa-spinner fa-spin mr-1"></i>
+                                ) : (
+                                  <i className="fas fa-check mr-1"></i>
+                                )}
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleRejectClick(u)}
+                                disabled={actionLoading === u._id}
+                                className="px-3 py-1.5 bg-red-500/20 text-red-400 text-xs rounded-lg hover:bg-red-500/30 transition-colors border border-red-500/30 disabled:opacity-50"
+                              >
+                                <i className="fas fa-times mr-1"></i>Reject
+                              </button>
+                            </>
+                          )}
+                          {u.documentStatus === 'rejected' && (
+                            <span className="text-xs text-red-400/70 max-w-xs truncate">
+                              <i className="fas fa-info-circle mr-1"></i>
+                              {u.documentRejectionReason || 'Document was rejected'}
+                            </span>
+                          )}
+                          {u.documentStatus === 'not_uploaded' && (
+                            <span className="text-xs text-gray-400">
+                              <i className="fas fa-hourglass-half mr-1"></i>
+                              Waiting for document upload
+                            </span>
+                          )}
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -977,6 +1158,176 @@ const AdminDashboard = () => {
                       <i className="fas fa-spinner fa-spin"></i>
                     ) : (
                       'Delete'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Document Viewing Modal */}
+        {showDocumentModal && viewingDocument && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <div className="bg-[#0D2B3E] border border-white/20 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+              {/* Modal Header */}
+              <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                    viewingDocument.role === 'Donor' 
+                      ? 'bg-gradient-to-br from-green-500 to-emerald-400' 
+                      : 'bg-gradient-to-br from-purple-500 to-violet-400'
+                  }`}>
+                    {viewingDocument.username?.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">{viewingDocument.username}'s ID Document</h3>
+                    <p className="text-xs text-green-200/50">{viewingDocument.email}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => {
+                    setShowDocumentModal(false);
+                    setViewingDocument(null);
+                    setDocumentUrl(null);
+                  }}
+                  className="text-green-200/50 hover:text-white transition-colors"
+                >
+                  <i className="fas fa-times text-xl"></i>
+                </button>
+              </div>
+
+              {/* Document Preview */}
+              <div className="flex-1 overflow-auto p-6 bg-black/30">
+                {viewingDocument.nicDocument?.originalName?.toLowerCase().endsWith('.pdf') ? (
+                  <div className="text-center">
+                    <div className="mb-4">
+                      <i className="fas fa-file-pdf text-6xl text-red-400"></i>
+                    </div>
+                    <p className="text-white mb-4">PDF Document: {viewingDocument.nicDocument.originalName}</p>
+                    <a
+                      href={documentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white rounded-xl transition-colors"
+                    >
+                      <i className="fas fa-external-link-alt mr-2"></i>
+                      Open PDF in New Tab
+                    </a>
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <img
+                      src={documentUrl}
+                      alt="ID Document"
+                      className="max-w-full max-h-[60vh] rounded-lg border border-white/10"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                    <div className="hidden text-center">
+                      <i className="fas fa-exclamation-triangle text-4xl text-yellow-400 mb-4"></i>
+                      <p className="text-white">Unable to load document preview</p>
+                      <a
+                        href={documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white rounded-xl transition-colors"
+                      >
+                        <i className="fas fa-download mr-2"></i>
+                        Download Document
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer - Actions */}
+              <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                <div className="text-sm text-green-200/50">
+                  <i className="fas fa-info-circle mr-2"></i>
+                  Uploaded: {viewingDocument.nicDocument?.uploadedAt 
+                    ? new Date(viewingDocument.nicDocument.uploadedAt).toLocaleString()
+                    : 'Unknown'}
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => handleRejectClick(viewingDocument)}
+                    disabled={actionLoading === viewingDocument._id}
+                    className="px-4 py-2 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500/30 transition-colors border border-red-500/30 disabled:opacity-50"
+                  >
+                    <i className="fas fa-times mr-2"></i>Reject
+                  </button>
+                  <button
+                    onClick={() => handleApproveDocument(viewingDocument._id)}
+                    disabled={actionLoading === viewingDocument._id}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-xl transition-colors disabled:opacity-50"
+                  >
+                    {actionLoading === viewingDocument._id ? (
+                      <>
+                        <i className="fas fa-spinner fa-spin mr-2"></i>Processing...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-check mr-2"></i>Approve & Verify
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rejection Reason Modal */}
+        {showRejectModal && rejectingUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-[#0D2B3E] border border-white/20 rounded-2xl shadow-2xl w-full max-w-md p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                  <i className="fas fa-times-circle text-2xl text-red-400"></i>
+                </div>
+                <h3 className="text-lg font-semibold text-white">Reject Document</h3>
+                <p className="text-sm text-green-200/50 mt-2">
+                  Please provide a reason for rejecting <span className="text-white font-medium">{rejectingUser.username}</span>'s document.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-green-200/70 mb-2">Rejection Reason *</label>
+                  <textarea
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    placeholder="e.g., Document is blurry, NIC number not visible, etc."
+                    rows={3}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white placeholder-white/30 focus:border-red-400 focus:ring-1 focus:ring-red-400/30 transition-all duration-300 outline-none resize-none"
+                  />
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => {
+                      setShowRejectModal(false);
+                      setRejectingUser(null);
+                      setRejectionReason('');
+                    }}
+                    className="flex-1 py-2.5 px-4 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleRejectConfirm}
+                    disabled={!rejectionReason.trim() || actionLoading === rejectingUser._id}
+                    className="flex-1 py-2.5 px-4 bg-red-600 text-white rounded-xl hover:bg-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {actionLoading === rejectingUser._id ? (
+                      <i className="fas fa-spinner fa-spin"></i>
+                    ) : (
+                      <>
+                        <i className="fas fa-times mr-2"></i>Reject Document
+                      </>
                     )}
                   </button>
                 </div>

@@ -45,6 +45,20 @@ const userSchema = new mongoose.Schema({
     bio: String,
     verificationDocs: [String], // URLs to files/images
   },
+  // NIC Document Upload
+  nicDocument: {
+    filename: String,
+    originalName: String,
+    path: String,
+    uploadedAt: Date,
+  },
+  // Document verification status
+  documentStatus: {
+    type: String,
+    enum: ['not_uploaded', 'pending', 'verified', 'rejected'],
+    default: 'not_uploaded',
+  },
+  documentRejectionReason: String,
   createdAt: {
     type: Date,
     default: Date.now,

@@ -4,34 +4,21 @@ const{
     countTotNeeds,
 } = require('../../services/Heyli/adminDashService.js');
 
-exports.getTotalUsers = async (req, res) => {
+exports.getAdminDashStats = async (req, res) => {
     try{
-        const totalUsers = await countTotUsers();
+        const [totalUsers, totalFeedbacks, totalNeeds] = await Promise.all([
+            countTotUsers(),
+            countTotFeedbacks(),
+            countTotNeeds()
+        ]);
 
-        res.status(200).json({totalUsers});
-    }catch(e){
-        res.status(404).json({error: e.message});
+        res.status(200).json({
+            totalUsers,
+            totalFeedbacks,
+            totalNeeds
+        });
+    }
+    catch(e){
+        res.status(500).json({error: e.message});
     }
 }
-
-exports.getTotalFeedbacks = async (req, res) => {
-    try{
-        const totalFeedbacks = await countTotFeedbacks();
-
-        res.status(200).json({totalFeedbacks});
-    }catch(e){
-        res.status(404).json({error: e.message});
-    }
-}
-
-exports.getTotalNeeds = async (req, res) => {
-    try{
-        const totalNeeds = await countTotNeeds();
-
-        res.status(200).json({totalNeeds});
-    }catch(e){
-        res.status(404).json({error: e.message});
-    }   
-}
-
-

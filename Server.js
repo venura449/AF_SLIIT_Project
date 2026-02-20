@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 const connectDB = require('./config/db.js');
 
 
 const authRoutes = require('./routes/Venura/authRoutes.js');
+const documentRoutes = require('./routes/Venura/documentRoutes.js');
 const needRoutes = require('./routes/Lochana/needRoutes.js');
 const feedbackRoutes = require('./routes/Heyli/feedbackRoutes.js');
 const adminDashRoutes = require('./routes/Heyli/adminDashRoutes.js');
@@ -36,9 +38,13 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/documents', documentRoutes);
 app.use('/api/v1/needs', needRoutes);
 app.use('/api/v1/feedbacks', feedbackRoutes);
 app.use('/api/v1/admin', adminDashRoutes);
+
+// Serve uploaded files (protected - only admin can access via API)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 

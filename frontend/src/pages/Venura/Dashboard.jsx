@@ -1,19 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProfile, logout } from '../../services/authService';
+import { getProfile, logout, getDocumentStatus } from '../../services/authService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [documentStatus, setDocumentStatus] = useState(null);
+  const [showUploadBanner, setShowUploadBanner] = useState(false);
   const profileMenuRef = useRef(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const profile = await getProfile();
+        const [profile, docStatus] = await Promise.all([
+          getProfile(),
+          getDocumentStatus(),
+        ]);
         setUser(profile);
+        setDocumentStatus(docStatus);
+        // Show upload banner if document not uploaded or rejected
+        if (docStatus?.documentStatus === 'not_uploaded' || docStatus?.documentStatus === 'rejected') {
+          setShowUploadBanner(true);
+        }
       } catch (err) {
         navigate('/login');
       } finally {
@@ -119,6 +129,22 @@ const Dashboard = () => {
                       <i className="fas fa-user-circle w-5"></i>
                       <span>My Profile</span>
                     </button>
+                    <button
+                      onClick={() => navigate('/upload-id')}
+                      className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-green-200/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                    >
+                      <i className="fas fa-id-card w-5"></i>
+                      <span>Upload ID</span>
+                      {documentStatus?.documentStatus === 'not_uploaded' && (
+                        <span className="ml-auto px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded-full">Required</span>
+                      )}
+                      {documentStatus?.documentStatus === 'pending' && (
+                        <span className="ml-auto px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">Pending</span>
+                      )}
+                      {documentStatus?.documentStatus === 'verified' && (
+                        <span className="ml-auto px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">Verified</span>
+                      )}
+                    </button>
                     <button className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-green-200/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200">
                       <i className="fas fa-cog w-5"></i>
                       <span>Settings</span>
@@ -147,6 +173,44 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ID Upload Notification Banner */}
+        {showUploadBanner && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30 rounded-2xl flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                <i className="fas fa-id-card text-orange-400"></i>
+              </div>
+              <div>
+                <p className="text-white font-medium">
+                  {documentStatus?.documentStatus === 'rejected' 
+                    ? 'Your ID verification was rejected' 
+                    : 'Verify your identity to unlock all features'}
+                </p>
+                <p className="text-sm text-orange-200/70">
+                  {documentStatus?.documentStatus === 'rejected'
+                    ? 'Please upload a clearer document to complete verification.'
+                    : 'Upload your National Identity Card (NIC) to get verified.'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowUploadBanner(false)}
+                className="text-orange-200/50 hover:text-white transition-colors"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+              <button
+                onClick={() => navigate('/upload-id')}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white font-medium rounded-xl transition-colors text-sm"
+              >
+                <i className="fas fa-upload mr-2"></i>
+                Upload ID
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-light text-white mb-2">

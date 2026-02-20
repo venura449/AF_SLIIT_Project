@@ -4,6 +4,7 @@ import Register from './pages/Venura/Register';
 import Dashboard from './pages/Venura/Dashboard';
 import AdminDashboard from './pages/Venura/AdminDashboard';
 import Profile from './pages/Venura/Profile';
+import DocumentUpload from './pages/Venura/DocumentUpload';
 import './index.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/upload-id" element={<DocumentUpload />} />
       </Routes>
     </Router>
   );

@@ -7,6 +7,7 @@ const connectDB = require('./config/db.js');
 const authRoutes = require('./routes/Venura/authRoutes.js');
 const needRoutes = require('./routes/Lochana/needRoutes.js');
 const feedbackRoutes = require('./routes/Heyli/feedbackRoutes.js');
+const adminDashRoutes = require('./routes/Heyli/adminDashRoutes.js');
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +38,7 @@ app.get('/', (req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/needs', needRoutes);
 app.use('/api/v1/feedbacks', feedbackRoutes);
+app.use('/api/v1/admin', adminDashRoutes);
 
 
 

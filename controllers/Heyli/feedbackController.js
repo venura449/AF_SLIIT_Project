@@ -1,7 +1,9 @@
 const {
     createFeedback,
     getFeedbacks,
+    // getFeedbackAvgRating,
     putFeedback,
+    updateRatingOnly,
     removeFeedback
 } = require('../../services/Heyli/feedbackService.js'); 
 
@@ -31,6 +33,18 @@ exports.feedback = async(req,res) => {
     }
 }
 
+// exports.getAvgRating = async(req,res) => {
+//     try{
+//         const {needId} = req.params;
+
+//         const avgRating = await getFeedbackAvgRating(needId);
+
+//         res.status(200).json({message: "Average rating fetched successfully", avgRating: feedbacks});
+//     }catch(e){
+//         res.status(500).json({error: e.message});
+//     }
+// }
+
 exports.updateFeedback = async(req,res) => {
     try{
         const {id} = req.params;
@@ -39,6 +53,19 @@ exports.updateFeedback = async(req,res) => {
         const updatedFeedback = await putFeedback(id, {need,user,content, rating, imageUrl});
 
         res.status(200).json({message: "Feedback updated successfully", updatedFeedback});
+    }catch(e){
+        res.status(404).json({error: e.message});
+    }
+}
+
+exports.updateRating = async(req,res) => {
+    try{
+        const {id} = req.params;
+        const {rating} = req.body;
+
+        const updatedFeedback = await updateRatingOnly(id, {rating});
+
+        res.status(200).json({message: "Rating updated successfully", updatedFeedback});
     }catch(e){
         res.status(404).json({error: e.message});
     }

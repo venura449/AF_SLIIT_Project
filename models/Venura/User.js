@@ -32,6 +32,11 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // Active status
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
   // Profile Information
   profile: {
     fullName: String,

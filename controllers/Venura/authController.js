@@ -1,4 +1,4 @@
-const { signupService, loginService, deleteProfileService } = require('../../services/Venura/authService');
+const { signupService, loginService, deleteProfileService, getAllUsersService, updateUserStatusService, updateUserService, deleteUserService } = require('../../services/Venura/authService');
 const User = require('../../models/Venura/User');
 
 // Signup Controller
@@ -86,6 +86,65 @@ exports.deleteProfile = async (req, res) => {
 
     res.status(200).json({
       message: 'Profile deleted successfully',
+      user: deletedUser,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Get All Users Controller (Admin)
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await getAllUsersService();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Update User Status Controller (Admin)
+exports.updateUserStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { isActive } = req.body;
+
+    const user = await updateUserStatusService(userId, isActive);
+
+    res.status(200).json({
+      message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
+      user,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Update User Controller (Admin)
+exports.updateUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const updateData = req.body;
+
+    const user = await updateUserService(userId, updateData);
+
+    res.status(200).json({
+      message: 'User updated successfully',
+      user,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Delete User Controller (Admin)
+exports.deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const deletedUser = await deleteUserService(userId);
+
+    res.status(200).json({
+      message: 'User deleted successfully',
       user: deletedUser,
     });
   } catch (error) {

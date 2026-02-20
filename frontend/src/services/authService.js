@@ -46,6 +46,27 @@ export const deleteProfile = async () => {
   return response.data;
 };
 
+// Admin API methods
+export const getAllUsers = async () => {
+  const response = await api.get('/auth/admin/users');
+  return response.data;
+};
+
+export const updateUserStatus = async (userId, isActive) => {
+  const response = await api.put(`/auth/admin/users/${userId}/status`, { isActive });
+  return response.data;
+};
+
+export const updateUser = async (userId, userData) => {
+  const response = await api.put(`/auth/admin/users/${userId}`, userData);
+  return response.data;
+};
+
+export const deleteUser = async (userId) => {
+  const response = await api.delete(`/auth/admin/users/${userId}`);
+  return response.data;
+};
+
 export const logout = () => {
   localStorage.removeItem('token');
   sessionStorage.removeItem('token');

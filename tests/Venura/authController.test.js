@@ -6,6 +6,30 @@ const API_PREFIX = '/api/v1/auth';
 
 describe('Auth Endpoints Testing Started ! ', () => {
 
+  // Clean up test users after all tests complete
+  afterAll(async () => {
+    try {
+      // Delete all test users created during testing
+      await User.deleteMany({
+        $or: [
+          { username: { $regex: /^testuser_/ } },
+          { username: { $regex: /^testuser1_/ } },
+          { username: { $regex: /^testuser2_/ } },
+          { username: { $regex: /^duplicateuser_/ } },
+          { username: { $regex: /^loginuser_/ } },
+          { email: { $regex: /^test_.*@example\.com$/ } },
+          { email: { $regex: /^test1_.*@example\.com$/ } },
+          { email: { $regex: /^test2_.*@example\.com$/ } },
+          { email: { $regex: /^duplicate_.*@example\.com$/ } },
+          { email: { $regex: /^logintest_.*@example\.com$/ } },
+        ]
+      });
+      console.log('Test users cleaned up successfully');
+    } catch (error) {
+      console.error('Error cleaning up test users:', error);
+    }
+  });
+
   describe(`POST ${API_PREFIX}/signup`, () => {
     it('Should successfully register a new user', async () => {
       const timestamp = Date.now();

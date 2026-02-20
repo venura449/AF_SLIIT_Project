@@ -32,7 +32,13 @@ const Login = () => {
       } else {
         sessionStorage.setItem('token', result.token);
       }
-      navigate('/dashboard');
+      
+      // Redirect based on user role
+      if (result.user?.role === 'Admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {

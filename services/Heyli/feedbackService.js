@@ -9,6 +9,10 @@ exports.createFeedback = async({need, user, content, rating, imageUrl}) => {
         rating = 0;
     }
 
+    if(rating > 5 || rating < 0){
+        throw new Error("Rating must be between 0 and 5");
+    }
+
     const newFeedback = new Feedback({need, user, content, rating, imageUrl});
     await newFeedback.save();
     return newFeedback;
@@ -33,8 +37,20 @@ exports.getFeedbacks = async() => {
 //     return avgRating;
 // }
 
-exports.putFeedback = async(id, feedback) => {
-    const updatedFeedback = await Feedback.findByIdAndUpdate(id, feedback, {new: true});
+exports.putFeedback = async(id, {need, user, content, rating, imageUrl}) => {
+     if(!need || !user || !content || !imageUrl){
+        throw new Error("All fields are required");
+    }
+
+    if(rating == null){
+        rating = 0;
+    }
+
+    if(rating > 5 || rating < 0){
+        throw new Error("Rating must be between 0 and 5");
+    }
+
+    const updatedFeedback = await Feedback.findByIdAndUpdate(id, {need, user, content, rating, imageUrl}, {new: true});
 
     if(!updatedFeedback){
         throw new Error("Feedback not found");
@@ -43,6 +59,10 @@ exports.putFeedback = async(id, feedback) => {
 }
 
 exports.updateRatingOnly = async(id, {rating}) => {
+    if(rating > 5 || rating < 0){
+        throw new Error("Rating must be between 0 and 5");
+    }
+
     const updatedFeedback = await Feedback.findByIdAndUpdate(id, {rating}, {new: true});
 
     if(!updatedFeedback){

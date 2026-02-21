@@ -4,7 +4,7 @@ const {
     // getFeedbackAvgRating,
     putFeedback,
     updateRatingOnly,
-    removeFeedback
+    removeFeedback,
 } = require('../../services/Heyli/feedbackService.js'); 
 
 exports.addFeedback = async(req,res) => {

@@ -40,6 +40,7 @@ const userSchema = new mongoose.Schema({
     bio: String,
     verificationDocs: [String], // URLs to files/images
   },
+  fcmToken: String, // For push notifications
   createdAt: {
     type: Date,
     default: Date.now,

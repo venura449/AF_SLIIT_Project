@@ -94,3 +94,64 @@ exports.deleteProfileService = async (userId) => {
     email: user.email,
   };
 };
+
+// Get All Users Service (Admin)
+exports.getAllUsersService = async () => {
+  const users = await User.find().select('-password').sort({ createdAt: -1 });
+  return users;
+};
+
+// Update User Status Service (Admin)
+exports.updateUserStatusService = async (userId, isActive) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  user.isActive = isActive;
+  await user.save();
+
+  const userResponse = user.toObject();
+  delete userResponse.password;
+  return userResponse;
+};
+
+// Update User Service (Admin)
+exports.updateUserService = async (userId, updateData) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Update allowed fields
+  if (updateData.username) user.username = updateData.username;
+  if (updateData.email) user.email = updateData.email;
+  if (updateData.role) user.role = updateData.role;
+  if (typeof updateData.isVerified === 'boolean') user.isVerified = updateData.isVerified;
+  if (typeof updateData.isActive === 'boolean') user.isActive = updateData.isActive;
+
+  await user.save();
+
+  const userResponse = user.toObject();
+  delete userResponse.password;
+  return userResponse;
+};
+
+// Delete User Service (Admin)
+exports.deleteUserService = async (userId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  await User.findByIdAndDelete(userId);
+
+  return {
+    id: user._id,
+    username: user.username,
+    email: user.email,
+  };
+};

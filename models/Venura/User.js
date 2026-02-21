@@ -32,6 +32,11 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // Active status
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
   // Profile Information
   profile: {
     fullName: String,
@@ -41,6 +46,20 @@ const userSchema = new mongoose.Schema({
     verificationDocs: [String], // URLs to files/images
   },
   fcmToken: String, // For push notifications
+  // NIC Document Upload
+  nicDocument: {
+    filename: String,
+    originalName: String,
+    path: String,
+    uploadedAt: Date,
+  },
+  // Document verification status
+  documentStatus: {
+    type: String,
+    enum: ['not_uploaded', 'pending', 'verified', 'rejected'],
+    default: 'not_uploaded',
+  },
+  documentRejectionReason: String,
   createdAt: {
     type: Date,
     default: Date.now,

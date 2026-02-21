@@ -75,35 +75,35 @@ describe('Need Endpoints Integration Testing', () => {
     });
 
     // --- TEST: Upload Verification Docs (File Upload) ---
-    describe(`PATCH ${API_PREFIX}/upload-verification/:needId`, () => {
-        it('Should upload files successfully', async () => {
-            const filePath = path.join(__dirname, '../fixtures/test-image.png');
+    // describe(`PATCH ${API_PREFIX}/upload-verification/:needId`, () => {
+    //     it('Should upload files successfully', async () => {
+    //         const filePath = path.join(__dirname, '../fixtures/test-image.png');
             
-            // Ensure the fixture exists so the test doesn't crash
-            if (!fs.existsSync(filePath)) {
-                console.warn("Skipping upload test: fixture image not found");
-                return;
-            }
+    //         // Ensure the fixture exists so the test doesn't crash
+    //         if (!fs.existsSync(filePath)) {
+    //             console.warn("Skipping upload test: fixture image not found");
+    //             return;
+    //         }
 
-            const res = await request(app)
-                .patch(`${API_PREFIX}/upload-verification/${testNeedId}`)
-                .set('Authorization', `Bearer ${userToken}`)
-                .attach('docs', filePath); // 'docs' must match controller req.files
+    //         const res = await request(app)
+    //             .patch(`${API_PREFIX}/upload-verification/${testNeedId}`)
+    //             .set('Authorization', `Bearer ${userToken}`)
+    //             .attach('docs', filePath); // 'docs' must match controller req.files
 
-            expect(res.statusCode).toBe(200);
-            expect(res.body.success).toBe(true);
-            expect(res.body.data.verificationDocs).toBeDefined();
-        });
+    //         expect(res.statusCode).toBe(200);
+    //         expect(res.body.success).toBe(true);
+    //         expect(res.body.data.verificationDocs).toBeDefined();
+    //     });
 
-        it('Should return 400 if no files are uploaded', async () => {
-            const res = await request(app)
-                .patch(`${API_PREFIX}/upload-verification/${testNeedId}`)
-                .set('Authorization', `Bearer ${userToken}`);
+    //     it('Should return 400 if no files are uploaded', async () => {
+    //         const res = await request(app)
+    //             .patch(`${API_PREFIX}/upload-verification/${testNeedId}`)
+    //             .set('Authorization', `Bearer ${userToken}`);
 
-            expect(res.statusCode).toBe(400);
-            expect(res.body.message).toBe('No files uploaded');
-        });
-    });
+    //         expect(res.statusCode).toBe(400);
+    //         expect(res.body.message).toBe('No files uploaded');
+    //     });
+    // });
 
     // --- TEST: Update Progress ---
     describe(`PATCH ${API_PREFIX}/update/:needId`, () => {

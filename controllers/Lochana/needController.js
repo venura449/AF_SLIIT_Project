@@ -27,7 +27,7 @@ exports.getAllNeeds = async (req, res)=>{
         };
 
         const result = await needService.getFilteredNeeds(filters, pagination);
-        res.status(200).json({success:true, ...result});
+        res.status(200).json({success:true, data: result.items, total: result.total, page: result.page, pages: result.pages});
     }catch(err){
         res.status(500).json({success:false, error:err.message});
     }

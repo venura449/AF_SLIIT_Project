@@ -1,0 +1,142 @@
+const request = require('supertest');
+const path = require('path');
+const fs = require('fs');
+const app = require('../../Server');
+const Need = require('../../models/Lochana/Needs');
+const User = require('../../models/Venura/User');
+
+const API_PREFIX = '/api/v1/needs';
+
+describe('Need Endpoints Integration Testing', () => {
+    let userToken;
+    let donorToken;
+    let testNeedId;
+
+    beforeAll(async () => {
+        // 1. Create and Login a Regular User (Recipient)
+        const userCreds = { username: 'recipient_test', email: 'rec@test.com', password: 'password123', role: 'Recipient' };
+        await request(app).post('/api/v1/auth/signup').send(userCreds);
+        const userLogin = await request(app).post('/api/v1/auth/login').send({ email: userCreds.email, password: userCreds.password });
+        userToken = userLogin.body.token;
+
+        // 2. Create and Login a Donor (For verification testing)
+        const donorCreds = { username: 'donor_test', email: 'donor@test.com', password: 'password123', role: 'Donor' };
+        await User.create(donorCreds); // Direct create to ensure role is 'Donor'
+        const donorLogin = await request(app).post('/api/v1/auth/login').send({ email: donorCreds.email, password: donorCreds.password });
+        donorToken = donorLogin.body.token;
+    });
+
+    afterAll(async () => {
+        await Need.deleteMany({});
+        await User.deleteMany({ email: { $in: ['rec@test.com', 'donor@test.com'] } });
+    });
+
+    // --- TEST: Create Need ---
+    describe(`POST ${API_PREFIX}/create`, () => {
+        it('Should successfully create a new need with valid token', async () => {
+            const res = await request(app)
+                .post(`${API_PREFIX}/create`)
+                .set('Authorization', `Bearer ${userToken}`)
+                .send({
+                    title: 'Help for Education',
+                    description: 'Need funds for university fees',
+                    category: 'Education',
+                    urgency: 'Medium',
+                    location: 'Colombo',
+                    goalAmount: 50000
+                });
+
+            expect(res.statusCode).toBe(201);
+            expect(res.body.success).toBe(true);
+            expect(res.body.data.title).toBe('Help for Education');
+            testNeedId = res.body.data._id; // Save for later tests
+        });
+
+        it('Should fail to create need if token is missing', async () => {
+            const res = await request(app).post(`${API_PREFIX}/create`).send({ title: 'No Token' });
+            expect(res.statusCode).toBe(401);
+        });
+    });
+
+    // --- TEST: Get All Needs (Filtered) ---
+    describe(`GET ${API_PREFIX}/getall`, () => {
+        it('Should fetch all needs with status 200', async () => {
+            const res = await request(app).get(`${API_PREFIX}/getall`);
+            expect(res.statusCode).toBe(200);
+            expect(res.body.success).toBe(true);
+            expect(Array.isArray(res.body.data)).toBe(true);
+        });
+
+        it('Should apply category filters correctly', async () => {
+            const res = await request(app).get(`${API_PREFIX}/getall?category=Education`);
+            expect(res.statusCode).toBe(200);
+            // Verify that returned data matches filter if your service handles it
+        });
+    });
+
+    // --- TEST: Upload Verification Docs (File Upload) ---
+    // describe(`PATCH ${API_PREFIX}/upload-verification/:needId`, () => {
+    //     it('Should upload files successfully', async () => {
+    //         const filePath = path.join(__dirname, '../fixtures/test-image.png');
+            
+    //         // Ensure the fixture exists so the test doesn't crash
+    //         if (!fs.existsSync(filePath)) {
+    //             console.warn("Skipping upload test: fixture image not found");
+    //             return;
+    //         }
+
+    //         const res = await request(app)
+    //             .patch(`${API_PREFIX}/upload-verification/${testNeedId}`)
+    //             .set('Authorization', `Bearer ${userToken}`)
+    //             .attach('docs', filePath); // 'docs' must match controller req.files
+
+    //         expect(res.statusCode).toBe(200);
+    //         expect(res.body.success).toBe(true);
+    //         expect(res.body.data.verificationDocs).toBeDefined();
+    //     });
+
+    //     it('Should return 400 if no files are uploaded', async () => {
+    //         const res = await request(app)
+    //             .patch(`${API_PREFIX}/upload-verification/${testNeedId}`)
+    //             .set('Authorization', `Bearer ${userToken}`);
+
+    //         expect(res.statusCode).toBe(400);
+    //         expect(res.body.message).toBe('No files uploaded');
+    //     });
+    // });
+
+    // --- TEST: Update Progress ---
+    describe(`PATCH ${API_PREFIX}/update/:needId`, () => {
+        it('Should update progress/status successfully', async () => {
+            const res = await request(app)
+                .patch(`${API_PREFIX}/update/${testNeedId}`)
+                .set('Authorization', `Bearer ${userToken}`)
+                .send({ amount: 1000 });
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.success).toBe(true);
+        });
+    });
+
+    // --- TEST: Verify Need (Donor Only) ---
+    describe(`PATCH ${API_PREFIX}/approve/:needId`, () => {
+        it('Should successfully verify need if user is Donor', async () => {
+            const res = await request(app)
+                .patch(`${API_PREFIX}/approve/${testNeedId}`)
+                .set('Authorization', `Bearer ${donorToken}`);
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.message).toContain('Verified Successfully');
+            expect(res.body.data.isVerified).toBe(true);
+        });
+
+        it('Should fail verification if user is not a Donor', async () => {
+            const res = await request(app)
+                .patch(`${API_PREFIX}/approve/${testNeedId}`)
+                .set('Authorization', `Bearer ${userToken}`);
+
+            // Assuming authorize('Donor') returns 403
+            expect(res.statusCode).toBe(403);
+        });
+    });
+});

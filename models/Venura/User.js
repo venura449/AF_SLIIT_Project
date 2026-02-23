@@ -59,6 +59,7 @@ const userSchema = new mongoose.Schema({
     default: 'not_uploaded',
   },
   documentRejectionReason: String,
+  fcmToken: [String],
   createdAt: {
     type: Date,
     default: Date.now,

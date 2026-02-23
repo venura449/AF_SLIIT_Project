@@ -2,20 +2,26 @@ const{
     countTotUsers,
     countTotFeedbacks,
     countTotNeeds,
+    countActiveUsers,
+    getMonthlyGrowth
 } = require('../../services/Heyli/adminDashService.js');
 
 exports.getAdminDashStats = async (req, res) => {
     try{
-        const [totalUsers, totalFeedbacks, totalNeeds] = await Promise.all([
+        const [totalUsers, totalFeedbacks, totalNeeds, activeUsers, monthlyGrowth] = await Promise.all([
             countTotUsers(),
             countTotFeedbacks(),
-            countTotNeeds()
+            countTotNeeds(),
+            countActiveUsers(),
+            getMonthlyGrowth()
         ]);
 
         res.status(200).json({
             totalUsers,
             totalFeedbacks,
-            totalNeeds
+            totalNeeds,
+            activeUsers,
+            monthlyGrowth
         });
     }
     catch(e){

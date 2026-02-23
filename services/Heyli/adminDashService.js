@@ -18,3 +18,41 @@ exports.countTotNeeds = async () => {
 
     return totalNeeds;
 }
+
+exports.countActiveUsers = async () => {
+    const activeUsers = await User.countDocuments({ status: 'active' });
+
+    return activeUsers;
+}
+
+// exports.getMonthlyDonations = async () => {
+//     const monthlyDonations = await Donation.aggregate([
+//         {
+//             $group: {
+//                 _id: { $month: "$createdAt" },
+//                 totalAmount: { $sum: "$amount" }
+//             }
+//         },
+//         {
+//             $sort: { _id: 1 }
+//         }
+//     ]);
+
+//     return monthlyDonations;
+// }
+
+exports.getMonthlyGrowth = async () => {
+    const monthlyGrowth = await User.aggregate([
+        {
+            $group: {
+                _id: { $month: "$createdAt" },
+                totalUsers: { $sum: 1 }
+            }
+        },
+        {
+            $sort: { _id: 1 }
+        }
+    ]);
+
+    return monthlyGrowth;
+}

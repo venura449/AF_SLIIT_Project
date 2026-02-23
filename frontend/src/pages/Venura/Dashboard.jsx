@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProfile, logout, getDocumentStatus } from '../../services/authService';
+import { getToken, messaging } from "../../firebase";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -63,6 +64,42 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const requestPermission = async () => {
+    try{
+      if(Notification.permission === "granted") {
+        console.log("Notification permission already granted.");
+        return;
+      }
+
+      if(Notification.permission === "denied") {
+        console.log("Notification permission denied.");
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+
+      if (permission === "granted") {
+        const token = await getToken(messaging, {
+          vapidKey: VAPID_KEY,
+        });
+
+        console.log("FCM Token:", token);
+
+        // Send token to backend
+        await fetch("http://localhost:5001/api/v1/notification/save-token", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          },
+          body: JSON.stringify({ token }),
+        });
+      }
+    } catch (error) {
+      console.error("Error requesting notification permission:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0A1A2F] via-[#1A3A4A] to-[#0D2B3E]">
@@ -149,7 +186,9 @@ const Dashboard = () => {
                       <i className="fas fa-cog w-5"></i>
                       <span>Settings</span>
                     </button>
-                    <button className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-green-200/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200">
+                    <button className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-green-200/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                    onClick={requestPermission}
+                    >
                       <i className="fas fa-bell w-5"></i>
                       <span>Notifications</span>
                     </button>

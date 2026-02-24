@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProfile, logout, getDocumentStatus } from '../../services/authService';
 import { getToken, messaging } from "../../firebase";
+const VAPID_KEY = import.meta.env.VITE_VAPID_KEY;
 
 const Dashboard = () => {
   const navigate = useNavigate();

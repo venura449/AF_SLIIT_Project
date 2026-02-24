@@ -8,7 +8,7 @@ import DocumentUpload from './pages/Venura/DocumentUpload';
 import './index.css';
 import { messaging, onMessage } from "./firebase";
 import { use, useEffect } from 'react';
-const VAPID_KEY = import.meta.env.VITE_VAPID_KEY;
+
 
 function App() {
 

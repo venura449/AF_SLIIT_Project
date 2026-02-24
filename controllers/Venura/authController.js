@@ -34,7 +34,7 @@ exports.login = async (req, res) => {
 // Get Profile Controller
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user._id).select('-password');
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -47,7 +47,7 @@ exports.updateProfile = async (req, res) => {
     const { username, profile } = req.body;
     const { fullName, phone, address, bio, verificationDocs } = profile || {};
 
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -82,7 +82,7 @@ exports.updateProfile = async (req, res) => {
 // Delete Profile Controller
 exports.deleteProfile = async (req, res) => {
   try {
-    const deletedUser = await deleteProfileService(req.user.id);
+    const deletedUser = await deleteProfileService(req.user._id);
 
     res.status(200).json({
       message: 'Profile deleted successfully',

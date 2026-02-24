@@ -7,6 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Send credentials with requests
 });
 
 // Add token to requests if available
@@ -15,10 +16,30 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Debug: log token being sent (remove in production)
+      console.log('[Auth] Token found and added to request:', token.substring(0, 20) + '...');
+    } else {
+      console.warn('[Auth] No token found in localStorage or sessionStorage');
     }
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+// Add response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      console.error('[Auth] 401 Unauthorized - Token may be invalid or expired');
+      // Optional: Clear invalid token
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+      // Optional: Redirect to login
+      // window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
 );
 
 export const signup = async (username, email, password, role) => {

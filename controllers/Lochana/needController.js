@@ -5,7 +5,7 @@ exports.createNeed = async (req, res)=>{
     try{
         const need = await needService.createNeedRequest({
             ...req.body,
-            recipient: req.user ? req.user.id : req.body.recipient
+            recipient: req.user ? req.user._id : req.body.recipient
         });
         res.status(201).json({success:true,data:need});
     }catch(err){
@@ -78,7 +78,7 @@ exports.verfyNeedRequest = async (req,res)=>{
             needId,
             {
                 isVerified:true,
-                verifiedBy:req.user.id
+                verifiedBy:req.user._id
             },
             {new:true}
         );

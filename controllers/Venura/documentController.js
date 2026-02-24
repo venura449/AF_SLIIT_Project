@@ -18,7 +18,7 @@ exports.uploadNicDocument = async (req, res) => {
       return res.status(400).json({ error: 'Please upload a file' });
     }
 
-    const result = await uploadNicDocumentService(req.user.id, req.file);
+    const result = await uploadNicDocumentService(req.user._id, req.file);
     res.status(200).json({
       message: 'Document uploaded successfully. Awaiting admin verification.',
       user: result,
@@ -31,7 +31,7 @@ exports.uploadNicDocument = async (req, res) => {
 // Get Document Status Controller
 exports.getDocumentStatus = async (req, res) => {
   try {
-    const status = await getDocumentStatusService(req.user.id);
+    const status = await getDocumentStatusService(req.user._id);
     res.status(200).json(status);
   } catch (error) {
     res.status(400).json({ error: error.message });

@@ -10,6 +10,7 @@ const documentRoutes = require('./routes/Venura/documentRoutes.js');
 const needRoutes = require('./routes/Lochana/needRoutes.js');
 const feedbackRoutes = require('./routes/Heyli/feedbackRoutes.js');
 const adminDashRoutes = require('./routes/Heyli/adminDashRoutes.js');
+const donationRoutes = require('./routes/Risini/donationRoutes.js')
 
 // Load environment variables
 dotenv.config();
@@ -51,6 +52,7 @@ app.use('/api/v1/documents', documentRoutes);
 app.use('/api/v1/needs', needRoutes);
 app.use('/api/v1/feedbacks', feedbackRoutes);
 app.use('/api/v1/admin', adminDashRoutes);
+app.use('/api/v1/donation', donationRoutes);
 
 // Serve uploaded files (protected - only admin can access via API)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

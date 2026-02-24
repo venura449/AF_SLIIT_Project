@@ -1,8 +1,6 @@
 const Donation = require("../../models/Risini/Donation");
 
-/**
- * Create Donation
- */
+// Create Donation
 exports.createDonation = async ({ donor, need, amount }) => {
   if (!donor || !need || !amount) {
     throw new Error("Donor, Need and Amount are required");
@@ -23,9 +21,8 @@ exports.createDonation = async ({ donor, need, amount }) => {
   return donation;
 };
 
-/**
- * Confirm Donation
- */
+//Confirm Donation
+ 
 exports.confirmDonation = async (id, transactionId) => {
   const updatedDonation = await Donation.findByIdAndUpdate(
     id,
@@ -43,20 +40,24 @@ exports.confirmDonation = async (id, transactionId) => {
   return updatedDonation;
 };
 
-/**
- * Get All Donations
- */
-exports.getDonations = async () => {
-  const donations = await Donation.find()
-    .populate("donor", "name email")
+//Get Donations By Logged-in User
+exports.getDonationsByUser = async (userId) => {
+  return await Donation.find({ donor: userId })
+    .populate("donor", "username email")
     .populate("need", "title category");
 
   return donations;
 };
 
-/**
- * Get Donation By ID
- */
+// Get All Donations (Admin)
+exports.getAllDonations = async () => {
+  return await Donation.find()
+    .populate("donor", "name email")
+    .populate("need", "title category");
+};
+
+//Get Donation By ID
+
 exports.getDonationById = async (id) => {
   const donation = await Donation.findById(id)
     .populate("donor", "name email")

@@ -1,18 +1,16 @@
 const donationService = require("../../services/Risini/donationService");
 
-/**
- * Create Donation
- * POST /api/v1/donation
- */
+// Create Donation
 exports.createDonation = async (req, res, next) => {
   try {
-    const { donor, need, amount } = req.body;
+    const { need, amount, isAnonymous } = req.body;
 
-      const donation = await donationService.createDonation({
-      donor,
+    const donation = await donationService.createDonation({
+      donor: req.user._id, // 🔥 SECURE
       need,
-      amount
-      });
+      amount,
+      isAnonymous,
+    });
 
     res.status(201).json({
       success: true,
@@ -24,10 +22,7 @@ exports.createDonation = async (req, res, next) => {
   }
 };
 
-/**
- * Confirm Donation
- * PUT /api/v1/donation/:id/confirm
- */
+// Confirm Donation
 exports.confirmDonation = async (req, res, next) => {
   try {
     const donationId = req.params.id;
@@ -46,13 +41,14 @@ exports.confirmDonation = async (req, res, next) => {
   }
 };
 
-/**
- * Get Logged-in User Donations
- * GET /api/v1/donation/my
- */
+
+// Get Logged-in User Donations
 exports.getMyDonations = async (req, res, next) => {
   try {
-    const donations = await donationService.getDonations();
+    const donations = await donationService.getDonationsByUser(
+      req.user._id
+    );
+
     res.status(200).json({
       success: true,
       count: donations.length,
@@ -63,14 +59,27 @@ exports.getMyDonations = async (req, res, next) => {
   }
 };
 
-/**
- * Get Donation By ID
- * GET /api/v1/donation/:id
- */
+// Get All Donations (Admin and donor)
+
+exports.getAllDonations = async (req, res, next) => {
+  try {
+    const donations = await donationService.getAllDonations();
+
+    res.status(200).json({
+      success: true,
+      count: donations.length,
+      data: donations,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//Get Donation By ID
+
 exports.getDonationById = async (req, res, next) => {
   try {
-    const donation =
-      await donationService.getDonationById(req.params.id);
+    const donation = await donationService.getDonationById(req.params.id);
 
     res.status(200).json({
       success: true,

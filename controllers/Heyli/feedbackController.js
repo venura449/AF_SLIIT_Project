@@ -1,15 +1,16 @@
 const {
     createFeedback,
     getFeedbacks,
-    // getFeedbackAvgRating,
+    putFeedbackAvgRating,
     putFeedback,
-    updateRatingOnly,
     removeFeedback
 } = require('../../services/Heyli/feedbackService.js'); 
 
 exports.addFeedback = async(req,res) => {
     try{
-        const {need, user, content, rating, imageUrl} = req.body;
+        const {need, content, rating, imageUrl} = req.body;
+
+        const user = req.user ? req.user.id : req.body.user; 
 
         const savedFeedback = await createFeedback({need,user,content, rating, imageUrl});    
 
@@ -33,17 +34,17 @@ exports.feedback = async(req,res) => {
     }
 }
 
-// exports.getAvgRating = async(req,res) => {
-//     try{
-//         const {needId} = req.params;
+exports.updateAvgRating = async(req,res) => {
+    try{
+        const {feedbackId} = req.params;
 
-//         const avgRating = await getFeedbackAvgRating(needId);
+        const updatedFeedback = await putFeedbackAvgRating(feedbackId);
 
-//         res.status(200).json({message: "Average rating fetched successfully", avgRating: feedbacks});
-//     }catch(e){
-//         res.status(500).json({error: e.message});
-//     }
-// }
+        res.status(200).json({message: "Average rating updated successfully", updatedFeedback});
+    }catch(e){
+        res.status(404).json({error: e.message});
+    }
+}
 
 exports.updateFeedback = async(req,res) => {
     try{
@@ -53,19 +54,6 @@ exports.updateFeedback = async(req,res) => {
         const updatedFeedback = await putFeedback(id, {need,user,content, rating, imageUrl});
 
         res.status(200).json({message: "Feedback updated successfully", updatedFeedback});
-    }catch(e){
-        res.status(404).json({error: e.message});
-    }
-}
-
-exports.updateRating = async(req,res) => {
-    try{
-        const {id} = req.params;
-        const {rating} = req.body;
-
-        const updatedFeedback = await updateRatingOnly(id, {rating});
-
-        res.status(200).json({message: "Rating updated successfully", updatedFeedback});
     }catch(e){
         res.status(404).json({error: e.message});
     }

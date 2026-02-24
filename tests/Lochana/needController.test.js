@@ -13,6 +13,9 @@ describe('Need Endpoints Integration Testing', () => {
     let testNeedId;
 
     beforeAll(async () => {
+        // Clean up any existing test users before creating new ones
+        await User.deleteMany({ email: { $in: ['rec@test.com', 'donor@test.com'] } });
+        
         // 1. Create and Login a Regular User (Recipient)
         const userCreds = { username: 'recipient_test', email: 'rec@test.com', password: 'password123', role: 'Recipient' };
         await request(app).post('/api/v1/auth/signup').send(userCreds);

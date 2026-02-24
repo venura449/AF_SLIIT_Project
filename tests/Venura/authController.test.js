@@ -16,12 +16,16 @@ describe('Auth Endpoints Testing Started ! ', () => {
           { username: { $regex: /^testuser1_/ } },
           { username: { $regex: /^testuser2_/ } },
           { username: { $regex: /^duplicateuser_/ } },
+          { username: { $regex: /^deleteuser_/ } },
           { username: { $regex: /^loginuser_/ } },
           { email: { $regex: /^test_.*@example\.com$/ } },
           { email: { $regex: /^test1_.*@example\.com$/ } },
           { email: { $regex: /^test2_.*@example\.com$/ } },
           { email: { $regex: /^duplicate_.*@example\.com$/ } },
           { email: { $regex: /^logintest_.*@example\.com$/ } },
+          { email: { $regex: /^deleteuser_.*@example\.com$/ } },
+          { email: { $regex: /^*@test\.com$/ } },
+          
         ]
       });
       console.log('Test users cleaned up successfully');

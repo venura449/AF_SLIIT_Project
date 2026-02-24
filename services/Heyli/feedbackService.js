@@ -1,4 +1,5 @@
 const Feedback = require( '../../models/Heyli/Feedback.js');
+const Review = require('../../models/Heyli/Review.js');
 
 exports.createFeedback = async({need, user, content, rating, imageUrl}) => {
     if(!need || !user || !content || !imageUrl){
@@ -23,15 +24,29 @@ exports.getFeedbacks = async() => {
     return feedbacks;
 }
 
-// exports.getFeedbackAvgRating = async(id) => {
-//     const feedbacks = await Feedback.find({need: id});
-//     if(feedbacks.length === 0){
-//         throw new Error("No feedbacks found for this need");
-//     }
-//     const totalRating = feedbacks.reduce((sum, feedback) => sum + feedback.rating, 0);
-//     const avgRating = totalRating / feedbacks.length;
-//     return avgRating;
-// }
+exports.putFeedbackAvgRating = async(id) => {
+    if(!id){
+        throw new Error("Feedback ID is required");
+    }
+
+    const reviewRatings = await Review.find({feedback: id});
+
+    if(reviewRatings.length === 0){
+        return 0;
+    }
+
+    const totalRating = reviewRatings.reduce((sum, review) => sum + review.rating, 0);
+
+    const avgRating = totalRating / reviewRatings.length;
+
+    const updatedFeedback = await Feedback.findByIdAndUpdate(id, { rating: avgRating }, { new: true });
+
+    if(!updatedFeedback){
+        throw new Error("Feedback not found");
+    }
+
+    return updatedFeedback;
+}
 
 exports.putFeedback = async(id, feedback) => {
     const updatedFeedback = await Feedback.findByIdAndUpdate(id, feedback, {new: true});
@@ -40,16 +55,7 @@ exports.putFeedback = async(id, feedback) => {
         throw new Error("Feedback not found");
     }
     return updatedFeedback;
-}
-
-exports.updateRatingOnly = async(id, {rating}) => {
-    const updatedFeedback = await Feedback.findByIdAndUpdate(id, {rating}, {new: true});
-
-    if(!updatedFeedback){
-        throw new Error("Feedback not found");
-    }
-    return updatedFeedback;
-}
+}                                               
 
 exports.removeFeedback = async(id) => {
     const deletedFeedback = await Feedback.findByIdAndDelete(id);

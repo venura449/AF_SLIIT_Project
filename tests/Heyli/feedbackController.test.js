@@ -1,17 +1,31 @@
 const supertest = require('supertest');
 const app = require('../../Server');
 const Feedback = require('../../models/Heyli/Feedback');
+const User = require('../../models/Venura/User');
 
 const API_PREFIX = '/api/v1/feedbacks';
 
 describe('Feedback Endpoints Testing Started ! ', () => {
+    let userToken;
+
+    beforeAll(async () => {
+        // 1. Create and Login a Regular User (Recipient)
+        const userCreds = { username: 'recipient_test', email: 'rec@test.com', password: 'password123', role: 'Recipient' };
+        await supertest(app).post('/api/v1/auth/signup').send(userCreds);
+        const userLogin = await supertest(app).post('/api/v1/auth/login').send({ email: userCreds.email, password: userCreds.password });
+        userToken = userLogin.body.token;
+    });
+
+    afterAll(async () => {
+        await Feedback.deleteMany({});
+    });
     describe(`POST ${API_PREFIX}/createFeedback`, () => {
         it('Should successfully submit feedback', async () => {
             const res = await supertest(app)
                 .post(`${API_PREFIX}/createFeedback`)
+                .set('Authorization', `Bearer ${userToken}`)
                 .send({
                     need: '6992a98e8c7a4a7cfd4b6a47', 
-                    user: '698f150949022e1b9f7f82f6',
                     content: 'This is a test feedback message.',
                     rating: 4,
                     imageUrl: 'http://example.com/image.jpg',
@@ -26,9 +40,9 @@ describe('Feedback Endpoints Testing Started ! ', () => {
         it('Should fail when content is missing', async () => {
             const res = await supertest(app)
                 .post(`${API_PREFIX}/createFeedback`)
+                .set('Authorization', `Bearer ${userToken}`)
                 .send({
                     need: '6992a98e8c7a4a7cfd4b6a47', 
-                    user: '698f150949022e1b9f7f82f6',
                     rating: 4,  
                     imageUrl: 'http://example.com/image.jpg',
                 });
@@ -39,9 +53,9 @@ describe('Feedback Endpoints Testing Started ! ', () => {
         it('Should fail when imageUrl is missing', async () => {
             const res = await supertest(app)
                 .post(`${API_PREFIX}/createFeedback`)
+                .set('Authorization', `Bearer ${userToken}`)
                 .send({
                     need: '6992a98e8c7a4a7cfd4b6a47', 
-                    user: '698f150949022e1b9f7f82f6',
                     content: 'This is a test feedback message.',
                     rating: 4,  
                 });
@@ -52,23 +66,10 @@ describe('Feedback Endpoints Testing Started ! ', () => {
         it('Should fail when need is missing', async () => {
             const res = await supertest(app)
                 .post(`${API_PREFIX}/createFeedback`)
+                .set('Authorization', `Bearer ${userToken}`)
                 .send({
-                    user: '698f150949022e1b9f7f82f6',
                     content: 'This is a test feedback message.',
                     rating: 4,  
-                    imageUrl: 'http://example.com/image.jpg',
-                });
-            expect(res.status).toBe(400);
-            expect(res.body.error).toBe('All fields are required');
-        });
-
-        it('Should fail when user is missing', async () => {
-            const res = await supertest(app)
-                .post(`${API_PREFIX}/createFeedback`)
-                .send({
-                    need: '6992a98e8c7a4a7cfd4b6a47', 
-                    content: 'This is a test feedback message.',
-                    rating: 4,
                     imageUrl: 'http://example.com/image.jpg',
                 });
             expect(res.status).toBe(400);
@@ -141,7 +142,7 @@ describe('Feedback Endpoints Testing Started ! ', () => {
         });
 
         it('Should fail when feedback does not exist', async () => {
-            const nonExistentId = '6987026e5c4ff18435a10228';
+            const nonExistentId = '6987026e5c4ff18435aa0228';
             const res = await supertest(app)
                 .delete(`${API_PREFIX}/deleteFeedback/${nonExistentId}`);
             expect(res.status).toBe(404);

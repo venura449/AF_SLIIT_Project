@@ -1,6 +1,6 @@
 const express = require('express');
 
-const auth = require('../../middleware/authMiddleware.js');
+const auth = require('../../middleware/authmiddleware.js');
 const {
     addFeedback,
     feedback,

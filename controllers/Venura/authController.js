@@ -1,5 +1,13 @@
-const { signupService, loginService, deleteProfileService, getAllUsersService, updateUserStatusService, updateUserService, deleteUserService } = require('../../services/Venura/authService');
-const User = require('../../models/Venura/User');
+const {
+  signupService,
+  loginService,
+  deleteProfileService,
+  getAllUsersService,
+  updateUserStatusService,
+  updateUserService,
+  deleteUserService,
+} = require("../../services/Venura/authService");
+const User = require("../../models/Venura/User");
 
 // Signup Controller
 exports.signup = async (req, res) => {
@@ -8,7 +16,7 @@ exports.signup = async (req, res) => {
     const result = await signupService(username, email, password, role);
 
     res.status(201).json({
-      message: 'User registered successfully',
+      message: "User registered successfully",
       ...result,
     });
   } catch (error) {
@@ -23,7 +31,7 @@ exports.login = async (req, res) => {
     const result = await loginService(email, password);
 
     res.status(200).json({
-      message: 'Login successful',
+      message: "Login successful",
       ...result,
     });
   } catch (error) {
@@ -34,7 +42,7 @@ exports.login = async (req, res) => {
 // Get Profile Controller
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await User.findById(req.user._id).select("-password");
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -50,7 +58,7 @@ exports.updateProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Update username if provided
@@ -85,7 +93,7 @@ exports.deleteProfile = async (req, res) => {
     const deletedUser = await deleteProfileService(req.user._id);
 
     res.status(200).json({
-      message: 'Profile deleted successfully',
+      message: "Profile deleted successfully",
       user: deletedUser,
     });
   } catch (error) {
@@ -112,7 +120,7 @@ exports.updateUserStatus = async (req, res) => {
     const user = await updateUserStatusService(userId, isActive);
 
     res.status(200).json({
-      message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
+      message: `User ${isActive ? "activated" : "deactivated"} successfully`,
       user,
     });
   } catch (error) {
@@ -129,7 +137,7 @@ exports.updateUser = async (req, res) => {
     const user = await updateUserService(userId, updateData);
 
     res.status(200).json({
-      message: 'User updated successfully',
+      message: "User updated successfully",
       user,
     });
   } catch (error) {
@@ -144,7 +152,7 @@ exports.deleteUser = async (req, res) => {
     const deletedUser = await deleteUserService(userId);
 
     res.status(200).json({
-      message: 'User deleted successfully',
+      message: "User deleted successfully",
       user: deletedUser,
     });
   } catch (error) {

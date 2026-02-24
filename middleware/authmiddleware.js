@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/Venura/User');
+const User = require('../models/users/User');
 
 // Protect routes - JWT verification middleware
 const protect = async (req, res, next) => {

@@ -69,3 +69,19 @@ exports.uploadVerificationDocs = async (needId, files)=>{
     need.verificationDocs.push(...filesData);
     return await need.save();
 }
+
+
+//delete need request
+
+exports.deleteNeedRequest = async (needId)=>{
+    const need = await Need.findById(needId);
+
+    if(!need) throw new Error('Need not found');
+
+    if(need.recipient.toString() !== userId){
+        throw new Error('Unauthorized');
+    }
+
+    await Need.findByIdAndDelete(needId);
+    return {message: 'Need request deleted successfully'};
+};

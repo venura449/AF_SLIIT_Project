@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/Venura/User');
+const User = require('../models/users/User');
 
 // Protect routes - JWT verification middleware
 const protect = async (req, res, next) => {
@@ -15,17 +15,13 @@ const protect = async (req, res, next) => {
       return res.status(401).json({ message: 'Not authorized, no token provided' });
     }
 
-    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Get user from token
     const user = await User.findById(decoded.userId).select('-password');
 
     if (!user) {
       return res.status(401).json({ message: 'Not authorized, user not found' });
     }
 
-    // Attach user to request object
     req.user = user;
     next();
   } catch (error) {
@@ -47,8 +43,8 @@ const authorize = (...roles) => {
     }
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        message: `Role '${req.user.role}' is not authorized to access this route` 
+      return res.status(403).json({
+        message: `Role '${req.user.role}' is not authorized to access this route`
       });
     }
 
@@ -63,8 +59,8 @@ const verifiedRecipient = (req, res, next) => {
   }
 
   if (req.user.role === 'Recipient' && !req.user.isVerified) {
-    return res.status(403).json({ 
-      message: 'Recipient account not verified. Please wait for admin approval.' 
+    return res.status(403).json({
+      message: 'Recipient account not verified. Please wait for admin approval.'
     });
   }
 

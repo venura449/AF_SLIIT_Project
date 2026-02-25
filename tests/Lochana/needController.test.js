@@ -2,8 +2,8 @@ const request = require('supertest');
 const path = require('path');
 const fs = require('fs');
 const app = require('../../Server');
-const Need = require('../../models/Lochana/Needs');
-const User = require('../../models/Venura/User');
+const Need = require('../../models/donations/Need');
+const User = require('../../models/users/User');
 
 const API_PREFIX = '/api/v1/needs';
 
@@ -13,6 +13,9 @@ describe('Need Endpoints Integration Testing', () => {
     let testNeedId;
 
     beforeAll(async () => {
+        // Clean up any existing test users before creating new ones
+        await User.deleteMany({ email: { $in: ['rec@test.com', 'donor@test.com'] } });
+
         // 1. Create and Login a Regular User (Recipient)
         const userCreds = { username: 'recipient_test', email: 'rec@test.com', password: 'password123', role: 'Recipient' };
         await request(app).post('/api/v1/auth/signup').send(userCreds);
@@ -78,7 +81,7 @@ describe('Need Endpoints Integration Testing', () => {
     // describe(`PATCH ${API_PREFIX}/upload-verification/:needId`, () => {
     //     it('Should upload files successfully', async () => {
     //         const filePath = path.join(__dirname, '../fixtures/test-image.png');
-            
+
     //         // Ensure the fixture exists so the test doesn't crash
     //         if (!fs.existsSync(filePath)) {
     //             console.warn("Skipping upload test: fixture image not found");
@@ -104,7 +107,6 @@ describe('Need Endpoints Integration Testing', () => {
     //         expect(res.body.message).toBe('No files uploaded');
     //     });
     // });
-
     // --- TEST: Update Progress ---
     describe(`PATCH ${API_PREFIX}/update/:needId`, () => {
         it('Should update progress/status successfully', async () => {

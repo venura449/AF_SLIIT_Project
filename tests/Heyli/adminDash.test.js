@@ -1,8 +1,8 @@
-jest.mock('../../services/Heyli/adminDashService.js');
+jest.mock('../../services/admin/adminDashService.js');
 
 const request = require('supertest');
 const app = require('../../Server');
-const services = require('../../services/Heyli/adminDashService.js');
+const services = require('../../services/admin/adminDashService.js');
 
 const API_PREFIX = '/api/v1/admin';
 
@@ -10,7 +10,7 @@ describe('Admin Dashboard Endpoints Testing Started ! ', () => {
 
     describe(`GET ${API_PREFIX}/dashboard`, () => {
         afterEach(() => {
-                jest.resetAllMocks();
+            jest.resetAllMocks();
         });
 
         it('Should handle errors gracefully', async () => {
@@ -20,7 +20,7 @@ describe('Admin Dashboard Endpoints Testing Started ! ', () => {
             services.countTotNeeds.mockRejectedValue(new Error('Database error'));
 
             const res = await request(app)
-                .get(`${API_PREFIX}/dashboard`);    
+                .get(`${API_PREFIX}/dashboard`);
             expect(res.status).toBe(500);
             expect(res.body.error).toBe('Database error');
         });

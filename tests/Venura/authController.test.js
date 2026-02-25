@@ -1,6 +1,6 @@
 const request = require("supertest");
 const app = require("../../Server");
-const User = require("../../models/Venura/User");
+const User = require("../../models/users/User");
 
 const API_PREFIX = "/api/v1/auth";
 

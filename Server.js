@@ -5,13 +5,13 @@ const path = require('path');
 const connectDB = require('./config/db.js');
 
 
-const authRoutes = require('./routes/Venura/authRoutes.js');
-const userManagementRoutes = require('./routes/Venura/usermanagementRoutes.js');
-const documentRoutes = require('./routes/Venura/documentRoutes.js');
-const needRoutes = require('./routes/Lochana/needRoutes.js');
-const feedbackRoutes = require('./routes/Heyli/feedbackRoutes.js');
-const adminDashRoutes = require('./routes/Heyli/adminDashRoutes.js');
-const donationRoutes = require('./routes/Risini/donationRoutes.js')
+const authRoutes = require('./routes/auth/authRoutes.js');
+const userRoutes = require('./routes/users/userRoutes.js');
+const documentRoutes = require('./routes/documents/documentRoutes.js');
+const needRoutes = require('./routes/donations/needRoutes.js');
+const feedbackRoutes = require('./routes/feedback/feedbackRoutes.js');
+const adminDashRoutes = require('./routes/admin/adminDashRoutes.js');
+const donationRoutes = require('./routes/donations/donationRoutes.js')
 
 // Load environment variables
 dotenv.config();
@@ -49,7 +49,7 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', userManagementRoutes);
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/documents', documentRoutes);
 app.use('/api/v1/needs', needRoutes);
 app.use('/api/v1/feedbacks', feedbackRoutes);

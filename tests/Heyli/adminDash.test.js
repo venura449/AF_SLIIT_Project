@@ -10,7 +10,7 @@ describe('Admin Dashboard Endpoints Testing Started ! ', () => {
 
     describe(`GET ${API_PREFIX}/dashboard`, () => {
         afterEach(() => {
-                jest.resetAllMocks();
+            jest.resetAllMocks();
         });
 
         it('Should handle errors gracefully', async () => {
@@ -20,7 +20,7 @@ describe('Admin Dashboard Endpoints Testing Started ! ', () => {
             services.countTotNeeds.mockRejectedValue(new Error('Database error'));
 
             const res = await request(app)
-                .get(`${API_PREFIX}/dashboard`);    
+                .get(`${API_PREFIX}/dashboard`);
             expect(res.status).toBe(500);
             expect(res.body.error).toBe('Database error');
         });

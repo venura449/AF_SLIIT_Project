@@ -13,28 +13,28 @@ describe('User Management Integration Testing', () => {
   let testUserId;
   let testUserEmail;
 
-   afterAll(async () => {
-      try {
-        // Delete all test users created during testing
-        await User.deleteMany({
-          $or: [
-            { username: { $regex: /^testuser_/ } },
-            { username: { $regex: /^testuser1_/ } },
-            { username: { $regex: /^testuser2_/ } },
-            { username: { $regex: /^duplicateuser_/ } },
-            { username: { $regex: /^loginuser_/ } },
-            { email: { $regex: /^test_.*@example\.com$/ } },
-            { email: { $regex: /^test1_.*@example\.com$/ } },
-            { email: { $regex: /^test2_.*@example\.com$/ } },
-            { email: { $regex: /^duplicate_.*@example\.com$/ } },
-            { email: { $regex: /^logintest_.*@example\.com$/ } },
-          ]
-        });
-        console.log('Test users cleaned up successfully');
-      } catch (error) {
-        console.error('Error cleaning up test users:', error);
-      }
-    });
+  afterAll(async () => {
+    try {
+      // Delete all test users created during testing
+      await User.deleteMany({
+        $or: [
+          { username: { $regex: /^testuser_/ } },
+          { username: { $regex: /^testuser1_/ } },
+          { username: { $regex: /^testuser2_/ } },
+          { username: { $regex: /^duplicateuser_/ } },
+          { username: { $regex: /^loginuser_/ } },
+          { email: { $regex: /^test_.*@example\.com$/ } },
+          { email: { $regex: /^test1_.*@example\.com$/ } },
+          { email: { $regex: /^test2_.*@example\.com$/ } },
+          { email: { $regex: /^duplicate_.*@example\.com$/ } },
+          { email: { $regex: /^logintest_.*@example\.com$/ } },
+        ]
+      });
+      console.log('Test users cleaned up successfully');
+    } catch (error) {
+      console.error('Error cleaning up test users:', error);
+    }
+  });
 
   beforeAll(async () => {
     // Clean up test users
@@ -60,12 +60,12 @@ describe('User Management Integration Testing', () => {
         password: 'admin123',
         role: 'Donor'
       });
-    
+
     adminId = adminRes.body.user.id;
-    
+
     // Update admin to have Admin role
     await User.findByIdAndUpdate(adminId, { role: 'Admin' });
-    
+
     const adminLoginRes = await request(app)
       .post(`${AUTH_PREFIX}/login`)
       .send({
@@ -84,7 +84,7 @@ describe('User Management Integration Testing', () => {
         password: 'user123',
         role: 'Recipient'
       });
-    
+
     regularUserId = regularRes.body.user.id;
 
     const regularLoginRes = await request(app)
@@ -442,13 +442,13 @@ describe('User Management Integration Testing', () => {
 
     it('Should accept valid role values (Admin, Donor, Recipient)', async () => {
       const validRoles = ['Admin', 'Donor', 'Recipient'];
-      
+
       for (const role of validRoles) {
         const res = await request(app)
           .put(`${USER_MGMT_PREFIX}/${updateTestUserId}`)
           .set('Authorization', `Bearer ${adminToken}`)
           .send({ role });
-        
+
         expect(res.statusCode).toBe(200);
         expect(res.body.user.role).toBe(role);
       }
@@ -574,7 +574,7 @@ describe('User Management Integration Testing', () => {
         .set('Authorization', `Bearer ${regularUserToken}`);
 
       expect(res.statusCode).toBe(403);
-      
+
       // Verify user still exists
       const user = await User.findById(userToDeleteId);
       expect(user).not.toBeNull();

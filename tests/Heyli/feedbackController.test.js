@@ -25,7 +25,7 @@ describe('Feedback Endpoints Testing Started ! ', () => {
                 .post(`${API_PREFIX}/createFeedback`)
                 .set('Authorization', `Bearer ${userToken}`)
                 .send({
-                    need: '6992a98e8c7a4a7cfd4b6a47', 
+                    need: '6992a98e8c7a4a7cfd4b6a47',
                     content: 'This is a test feedback message.',
                     rating: 4,
                     imageUrl: 'http://example.com/image.jpg',
@@ -42,8 +42,8 @@ describe('Feedback Endpoints Testing Started ! ', () => {
                 .post(`${API_PREFIX}/createFeedback`)
                 .set('Authorization', `Bearer ${userToken}`)
                 .send({
-                    need: '6992a98e8c7a4a7cfd4b6a47', 
-                    rating: 4,  
+                    need: '6992a98e8c7a4a7cfd4b6a47',
+                    rating: 4,
                     imageUrl: 'http://example.com/image.jpg',
                 });
             expect(res.status).toBe(400);
@@ -55,9 +55,9 @@ describe('Feedback Endpoints Testing Started ! ', () => {
                 .post(`${API_PREFIX}/createFeedback`)
                 .set('Authorization', `Bearer ${userToken}`)
                 .send({
-                    need: '6992a98e8c7a4a7cfd4b6a47', 
+                    need: '6992a98e8c7a4a7cfd4b6a47',
                     content: 'This is a test feedback message.',
-                    rating: 4,  
+                    rating: 4,
                 });
             expect(res.status).toBe(400);
             expect(res.body.error).toBe('All fields are required');
@@ -69,7 +69,7 @@ describe('Feedback Endpoints Testing Started ! ', () => {
                 .set('Authorization', `Bearer ${userToken}`)
                 .send({
                     content: 'This is a test feedback message.',
-                    rating: 4,  
+                    rating: 4,
                     imageUrl: 'http://example.com/image.jpg',
                 });
             expect(res.status).toBe(400);
@@ -91,13 +91,13 @@ describe('Feedback Endpoints Testing Started ! ', () => {
     describe(`PUT ${API_PREFIX}/updateFeedback/:id`, () => {
         it('Should successfully update feedback', async () => {
             const feedback = new Feedback({
-                need: '6992a98e8c7a4a7cfd4b6a47', 
+                need: '6992a98e8c7a4a7cfd4b6a47',
                 user: '698f150949022e1b9f7f82f6',
                 content: 'Original feedback message.',
                 rating: 3,
                 imageUrl: 'http://example.com/original-image.jpg',
             });
-            await feedback.save(); 
+            await feedback.save();
             const res = await supertest(app)
                 .put(`${API_PREFIX}/updateFeedback/${feedback._id}`)
                 .send({
@@ -128,9 +128,9 @@ describe('Feedback Endpoints Testing Started ! ', () => {
     describe(`DELETE ${API_PREFIX}/deleteFeedback/:id`, () => {
         it('Should successfully delete feedback', async () => {
             const feedback = new Feedback({
-                need: '6992a98e8c7a4a7cfd4b6a47', 
+                need: '6992a98e8c7a4a7cfd4b6a47',
                 user: '698f150949022e1b9f7f82f6',
-                content: 'Feedback to be deleted.', 
+                content: 'Feedback to be deleted.',
                 rating: 2,
                 imageUrl: 'http://example.com/delete-image.jpg',
             });
@@ -147,7 +147,7 @@ describe('Feedback Endpoints Testing Started ! ', () => {
                 .delete(`${API_PREFIX}/deleteFeedback/${nonExistentId}`);
             expect(res.status).toBe(404);
             expect(res.body.error).toBe('Feedback not found');
-        }); 
+        });
     });
 
 });

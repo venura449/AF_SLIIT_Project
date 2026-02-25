@@ -6,7 +6,7 @@ exports.createDonation = async (req, res, next) => {
     const { need, amount, isAnonymous } = req.body;
 
     const donation = await donationService.createDonation({
-      donor: req.user._id, // 🔥 SECURE
+      donor: req.user._id, 
       need,
       amount,
       isAnonymous,

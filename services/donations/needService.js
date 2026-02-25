@@ -1,5 +1,7 @@
 const Need = require('../../models/donations/Need.js');
 
+const {cloudinary} = require('../../utils/cloudinaryConfig.js');
+
 exports.createNeedRequest = async (data)=>{
     return await Need.create(data);
 }
@@ -73,15 +75,20 @@ exports.uploadVerificationDocs = async (needId, files)=>{
 
 //delete need request
 
-exports.deleteNeedRequest = async (needId)=>{
+exports.deleteNeedRequest = async (needId, userId)=>{
     const need = await Need.findById(needId);
 
     if(!need) throw new Error('Need not found');
 
-    if(need.recipient.toString() !== userId){
+    if(need.recipient.toString() !== userId.toString()){
         throw new Error('Unauthorized');
     }
-
+    if(need.verificationDocs && need.verificationDocs.length > 0){
+        const deletePromises = need.verificationDocs.map(doc =>{
+            return cloudinary.uploader.destroy(doc.public_id);
+        });
+        await Promise.all(deletePromises);
+    }
     await Need.findByIdAndDelete(needId);
-    return {message: 'Need request deleted successfully'};
+    return {message: 'Need and associated images deleted successfully'};
 };

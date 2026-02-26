@@ -1,26 +1,79 @@
-const donationService = require("../../services/donations/donationService");
+const donationService = require('../../services/donations/donationService');
+const Need = require('../../models/donations/Need');
+
 
 // Create Donation
 exports.createDonation = async (req, res, next) => {
   try {
     const { need, amount, isAnonymous } = req.body;
 
+    if (!need || !amount) {
+      return res.status(400).json({
+        success: false,
+        message: "Need ID and amount are required",
+      });
+    }
+
+    // Check if Need exists
+    const existingNeed = await Need.findById(need);
+
+    if (!existingNeed) {
+      return res.status(404).json({
+        success: false,
+        message: "Need not found",
+      });
+    }
+
+    // Prevent donation to unverified need
+    if (!existingNeed.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot donate to unverified need",
+      });
+    }
+
+    // Prevent donation if cancelled or fulfilled
+    if (
+      existingNeed.status === "Cancelled" ||
+      existingNeed.status === "Fulfilled"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "This need is no longer accepting donations",
+      });
+    }
+
+    // Create Donation
     const donation = await donationService.createDonation({
-      donor: req.user._id, 
-      need,
+      donor: req.user._id,
+      need: existingNeed._id,
       amount,
       isAnonymous,
     });
+
+    // Update Need progress
+    existingNeed.currentAmount =
+      Number(existingNeed.currentAmount) + Number(amount);
+
+    if (existingNeed.currentAmount >= existingNeed.goalAmount) {
+      existingNeed.status = "Fulfilled";
+    } else {
+      existingNeed.status = "Partially Funded";
+    }
+
+    await existingNeed.save();
 
     res.status(201).json({
       success: true,
       message: "Donation created successfully",
       data: donation,
     });
+
   } catch (error) {
     next(error);
   }
 };
+
 
 // Confirm Donation
 exports.confirmDonation = async (req, res, next) => {
@@ -36,13 +89,14 @@ exports.confirmDonation = async (req, res, next) => {
       message: "Donation confirmed successfully",
       data: updatedDonation,
     });
+
   } catch (error) {
     next(error);
   }
 };
 
 
-// Get Logged-in User Donations
+// Get My Donations
 exports.getMyDonations = async (req, res, next) => {
   try {
     const donations = await donationService.getDonationsByUser(
@@ -54,13 +108,14 @@ exports.getMyDonations = async (req, res, next) => {
       count: donations.length,
       data: donations,
     });
+
   } catch (error) {
     next(error);
   }
 };
 
-// Get All Donations (Admin and donor)
 
+// Get All Donations
 exports.getAllDonations = async (req, res, next) => {
   try {
     const donations = await donationService.getAllDonations();
@@ -70,13 +125,14 @@ exports.getAllDonations = async (req, res, next) => {
       count: donations.length,
       data: donations,
     });
+
   } catch (error) {
     next(error);
   }
 };
 
-//Get Donation By ID
 
+// Get Donation By ID
 exports.getDonationById = async (req, res, next) => {
   try {
     const donation = await donationService.getDonationById(req.params.id);
@@ -85,6 +141,7 @@ exports.getDonationById = async (req, res, next) => {
       success: true,
       data: donation,
     });
+
   } catch (error) {
     next(error);
   }

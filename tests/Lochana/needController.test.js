@@ -77,6 +77,39 @@ describe('Need Endpoints Integration Testing', () => {
         });
     });
 
+    describe('GET /my-needs', () => {
+        it('Should fetch only the needs belonging to the logged-in user', async () => {
+            const res = await request(app)
+                .get('/api/v1/needs/my-needs')
+                .set('Authorization', `Bearer ${user1Token}`);
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.data.length).toBeGreaterThan(0);
+            expect(res.body.data[0].title).toBe('User 1 Need');
+        });
+    });
+    describe('PUT /update/:needId', () => {
+        it('Should allow owner to update their own need', async () => {
+            const res = await request(app)
+                .put(`/api/v1/needs/update/${user1NeedId}`)
+                .set('Authorization', `Bearer ${user1Token}`)
+                .send({ title: 'Updated Title' });
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.data.title).toBe('Updated Title');
+        });
+
+        it('Should block a different user from updating the need', async () => {
+            const res = await request(app)
+                .put(`/api/v1/needs/update/${user1NeedId}`)
+                .set('Authorization', `Bearer ${user2Token}`)
+                .send({ title: 'Hacker Title' });
+
+            expect(res.statusCode).toBe(400); // Or 403 based on your service error
+            expect(res.body.message).toContain('not authorized');
+        });
+    });
+
     // --- TEST: Upload Verification Docs (File Upload) ---
     // describe(`PATCH ${API_PREFIX}/upload-verification/:needId`, () => {
     //     it('Should upload files successfully', async () => {
@@ -141,4 +174,6 @@ describe('Need Endpoints Integration Testing', () => {
             expect(res.statusCode).toBe(403);
         });
     });
+
+
 });

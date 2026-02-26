@@ -24,7 +24,7 @@ router.get('/getall', needController.getAllNeeds);
 router.patch('/update/:needId', protect, needController.updateNeedsProgress);
 router.patch('/upload-verification/:needId', protect, upload.array('docs', 3), needController.uploadDocs);
 router.post('/create' , protect, needController.createNeed);
-
+router.delete('/delete/:needId', protect, needController.deleteNeed);
 
 router.patch('/approve/:needId', protect, authorize('Donor'), needController.verfyNeedRequest);
 

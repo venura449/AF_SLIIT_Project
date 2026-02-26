@@ -33,6 +33,10 @@ exports.getFilteredNeeds = async (filters, pagination)=>{
 
 };
 
+exports.getNeedsByRecipient = async (userId)=>{
+    return (await Need.find({recipient: userId})).toSorted({createdAt: -1});
+}
+
 exports.updateNeedsStatus = async (needId, updateData)=>{
     const need = await Need.findById(needId);
     if(!need) throw new Error('Need not found');
@@ -91,4 +95,21 @@ exports.deleteNeedRequest = async (needId, userId)=>{
     }
     await Need.findByIdAndDelete(needId);
     return {message: 'Need and associated images deleted successfully'};
+};
+
+//update an existing need request
+exports.updateNeedRequest = async (needId, updateData, userId)=>{
+    const need = await Need.findById(needId);
+
+    if(!need) throw new Error('Need not found');
+
+    //only creator can update
+    if(need.recipient.toString() !== userId.toString()){
+        throw new Error('You are not authorized to update this need request');
+    }
+
+    return await Need.findByIdAndUpdate(needId, updateData, {
+        new:true,
+        runValidators:true,
+    });
 };

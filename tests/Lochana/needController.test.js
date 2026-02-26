@@ -9,6 +9,7 @@ const API_PREFIX = '/api/v1/needs';
 
 describe('Need Endpoints Integration Testing', () => {
     let userToken;
+    let otherUserToken;
     let donorToken;
     let testNeedId;
 
@@ -77,6 +78,39 @@ describe('Need Endpoints Integration Testing', () => {
         });
     });
 
+    // describe(`GET ${API_PREFIX}/my-needs`, () => {
+    //     it('Should fetch only the needs belonging to the logged-in user', async () => {
+    //         const res = await request(app)
+    //             .get(`${API_PREFIX}/my-needs`)
+    //             .set('Authorization', `Bearer ${userToken}`);
+
+    //         expect(res.statusCode).toBe(200);
+    //         expect(res.body.data.length).toBeGreaterThan(0);
+    //         expect(res.body.data[0].title).toBe('User 1 Need');
+    //     });
+    // });
+    // describe(`PUT ${API_PREFIX}/update/:needId`, () => {
+    //     it('Should allow owner to update their own need', async () => {
+    //         const res = await request(app)
+    //             .put(`${API_PREFIX}/update/${testNeedId}`)
+    //             .set('Authorization', `Bearer ${userToken}`)
+    //             .send({ title: 'Updated Title' });
+
+    //         expect(res.statusCode).toBe(200);
+    //         expect(res.body.data.title).toBe('Updated Title');
+    //     });
+
+    //     it('Should block a different user from updating the need', async () => {
+    //         const res = await request(app)
+    //             .put(`${API_PREFIX}/update/${testNeedId}`)
+    //             .set('Authorization', `Bearer ${otherUserToken}`)
+    //             .send({ title: 'Hacker Title' });
+
+    //         // Using 400 or 403 based on your specific error handling
+    //         expect([400, 403]).toContain(res.statusCode); 
+    //     });
+    // });
+
     // --- TEST: Upload Verification Docs (File Upload) ---
     // describe(`PATCH ${API_PREFIX}/upload-verification/:needId`, () => {
     //     it('Should upload files successfully', async () => {
@@ -141,4 +175,6 @@ describe('Need Endpoints Integration Testing', () => {
             expect(res.statusCode).toBe(403);
         });
     });
+
+
 });

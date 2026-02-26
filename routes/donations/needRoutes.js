@@ -71,6 +71,47 @@ router.get('/getall', needController.getAllNeeds);
  *       401:
  *         description: Unauthorized
  */
+router.get('/my-needs', protect, needController.getMyNeeds);
+
+/**
+ * @swagger
+ * /api/v1/needs/create:
+ *   post:
+ *     summary: Create a Need
+ *     description: Create a new need request for financial assistance
+ *     tags:
+ *       - Needs
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - targetAmount
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               targetAmount:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Need created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Need'
+ *       401:
+ *         description: Unauthorized
+ */
 router.post('/create', protect, needController.createNeed);
 
 /**
@@ -171,5 +212,46 @@ router.patch('/upload-verification/:needId', protect, upload.array('docs', 3), n
  *         description: Forbidden - Donor role required
  */
 router.patch('/approve/:needId', protect, authorize('Donor'), needController.verfyNeedRequest);
+
+/**
+ * @swagger
+ * /api/v1/needs/create:
+ *   post:
+ *     summary: Create a Need
+ *     description: Create a new need request for financial assistance
+ *     tags:
+ *       - Needs
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - targetAmount
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               targetAmount:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Need created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Need'
+ *       401:
+ *         description: Unauthorized
+ */
+router.put('/update/:needId', protect, needController.updateNeed);
 
 module.exports = router;

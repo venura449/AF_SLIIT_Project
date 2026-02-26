@@ -14,6 +14,7 @@ const needRoutes = require('./routes/donations/needRoutes.js');
 const feedbackRoutes = require('./routes/feedback/feedbackRoutes.js');
 const adminDashRoutes = require('./routes/admin/adminDashRoutes.js');
 const donationRoutes = require('./routes/donations/donationRoutes.js')
+const notificationRoutes = require('./routes/notifications/notificationRoutes.js');
 
 // Load environment variables
 dotenv.config();
@@ -64,6 +65,7 @@ app.use('/api/v1/needs', needRoutes);
 app.use('/api/v1/feedbacks', feedbackRoutes);
 app.use('/api/v1/admin', adminDashRoutes);
 app.use('/api/v1/donation', donationRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // Serve uploaded files (protected - only admin can access via API)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

@@ -58,6 +58,7 @@ const userSchema = new mongoose.Schema({
     enum: ['not_uploaded', 'pending', 'verified', 'rejected'],
     default: 'not_uploaded',
   },
+  fcmToken: String, // For push notifications
   documentRejectionReason: String,
   createdAt: {
     type: Date,

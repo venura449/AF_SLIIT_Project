@@ -13,6 +13,7 @@ exports.createNeed = async (req, res) => {
   }
 };
 
+//get all needs
 exports.getAllNeeds = async (req, res) => {
   try {
     const filters = {
@@ -39,6 +40,17 @@ exports.getAllNeeds = async (req, res) => {
   }
 };
 
+//get needs of a specific user
+exports.getMyNeeds = async (req, res) => {
+  try {
+    const needs = await needService.getNeedsByRecipient(req.user.id);
+    res.status(200).json({ success: true, count: needs.length, data: needs });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+//updates the status and progress of a need
 exports.updateNeedsProgress = async (req, res) => {
   try {
     const { needId } = req.params;
@@ -57,6 +69,7 @@ exports.updateNeedsProgress = async (req, res) => {
   }
 };
 
+//upload docs to prove the need and for verification
 exports.uploadDocs = async (req, res) => {
   console.log("full request body:", req.body);
   console.log("full request files: ", req.files);
@@ -82,6 +95,7 @@ exports.uploadDocs = async (req, res) => {
   }
 };
 
+//verification logic for need requests(for admin use)
 exports.verfyNeedRequest = async (req, res) => {
   try {
     const { needId } = req.params;
@@ -126,8 +140,30 @@ exports.deleteNeed = async (req, res) => {
   } catch (error) {
     const statusCode = error.message === "Unauthorized" ? 403 : 400;
     res.status(statusCode).json({
-        success: false,
-        message: error.message
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//update and existing need request
+exports.updateNeed = async (req, res) => {
+  try {
+    const { needId } = req.params;
+    const updatedNeed = await needService.updateNeedRequest(
+      needId,
+      req.body,
+      req.user.id,
+    );
+
+    res.status(200).json({
+      success: true,
+      data: updatedNeed,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
     });
   }
 };

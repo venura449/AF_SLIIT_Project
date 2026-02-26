@@ -250,3 +250,62 @@ exports.deleteDonation = async (req, res, next) => {
     next(error);
   }
 };
+// Delete Donation (Admin Only)
+exports.deleteDonation = async (req, res, next) => {
+  try {
+     const donationId = req.params.id;
+
+     //Find donation
+
+     const donation = await donationService.getDonationById(donationId);
+
+    if (!donation) {
+      return res.status(404).json({
+        success: false,
+        message: "Donation not found",
+      });
+
+  }
+  // Find related Need
+    const need = await Need.findById(donation.need);
+
+    if (!need) {
+      return res.status(404).json({
+        success: false,
+        message: "Related Need not found",
+      });
+    }
+    // Reverse Need Progress
+
+    // Decrease collected amount
+    need.currentAmount =
+      Number(need.currentAmount) - Number(donation.amount);
+
+    // Prevent negative values
+    if (need.currentAmount < 0) {
+      need.currentAmount = 0;
+    }
+   // Increase remaining goal
+    need.goalAmount =
+      Number(need.goalAmount) + Number(donation.amount);
+
+    // Update Status
+    if (need.currentAmount === 0) {
+      need.status = "Pending";
+    }else {
+      need.status = "Partially Funded";
+    }
+    await need.save();
+
+    // Delete Donation
+    await donationService.deleteDonation(donationId);
+
+    res.status(200).json({
+      success: true,
+      message: "Donation deleted and need updated successfully",
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};

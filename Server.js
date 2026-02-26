@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swaggerConfig.js');
 const connectDB = require('./config/db.js');
 
 
@@ -44,6 +46,15 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Server is running' });
 });
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'AF SLIIT Project API Documentation',
+  swaggerOptions: {
+    persistAuthorization: true,
+  },
+}));
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);

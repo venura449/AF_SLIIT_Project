@@ -23,8 +23,7 @@ exports.createDonation = async (req, res, next) => {
         message: "Need not found",
       });
     }
-
-    // Prevent donation to unverified need
+    // Must be verified
     if (!existingNeed.isVerified) {
       return res.status(400).json({
         success: false,
@@ -32,7 +31,7 @@ exports.createDonation = async (req, res, next) => {
       });
     }
 
-    // Prevent donation if cancelled or fulfilled
+    // Cannot donate if cancelled or fulfilled
     if (
       existingNeed.status === "Cancelled" ||
       existingNeed.status === "Fulfilled"
@@ -43,6 +42,15 @@ exports.createDonation = async (req, res, next) => {
       });
     }
 
+    // Check Remaining Amount
+    if (Number(amount) > existingNeed.goalAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `Only ${existingNeed.goalAmount} amount remaining`,
+      });
+    }
+
+
     // Create Donation
     const donation = await donationService.createDonation({
       donor: req.user._id,
@@ -52,10 +60,17 @@ exports.createDonation = async (req, res, next) => {
     });
 
     // Update Need progress
+   
+    // Increase collected amount
     existingNeed.currentAmount =
       Number(existingNeed.currentAmount) + Number(amount);
+    // Reduce remaining goal
+    existingNeed.goalAmount =
+      Number(existingNeed.goalAmount) - Number(amount);
 
-    if (existingNeed.currentAmount >= existingNeed.goalAmount) {
+     // Update Status
+    if (existingNeed.goalAmount <= 0) {
+      existingNeed.goalAmount = 0;
       existingNeed.status = "Fulfilled";
     } else {
       existingNeed.status = "Partially Funded";
@@ -74,15 +89,41 @@ exports.createDonation = async (req, res, next) => {
   }
 };
 
-
 // Confirm Donation
 exports.confirmDonation = async (req, res, next) => {
   try {
     const donationId = req.params.id;
     const { transactionId } = req.body;
 
-    const updatedDonation =
-      await donationService.confirmDonation(donationId, transactionId);
+     if (!transactionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Transaction ID is required",
+      });
+    }
+
+     // Find Donation
+    const donation = await donationService.getDonationById(donationId);
+
+    if (!donation) {
+      return res.status(404).json({
+        success: false,
+        message: "Donation not found",
+      });
+    }
+    // Prevent double confirmation
+    if (donation.status === "Confirmed") {
+      return res.status(400).json({
+        success: false,
+        message: "Donation already confirmed",
+      });
+    }
+
+    // Update Donation
+    const updatedDonation = await donationService.confirmDonation(
+      donationId,
+      transactionId
+    );
 
     res.status(200).json({
       success: true,
@@ -115,7 +156,7 @@ exports.getMyDonations = async (req, res, next) => {
 };
 
 
-// Get All Donations
+// Get All Donations (Admin)
 exports.getAllDonations = async (req, res, next) => {
   try {
     const donations = await donationService.getAllDonations();
@@ -137,9 +178,72 @@ exports.getDonationById = async (req, res, next) => {
   try {
     const donation = await donationService.getDonationById(req.params.id);
 
+    if (!donation) {
+  return res.status(404).json({
+    success: false,
+    message: "Donation not found",
+  });
+}
+
+  } catch (error) {
+    next(error);
+  }
+};
+// Delete Donation (Admin Only)
+exports.deleteDonation = async (req, res, next) => {
+  try {
+     const donationId = req.params.id;
+
+     //Find donation
+
+     const donation = await donationService.getDonationById(donationId);
+
+    if (!donation) {
+      return res.status(404).json({
+        success: false,
+        message: "Donation not found",
+      });
+
+  }
+  // Find related Need
+    const need = await Need.findById(donation.need);
+
+    if (!need) {
+      return res.status(404).json({
+        success: false,
+        message: "Related Need not found",
+      });
+    }
+    // Reverse Need Progress
+
+    // Decrease collected amount
+    need.currentAmount =
+      Number(need.currentAmount) - Number(donation.amount);
+
+    // Prevent negative values
+    if (need.currentAmount < 0) {
+      need.currentAmount = 0;
+    }
+   // Increase remaining goal
+    need.goalAmount =
+      Number(need.goalAmount) + Number(donation.amount);
+
+    // Update Status
+      if (need.currentAmount === 0) {
+      need.status = "Pending";
+      } else if (need.goalAmount === 0) {
+       need.status = "Fulfilled";
+      } else {
+      need.status = "Partially Funded";
+      }
+    await need.save();
+
+    // Delete Donation
+    await donationService.deleteDonation(donationId);
+
     res.status(200).json({
       success: true,
-      data: donation,
+      message: "Donation deleted and need updated successfully",
     });
 
   } catch (error) {

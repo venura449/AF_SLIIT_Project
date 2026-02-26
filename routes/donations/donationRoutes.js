@@ -12,11 +12,11 @@ router.post(
   donationController.createDonation
 );
 
-// Confirm Donation by Donor or Admin
-router.put(
+// Confirm Donation by Admin only
+router.patch(
   "/:id/confirm",
   protect,
-  authorize("Donor", "Admin"),
+  authorize("Admin"),
   donationController.confirmDonation
 );
 
@@ -28,11 +28,11 @@ router.get(
   donationController.getMyDonations
 );
 
-// Get All Donations by Admin Only  (for now Donor too)
+// Get All Donations by Admin Only
 router.get(
   "/",
   protect,
-  authorize("Admin", "Donor"),
+  authorize("Admin"),
   donationController.getAllDonations
 );
 
@@ -41,5 +41,13 @@ router.get(
   "/:id",
   protect,
   donationController.getDonationById
+);
+
+// Delete a Donation (Admin Only)
+router.delete(
+  "/:id",
+  protect,
+  authorize("Admin"),
+  donationController.deleteDonation
 );
 module.exports = router;

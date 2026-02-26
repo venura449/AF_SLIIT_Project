@@ -1,5 +1,5 @@
 const Donation = require("../../models/donations/Donation");
-
+const Need = require('../../models/donations/Need');
 // Create Donation
 exports.createDonation = async ({ donor, need, amount }) => {
   if (!donor || !need || !amount) {
@@ -23,21 +23,17 @@ exports.createDonation = async ({ donor, need, amount }) => {
 
 //Confirm Donation
  
-exports.confirmDonation = async (id, transactionId) => {
-  const updatedDonation = await Donation.findByIdAndUpdate(
-    id,
-    {
-      paymentStatus: "Completed",
-      transactionId: transactionId || "MANUAL-" + Date.now(),
-    },
-    { new: true }
-  );
+exports.confirmDonation = async (donationId, transactionId) => {
+   const donation = await Donation.findById(donationId);
 
-  if (!updatedDonation) {
+  if (!donation) {
     throw new Error("Donation not found");
   }
 
-  return updatedDonation;
+  donation.status = "Confirmed";
+  donation.transactionId = transactionId;
+
+  return await donation.save();
 };
 
 //Get Donations By Logged-in User
@@ -66,6 +62,40 @@ exports.getDonationById = async (id) => {
   if (!donation) {
     throw new Error("Donation not found");
   }
+
+  return donation;
+};
+
+// Delete Donation 
+exports.deleteDonation = async (donationId) => {
+  const donation = await Donation.findById(donationId);
+
+  if (!donation) {
+    throw new Error("Donation not found");
+  }
+  // Find related Need
+  const need = await Need.findById(donation.need);
+
+  if (need) {
+    // Reverse progress
+    need.currentAmount =
+      Number(need.currentAmount) - Number(donation.amount);
+
+    if (need.currentAmount < 0) {
+      need.currentAmount = 0;
+    }
+
+    // Update status
+    if (need.currentAmount === 0) {
+      need.status = "Pending";
+    } else if (need.currentAmount < need.goalAmount) {
+      need.status = "Partially Funded";
+    }
+
+    await need.save();
+  }
+
+  await donation.deleteOne();
 
   return donation;
 };

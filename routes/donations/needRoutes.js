@@ -149,7 +149,7 @@ router.post('/create', protect, needController.createNeed);
  *       404:
  *         description: Need not found
  */
-router.patch('/update/:needId', protect, authorize('Donor','Admin'), needController.updateNeedsProgress);
+router.patch('/update/:needId', protect, authorize('Admin'), needController.updateNeedsProgress);
 
 /**
  * @swagger

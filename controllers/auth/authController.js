@@ -9,6 +9,8 @@ const {
   deleteUserService,
 } = require("../../services/auth/authService");
 const User = require("../../models/users/User");
+const { validateUserPresent } = require("../../utils/helperFunctions.js");
+const { updateUsername } = require("../../utils/helperFunctions.js");
 
 // Signup Controller
 exports.signup = async (req, res) => {
@@ -58,14 +60,9 @@ exports.updateProfile = async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    validateUserPresent(user);
 
-    // Update username if provided
-    if (username) {
-      user.username = username;
-    }
+    updateUsername(user, username);
 
     // Update profile fields
     user.profile = {

@@ -17,7 +17,6 @@ exports.uploadNicDocument = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: "Please upload a file" });
     }
-
     const result = await uploadNicDocumentService(req.user._id, req.file);
     res.status(200).json({
       message: "Document uploaded successfully. Awaiting admin verification.",

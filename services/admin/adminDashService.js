@@ -2,6 +2,7 @@ const Feedback = require('../../models/feedback/Feedback');
 const User = require('../../models/users/User');
 const Need = require('../../models/donations/Need');
 const Donation = require('../../models/donations/Donation');
+const { fetchweather } = require('../../utils/helperFunctions');
 
 exports.countTotUsers = async () => {
     const totalUsers = await User.countDocuments();
@@ -56,4 +57,9 @@ exports.getMonthlyGrowth = async () => {
     ]);
 
     return monthlyGrowth;
+}
+
+exports.fetchWeather = async (lat, lon) => {
+    const data = await fetchweather(lat, lon);
+    return data;
 }

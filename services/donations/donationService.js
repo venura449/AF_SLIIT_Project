@@ -1,6 +1,17 @@
 //donationService.js 
 const Donation = require("../../models/donations/Donation");
 const Need = require('../../models/donations/Need');
+
+/*
+Contains core business logic.
+ Responsible for:
+ - Database operations
+ - Updating related models
+ - Maintaining data consistency
+ 
+ This keeps controllers clean and improves maintainability.
+ */
+
 // Create Donation
 exports.createDonation = async ({ donor, need, amount }) => {
   if (!donor || !need || !amount) {

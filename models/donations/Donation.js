@@ -1,3 +1,17 @@
+/*
+-
+ This schema represents a donation made by a donor to a specific need.
+ It stores donation amount, donor reference, need reference,
+ anonymity preference, and payment status.
+ 
+ Relationships:
+ - Each donation belongs to one User (Donor)
+ - Each donation belongs to one Need
+ 
+ Business Rules:
+ - Amount must be greater than 0
+ - Payment status controls confirmation flow
+ */
 const mongoose = require("mongoose");
 const donationSchema = new mongoose.Schema({
   donor: {  //Who donated

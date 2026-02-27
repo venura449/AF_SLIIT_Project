@@ -4,6 +4,16 @@ const router = express.Router();
 
 const donationController = require("../../controllers/donations/donationController");
 const { protect, authorize } = require("../../middleware/authmiddleware");
+/*
+Defines API endpoints for donation operations.
+  Applies:
+ - Authentication middleware (protect)
+ - Role-based authorization
+ 
+ Roles:
+ - Donor → Create donation, view own donations
+ - Admin → Confirm donation, delete donation
+ */
 
 /**
  * @swagger

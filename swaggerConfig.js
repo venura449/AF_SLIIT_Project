@@ -18,7 +18,7 @@ const options = {
                 description: 'Development Server',
             },
             {
-                url: 'https://api.example.com',
+                url: 'https://af-sliit-project.onrender.com',
                 description: 'Production Server',
             },
         ],

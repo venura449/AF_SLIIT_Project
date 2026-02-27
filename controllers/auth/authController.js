@@ -5,6 +5,7 @@ const {
   getAllUsersService,
   updateUserStatusService,
   updateUserService,
+  updateEmailService,
   deleteUserService,
 } = require("../../services/auth/authService");
 const User = require("../../models/users/User");
@@ -154,6 +155,23 @@ exports.deleteUser = async (req, res) => {
     res.status(200).json({
       message: "User deleted successfully",
       user: deletedUser,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Update User Email Controller
+exports.updateEmail = async (req, res) => {
+  try {
+    const { newEmail } = req.body;
+    const userId = req.user._id;
+
+    const user = await updateEmailService(userId, newEmail);
+
+    res.status(200).json({
+      message: "Email updated successfully",
+      user,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });

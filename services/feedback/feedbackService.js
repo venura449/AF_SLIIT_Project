@@ -1,5 +1,6 @@
 const Feedback = require( '../../models/feedback/Feedback.js');
 const Review = require('../../models/feedback/Review.js');
+const User = require('../../models/users/User.js');
 
 exports.createFeedback = async({need, user, content, rating, imageUrl}) => {
     if(!need || !user || !content || !imageUrl){
@@ -8,6 +9,12 @@ exports.createFeedback = async({need, user, content, rating, imageUrl}) => {
     
     if(rating == null){
         rating = 0;
+    }
+
+    const userDoc = await User.findById(user).select('role');
+
+    if (!userDoc || userDoc.role !== 'Recipient') {
+        throw new Error("Only recipients can create feedback");
     }
 
     const newFeedback = new Feedback({need, user, content, rating, imageUrl});
@@ -42,21 +49,13 @@ exports.putFeedbackAvgRating = async(id) => {
     const updatedFeedback = await Feedback.findByIdAndUpdate(id, { rating: avgRating }, { new: true });
 
     if(!updatedFeedback){
-        throw new Error("Unable to update average rating");
+        throw new Error("Feedback not found");
     }
 
     return updatedFeedback;
 }
 
 exports.putFeedback = async(id, feedback) => {
-    if(!id){
-        throw new Error("Feedback ID is required");
-    }
-
-    if(!feedback.need || !feedback.user || !feedback.content || !feedback.imageUrl){
-        throw new Error("All fields are required");
-    }
-
     const updatedFeedback = await Feedback.findByIdAndUpdate(id, feedback, {new: true});
 
     if(!updatedFeedback){
@@ -66,10 +65,6 @@ exports.putFeedback = async(id, feedback) => {
 }                                               
 
 exports.removeFeedback = async(id) => {
-    if(!id){
-        throw new Error("Feedback ID is required");
-    }
-
     const deletedFeedback = await Feedback.findByIdAndDelete(id);
 
     if(!deletedFeedback){

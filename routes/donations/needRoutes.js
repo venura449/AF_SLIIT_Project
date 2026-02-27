@@ -149,7 +149,7 @@ router.post('/create', protect, needController.createNeed);
  *       404:
  *         description: Need not found
  */
-router.patch('/update/:needId', protect, needController.updateNeedsProgress);
+router.patch('/update/:needId', protect, authorize('Admin'), needController.updateNeedsProgress);
 
 /**
  * @swagger
@@ -185,7 +185,7 @@ router.patch('/update/:needId', protect, needController.updateNeedsProgress);
  *       401:
  *         description: Unauthorized
  */
-router.patch('/upload-verification/:needId', protect, upload.array('docs', 3), needController.uploadDocs);
+router.patch('/upload-verification/:needId', protect, upload.array('admin', 3), needController.uploadDocs);
 
 /**
  * @swagger
@@ -209,9 +209,9 @@ router.patch('/upload-verification/:needId', protect, upload.array('docs', 3), n
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden - Donor role required
+ *         description: Forbidden - Admin role required
  */
-router.patch('/approve/:needId', protect, authorize('Donor'), needController.verfyNeedRequest);
+router.patch('/approve/:needId', protect, authorize('Admin'), needController.verfyNeedRequest);
 
 /**
  * @swagger
@@ -252,6 +252,6 @@ router.patch('/approve/:needId', protect, authorize('Donor'), needController.ver
  *       401:
  *         description: Unauthorized
  */
-router.put('/update/:needId', protect, needController.updateNeed);
+router.put('/update-need/:needId', protect, authorize('Recipient'), needController.updateNeed);
 
 module.exports = router;

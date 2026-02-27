@@ -5,6 +5,10 @@ exports.saveFCMToken = async (req, res) => {
         const { fcmToken } = req.body;
         const userId =  req.user ? req.user.id : null;
 
+        if(!fcmToken){
+            return res.status(400).json({ message: "FCM token is required" });
+        }
+
         const user = await saveNotificationToken(userId, fcmToken);
 
         res.status(200).json({ message: "FCM token saved successfully", user: user });

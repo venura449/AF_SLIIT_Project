@@ -1,6 +1,6 @@
 const express = require('express');
 
-const auth = require('../../middleware/authmiddleware.js');
+const {protect} = require('../../middleware/authmiddleware.js');
 const {
     addFeedback,
     feedback,
@@ -55,7 +55,7 @@ const router = express.Router();
  *       401:
  *         description: Unauthorized
  */
-router.post('/createFeedback', auth.protect, addFeedback);
+router.post('/createFeedback', protect, addFeedback);
 
 /**
  * @swagger
@@ -114,7 +114,7 @@ router.put('/updateFeedback/:id', updateFeedback);
 /**
  * @swagger
  * /api/v1/feedbacks/updateAvgRating/{id}:
- *   put:
+ *   patch:
  *     summary: Update Average Rating
  *     description: Update the average rating for a need
  *     tags:
@@ -126,7 +126,6 @@ router.put('/updateFeedback/:id', updateFeedback);
  *         schema:
  *           type: string
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -138,7 +137,7 @@ router.put('/updateFeedback/:id', updateFeedback);
  *       200:
  *         description: Average rating updated successfully
  */
-router.put('/updateAvgRating/:id', updateAvgRating);
+router.patch('/updateAvgRating/:id', updateAvgRating);
 
 /**
  * @swagger
@@ -200,7 +199,7 @@ router.delete('/deleteFeedback/:id', deleteFeedback);
  *       401:
  *         description: Unauthorized
  */
-router.post('/:feedbackId/createReview', auth.protect, addReview);
+router.post('/:feedbackId/createReview', protect, addReview);
 
 /**
  * @swagger

@@ -10,7 +10,7 @@ exports.addFeedback = async(req,res) => {
     try{
         const {need, content, rating, imageUrl} = req.body;
 
-        const user = req.user ? req.user.id : req.body.user; 
+        const user = req.user ? req.user._id : null; 
 
         const savedFeedback = await createFeedback({need,user,content, rating, imageUrl});    
 
@@ -36,9 +36,9 @@ exports.feedback = async(req,res) => {
 
 exports.updateAvgRating = async(req,res) => {
     try{
-        const {feedbackId} = req.params;
+        const {id} = req.params;
 
-        const updatedFeedback = await putFeedbackAvgRating(feedbackId);
+        const updatedFeedback = await putFeedbackAvgRating(id);
 
         res.status(200).json({message: "Average rating updated successfully", updatedFeedback});
     }catch(e){

@@ -3,6 +3,9 @@ const User = require("../../models/users/User");
 
 exports.saveNotificationToken = async (userId, fcmToken) => {
     try{
+        if (!fcmToken || typeof fcmToken !== "string" || fcmToken.length < 50) {
+            throw new Error("Invalid FCM token format");
+        }
         const user = await User.findByIdAndUpdate(userId, { fcmToken: fcmToken }, { new: true });
 
         return user;

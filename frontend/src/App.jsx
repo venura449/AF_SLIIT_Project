@@ -16,14 +16,15 @@ function App() {
   useEffect(() => {
     const fetchFCMToken =async () => {
         try{
-           const token = await requestForToken();
+           const fcmToken = await requestForToken();
 
-          if (token) {
-            console.log("FCM Token:", token);
+          if (fcmToken) {
+            console.log("FCM Token:", fcmToken);
+              setFcmToken(fcmToken);
 
             // Send token to backend
             await axios.patch("http://localhost:5001/api/v1/notifications/save-fcm-token", {
-              token: token
+              fcmToken: fcmToken
             }, {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`

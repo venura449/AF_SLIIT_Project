@@ -56,10 +56,10 @@ exports.updateReview = async (req, res) => {
 
         res.status(200).json({ success: true, message: "Review updated successfully", review: updatedReview });
     } catch (error) {
-        if(error.message === "Review ID is required") {
-            return res.status(400).json({ success: false, message: "Review ID is required", error: error.message });
+        if(error.message === "Review not found") {
+            return res.status(404).json({ success: false, message: "Review not found", error: error.message });
         } else{
-            res.status(404).json({ success: false, message: "Error updating review", error: error.message });
+            res.status(500).json({ success: false, message: "Error updating review", error: error.message });
         }
     }
 };
@@ -76,10 +76,10 @@ exports.deleteReview = async (req, res) => {
 
         res.status(200).json({ success: true, message: "Review deleted successfully", review: deletedReview });
     } catch (error) {
-        if(error.message === "Review ID is required") {
-            return res.status(400).json({ success: false, message: "Review ID is required", error: error.message });
+        if(error.message === "Review not found") {
+            return res.status(404).json({ success: false, message: "Review not found", error: error.message });
         } else {
-            res.status(404).json({ success: false, message: "Error deleting review", error: error.message });
+            res.status(500).json({ success: false, message: "Error deleting review", error: error.message });
         }
     }
 };

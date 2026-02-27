@@ -32,10 +32,6 @@ exports.getFeedbacks = async() => {
 }
 
 exports.putFeedbackAvgRating = async(id) => {
-    if(!id){
-        throw new Error("Feedback ID is required");
-    }
-
     const reviewRatings = await Review.find({feedback: id});
 
     if(reviewRatings.length === 0){

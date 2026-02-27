@@ -71,6 +71,47 @@ router.get('/getall', needController.getAllNeeds);
  *       401:
  *         description: Unauthorized
  */
+router.get('/my-needs', protect, needController.getMyNeeds);
+
+/**
+ * @swagger
+ * /api/v1/needs/create:
+ *   post:
+ *     summary: Create a Need
+ *     description: Create a new need request for financial assistance
+ *     tags:
+ *       - Needs
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - targetAmount
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               targetAmount:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Need created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Need'
+ *       401:
+ *         description: Unauthorized
+ */
 router.post('/create', protect, needController.createNeed);
 
 /**
@@ -108,7 +149,7 @@ router.post('/create', protect, needController.createNeed);
  *       404:
  *         description: Need not found
  */
-router.patch('/update/:needId', protect, needController.updateNeedsProgress);
+router.patch('/update/:needId', protect, authorize('Admin'), needController.updateNeedsProgress);
 
 /**
  * @swagger
@@ -144,7 +185,7 @@ router.patch('/update/:needId', protect, needController.updateNeedsProgress);
  *       401:
  *         description: Unauthorized
  */
-router.patch('/upload-verification/:needId', protect, upload.array('docs', 3), needController.uploadDocs);
+router.patch('/upload-verification/:needId', protect, upload.array('admin', 3), needController.uploadDocs);
 
 /**
  * @swagger
@@ -168,8 +209,49 @@ router.patch('/upload-verification/:needId', protect, upload.array('docs', 3), n
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden - Donor role required
+ *         description: Forbidden - Admin role required
  */
-router.patch('/approve/:needId', protect, authorize('Donor'), needController.verfyNeedRequest);
+router.patch('/approve/:needId', protect, authorize('Admin'), needController.verfyNeedRequest);
+
+/**
+ * @swagger
+ * /api/v1/needs/create:
+ *   post:
+ *     summary: Create a Need
+ *     description: Create a new need request for financial assistance
+ *     tags:
+ *       - Needs
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - targetAmount
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               targetAmount:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Need created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Need'
+ *       401:
+ *         description: Unauthorized
+ */
+router.put('/update-need/:needId', protect, authorize('Recipient'), needController.updateNeed);
 
 module.exports = router;

@@ -10,7 +10,7 @@ exports.addFeedback = async(req,res) => {
     try{
         const {need, content, rating, imageUrl} = req.body;
 
-        const user = req.user ? req.user.id : req.body.user; 
+        const user = req.user ? req.user._id : null; 
 
         const savedFeedback = await createFeedback({need,user,content, rating, imageUrl});    
 
@@ -36,13 +36,17 @@ exports.feedback = async(req,res) => {
 
 exports.updateAvgRating = async(req,res) => {
     try{
-        const {feedbackId} = req.params;
+        const {id} = req.params;
 
-        const updatedFeedback = await putFeedbackAvgRating(feedbackId);
+        const updatedFeedback = await putFeedbackAvgRating(id);
 
         res.status(200).json({message: "Average rating updated successfully", updatedFeedback});
     }catch(e){
-        res.status(404).json({error: e.message});
+        if(e.message === "Feedback not found") {
+            return res.status(404).json({ error: e.message});
+        }else {
+            res.status(500).json({error: e.message});
+        }
     }
 }
 
@@ -55,7 +59,11 @@ exports.updateFeedback = async(req,res) => {
 
         res.status(200).json({message: "Feedback updated successfully", updatedFeedback});
     }catch(e){
-        res.status(404).json({error: e.message});
+        if(e.message === "Feedback not found") {
+            return res.status(404).json({ error: e.message});
+        }else {
+            res.status(500).json({error: e.message});
+        }
     }
 }
 
@@ -67,6 +75,10 @@ exports.deleteFeedback = async(req,res) => {
 
         res.status(200).json({message: "Feedback deleted successfully", deletedFeedback});
     }catch(e){
-        res.status(404).json({error: e.message});
+        if(e.message === "Feedback not found") {
+            return res.status(404).json({ error: e.message});
+        }else {
+            res.status(500).json({error: e.message});
+        }
     }
 }

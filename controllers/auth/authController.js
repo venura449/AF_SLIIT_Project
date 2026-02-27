@@ -5,9 +5,12 @@ const {
   getAllUsersService,
   updateUserStatusService,
   updateUserService,
+  updateEmailService,
   deleteUserService,
 } = require("../../services/auth/authService");
 const User = require("../../models/users/User");
+const { validateUserPresent } = require("../../utils/helperFunctions.js");
+const { updateUsername } = require("../../utils/helperFunctions.js");
 
 // Signup Controller
 exports.signup = async (req, res) => {
@@ -57,14 +60,9 @@ exports.updateProfile = async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    validateUserPresent(user);
 
-    // Update username if provided
-    if (username) {
-      user.username = username;
-    }
+    updateUsername(user, username);
 
     // Update profile fields
     user.profile = {
@@ -154,6 +152,23 @@ exports.deleteUser = async (req, res) => {
     res.status(200).json({
       message: "User deleted successfully",
       user: deletedUser,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Update User Email Controller
+exports.updateEmail = async (req, res) => {
+  try {
+    const { newEmail } = req.body;
+    const userId = req.user._id;
+
+    const user = await updateEmailService(userId, newEmail);
+
+    res.status(200).json({
+      message: "Email updated successfully",
+      user,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });

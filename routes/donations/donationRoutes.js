@@ -1,3 +1,4 @@
+
 const express = require("express");
 const router = express.Router();
 
@@ -8,8 +9,8 @@ const { protect, authorize } = require("../../middleware/authmiddleware");
  * @swagger
  * /api/v1/donation:
  *   post:
- *     summary: Create a Donation
- *     description: Create a new donation for a specific need (Donor only)
+ *     summary: Create Donation
+ *     description: Create a new donation to a need (Donor only)
  *     tags:
  *       - Donations
  *     security:
@@ -26,10 +27,10 @@ const { protect, authorize } = require("../../middleware/authmiddleware");
  *             properties:
  *               needId:
  *                 type: string
+ *                 description: ID of the need to donate to
  *               amount:
  *                 type: number
- *               message:
- *                 type: string
+ *                 description: Amount to donate
  *     responses:
  *       201:
  *         description: Donation created successfully
@@ -42,6 +43,7 @@ const { protect, authorize } = require("../../middleware/authmiddleware");
  *       403:
  *         description: Forbidden - Donor role required
  */
+// Create Donation by Donor
 router.post(
   "/",
   protect,
@@ -52,9 +54,9 @@ router.post(
 /**
  * @swagger
  * /api/v1/donation/{id}/confirm:
- *   put:
+ *   patch:
  *     summary: Confirm Donation
- *     description: Confirm a donation (Donor or Admin)
+ *     description: Confirm a pending donation (Admin only)
  *     tags:
  *       - Donations
  *     security:
@@ -66,15 +68,6 @@ router.post(
  *         schema:
  *           type: string
  *         description: Donation ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               status:
- *                 type: string
  *     responses:
  *       200:
  *         description: Donation confirmed successfully
@@ -84,11 +77,16 @@ router.post(
  *               $ref: '#/components/schemas/Donation'
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Donation not found
  */
-router.put(
+// Confirm Donation by Admin only
+router.patch(
   "/:id/confirm",
   protect,
-  authorize("Donor", "Admin"),
+  authorize("Admin"),
   donationController.confirmDonation
 );
 
@@ -97,14 +95,14 @@ router.put(
  * /api/v1/donation/my:
  *   get:
  *     summary: Get My Donations
- *     description: Get all donations made by the logged-in donor
+ *     description: Retrieve all donations made by the authenticated donor
  *     tags:
  *       - Donations
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User donations retrieved successfully
+ *         description: List of donor's donations retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -113,7 +111,10 @@ router.put(
  *                 $ref: '#/components/schemas/Donation'
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Donor role required
  */
+// Get My Donations by Only Donor (logged-in user)
 router.get(
   "/my",
   protect,
@@ -126,14 +127,14 @@ router.get(
  * /api/v1/donation:
  *   get:
  *     summary: Get All Donations
- *     description: Get all donations (Admin or Donor)
+ *     description: Retrieve all donations in the system (Admin only)
  *     tags:
  *       - Donations
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: All donations retrieved successfully
+ *         description: List of all donations retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -142,11 +143,14 @@ router.get(
  *                 $ref: '#/components/schemas/Donation'
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  */
+// Get All Donations by Admin Only
 router.get(
   "/",
   protect,
-  authorize("Admin", "Donor"),
+  authorize("Admin"),
   donationController.getAllDonations
 );
 
@@ -154,8 +158,8 @@ router.get(
  * @swagger
  * /api/v1/donation/{id}:
  *   get:
- *     summary: Get Donation by ID
- *     description: Get a specific donation by its ID
+ *     summary: Get Donation By ID
+ *     description: Retrieve a specific donation by its ID
  *     tags:
  *       - Donations
  *     security:
@@ -179,10 +183,45 @@ router.get(
  *       404:
  *         description: Donation not found
  */
+// Get Donation By ID (Protected)
 router.get(
   "/:id",
   protect,
   donationController.getDonationById
 );
 
+/**
+ * @swagger
+ * /api/v1/donation/{id}:
+ *   delete:
+ *     summary: Delete Donation
+ *     description: Delete a donation (Admin only)
+ *     tags:
+ *       - Donations
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Donation ID
+ *     responses:
+ *       200:
+ *         description: Donation deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Donation not found
+ */
+// Delete a Donation (Admin Only)
+router.delete(
+  "/:id",
+  protect,
+  authorize("Admin"),
+  donationController.deleteDonation
+);
 module.exports = router;

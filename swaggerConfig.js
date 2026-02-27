@@ -18,7 +18,7 @@ const options = {
                 description: 'Development Server',
             },
             {
-                url: 'https://api.example.com',
+                url: 'https://af-sliit-project.onrender.com',
                 description: 'Production Server',
             },
         ],
@@ -98,6 +98,19 @@ const options = {
                         createdAt: { type: 'string', format: 'date-time' },
                     },
                 },
+                Notification: {
+                    type: 'object',
+                    properties: {
+                        _id: { type: 'string' },
+                        userId: { type: 'string' },
+                        title: { type: 'string' },
+                        body: { type: 'string' },
+                        data: { type: 'object' },
+                        fcmToken: { type: 'string' },
+                        isRead: { type: 'boolean' },
+                        createdAt: { type: 'string', format: 'date-time' },
+                    },
+                },
                 Error: {
                     type: 'object',
                     properties: {
@@ -121,6 +134,7 @@ const options = {
         './routes/donations/donationRoutes.js',
         './routes/feedback/feedbackRoutes.js',
         './routes/admin/adminDashRoutes.js',
+        './routes/notifications/notificationRoutes.js',
     ],
 };
 

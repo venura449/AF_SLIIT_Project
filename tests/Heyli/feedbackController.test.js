@@ -101,6 +101,8 @@ describe('Feedback Endpoints Testing Started ! ', () => {
             const res = await supertest(app)
                 .put(`${API_PREFIX}/updateFeedback/${feedback._id}`)
                 .send({
+                    need: '6992a98e8c7a4a7cfd4b6a47',
+                    user: '698f150949022e1b9f7f82f6',
                     content: 'Updated feedback message.',
                     rating: 5,
                     imageUrl: 'http://example.com/updated-image.jpg',
@@ -116,6 +118,8 @@ describe('Feedback Endpoints Testing Started ! ', () => {
             const res = await supertest(app)
                 .put(`${API_PREFIX}/updateFeedback/${nonExistentId}`)
                 .send({
+                    need: '6992a98e8c7a4a7cfd4b6a47',
+                    user: '698f150949022e1b9f7f82f6',
                     content: 'Updated feedback message.',
                     rating: 5,
                     imageUrl: 'http://example.com/updated-image.jpg',

@@ -15,44 +15,18 @@ Defines API endpoints for donation operations.
  - Admin → Confirm donation, delete donation
  */
 
-/**
- * @swagger
- * /api/v1/donation:
- *   post:
- *     summary: Create Donation
- *     description: Create a new donation to a need (Donor only)
- *     tags:
- *       - Donations
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - needId
- *               - amount
- *             properties:
- *               needId:
- *                 type: string
- *                 description: ID of the need to donate to
- *               amount:
- *                 type: number
- *                 description: Amount to donate
- *     responses:
- *       201:
- *         description: Donation created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Donation'
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden - Donor role required
- */
+/*
+   Defines API endpoints for donation operations.
+    Applies:
+   - Authentication middleware (protect)
+   - Role-based authorization
+ 
+   Roles:
+  - Donor → Create donation, view own donations
+  - Admin → Confirm donation, delete donation
+ 
+  */
+
 // Create Donation by Donor
 router.post(
   "/",
@@ -61,37 +35,7 @@ router.post(
   donationController.createDonation
 );
 
-/**
- * @swagger
- * /api/v1/donation/{id}/confirm:
- *   patch:
- *     summary: Confirm Donation
- *     description: Confirm a pending donation (Admin only)
- *     tags:
- *       - Donations
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Donation ID
- *     responses:
- *       200:
- *         description: Donation confirmed successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Donation'
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden - Admin access required
- *       404:
- *         description: Donation not found
- */
+
 // Confirm Donation by Admin only
 router.patch(
   "/:id/confirm",
@@ -100,30 +44,7 @@ router.patch(
   donationController.confirmDonation
 );
 
-/**
- * @swagger
- * /api/v1/donation/my:
- *   get:
- *     summary: Get My Donations
- *     description: Retrieve all donations made by the authenticated donor
- *     tags:
- *       - Donations
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of donor's donations retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Donation'
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden - Donor role required
- */
+
 // Get My Donations by Only Donor (logged-in user)
 router.get(
   "/my",
@@ -132,30 +53,7 @@ router.get(
   donationController.getMyDonations
 );
 
-/**
- * @swagger
- * /api/v1/donation:
- *   get:
- *     summary: Get All Donations
- *     description: Retrieve all donations in the system (Admin only)
- *     tags:
- *       - Donations
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all donations retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Donation'
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden - Admin access required
- */
+
 // Get All Donations by Admin Only
 router.get(
   "/",
@@ -164,35 +62,7 @@ router.get(
   donationController.getAllDonations
 );
 
-/**
- * @swagger
- * /api/v1/donation/{id}:
- *   get:
- *     summary: Get Donation By ID
- *     description: Retrieve a specific donation by its ID
- *     tags:
- *       - Donations
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Donation ID
- *     responses:
- *       200:
- *         description: Donation retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Donation'
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Donation not found
- */
+
 // Get Donation By ID (Protected)
 router.get(
   "/:id",
@@ -200,33 +70,7 @@ router.get(
   donationController.getDonationById
 );
 
-/**
- * @swagger
- * /api/v1/donation/{id}:
- *   delete:
- *     summary: Delete Donation
- *     description: Delete a donation (Admin only)
- *     tags:
- *       - Donations
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Donation ID
- *     responses:
- *       200:
- *         description: Donation deleted successfully
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden - Admin access required
- *       404:
- *         description: Donation not found
- */
+
 // Delete a Donation (Admin Only)
 router.delete(
   "/:id",

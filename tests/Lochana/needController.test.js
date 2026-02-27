@@ -143,35 +143,33 @@ describe('Need Endpoints Integration Testing', () => {
     // });
     // --- TEST: Update Progress ---
     describe(`PATCH ${API_PREFIX}/update/:needId`, () => {
-        it('Should update progress/status successfully', async () => {
+        it('Should fail update if user is Recipient', async () => {
             const res = await request(app)
                 .patch(`${API_PREFIX}/update/${testNeedId}`)
                 .set('Authorization', `Bearer ${userToken}`)
                 .send({ amount: 1000 });
 
-            expect(res.statusCode).toBe(200);
-            expect(res.body.success).toBe(true);
+            expect(res.statusCode).toBe(403);
         });
     });
 
-    // --- TEST: Verify Need (Donor Only) ---
+    // --- TEST: Verify Need (Admin Only) ---
     describe(`PATCH ${API_PREFIX}/approve/:needId`, () => {
-        it('Should successfully verify need if user is Donor', async () => {
+        it('Should fail verification if user is not an Admin', async () => {
             const res = await request(app)
                 .patch(`${API_PREFIX}/approve/${testNeedId}`)
                 .set('Authorization', `Bearer ${donorToken}`);
 
-            expect(res.statusCode).toBe(200);
-            expect(res.body.message).toContain('Verified Successfully');
-            expect(res.body.data.isVerified).toBe(true);
+            // Admin role required
+            expect(res.statusCode).toBe(403);
         });
 
-        it('Should fail verification if user is not a Donor', async () => {
+        it('Should fail verification if user is Recipient', async () => {
             const res = await request(app)
                 .patch(`${API_PREFIX}/approve/${testNeedId}`)
                 .set('Authorization', `Bearer ${userToken}`);
 
-            // Assuming authorize('Donor') returns 403
+            // Admin role required
             expect(res.statusCode).toBe(403);
         });
     });

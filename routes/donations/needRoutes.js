@@ -149,7 +149,7 @@ router.post('/create', protect, needController.createNeed);
  *       404:
  *         description: Need not found
  */
-router.patch('/update/:needId', protect, needController.updateNeedsProgress);
+router.patch('/update/:needId', protect, authorize('Donor','Admin','Recipient'), needController.updateNeedsProgress);
 
 /**
  * @swagger
@@ -185,7 +185,7 @@ router.patch('/update/:needId', protect, needController.updateNeedsProgress);
  *       401:
  *         description: Unauthorized
  */
-router.patch('/upload-verification/:needId', protect, upload.array('docs', 3), needController.uploadDocs);
+router.patch('/upload-verification/:needId', protect, upload.array('admin', 3), needController.uploadDocs);
 
 /**
  * @swagger

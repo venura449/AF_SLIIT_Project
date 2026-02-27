@@ -4,6 +4,16 @@ const router = express.Router();
 
 const donationController = require("../../controllers/donations/donationController");
 const { protect, authorize } = require("../../middleware/authmiddleware");
+/*
+Contains core business logic.
+ Responsible for:
+ - Database operations
+ - Updating related models
+ - Maintaining data consistency
+ 
+ This keeps controllers clean and improves maintainability.
+ */
+
 
 /**
  * @swagger

@@ -209,9 +209,9 @@ router.patch('/upload-verification/:needId', protect, upload.array('admin', 3), 
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden - Donor role required
+ *         description: Forbidden - Admin role required
  */
-router.patch('/approve/:needId', protect, authorize('Donor'), needController.verfyNeedRequest);
+router.patch('/approve/:needId', protect, authorize('Admin'), needController.verfyNeedRequest);
 
 /**
  * @swagger
@@ -252,6 +252,6 @@ router.patch('/approve/:needId', protect, authorize('Donor'), needController.ver
  *       401:
  *         description: Unauthorized
  */
-router.put('/update/:needId', protect, needController.updateNeed);
+router.put('/update-need/:needId', protect, authorize('Recipient'), needController.updateNeed);
 
 module.exports = router;

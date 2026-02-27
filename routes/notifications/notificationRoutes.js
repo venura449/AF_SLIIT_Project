@@ -6,7 +6,7 @@ const { protect } = require("../../middleware/authmiddleware");
 /**
  * @swagger
  * /api/v1/notifications/save-fcm-token:
- *   post:
+ *   patch:
  *     summary: Save FCM Token
  *     description: Save or update Firebase Cloud Messaging token for push notifications
  *     tags:
@@ -32,17 +32,19 @@ const { protect } = require("../../middleware/authmiddleware");
  *           application/json:
  *             schema:
  *               type: object
+ *               required:
+ *                 - fcmToken
  *               properties:
  *                 message:
  *                   type: string
- *                 token:
+ *                 fcmToken:
  *                   type: string
  *       401:
  *         description: Unauthorized
  *       400:
  *         description: Invalid token provided
  */
-router.post("/save-fcm-token", protect, saveFCMToken);
+router.patch("/save-fcm-token", protect, saveFCMToken);
 
 /**
  * @swagger

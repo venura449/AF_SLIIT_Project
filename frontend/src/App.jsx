@@ -22,7 +22,7 @@ function App() {
             console.log("FCM Token:", token);
 
             // Send token to backend
-            await axios.post("http://localhost:5001/api/v1/notifications/save-fcm-token", {
+            await axios.patch("http://localhost:5001/api/v1/notifications/save-fcm-token", {
               token: token
             }, {
               headers: {

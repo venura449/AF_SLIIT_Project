@@ -56,7 +56,11 @@ exports.updateReview = async (req, res) => {
 
         res.status(200).json({ success: true, message: "Review updated successfully", review: updatedReview });
     } catch (error) {
-        res.status(404).json({ success: false, message: "Error updating review", error: error.message });
+        if(error.message === "Review ID is required") {
+            return res.status(400).json({ success: false, message: "Review ID is required", error: error.message });
+        } else{
+            res.status(404).json({ success: false, message: "Error updating review", error: error.message });
+        }
     }
 };
 
@@ -72,6 +76,10 @@ exports.deleteReview = async (req, res) => {
 
         res.status(200).json({ success: true, message: "Review deleted successfully", review: deletedReview });
     } catch (error) {
-        res.status(404).json({ success: false, message: "Error deleting review", error: error.message });
+        if(error.message === "Review ID is required") {
+            return res.status(400).json({ success: false, message: "Review ID is required", error: error.message });
+        } else {
+            res.status(404).json({ success: false, message: "Error deleting review", error: error.message });
+        }
     }
 };

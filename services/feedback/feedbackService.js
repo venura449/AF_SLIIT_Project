@@ -42,13 +42,21 @@ exports.putFeedbackAvgRating = async(id) => {
     const updatedFeedback = await Feedback.findByIdAndUpdate(id, { rating: avgRating }, { new: true });
 
     if(!updatedFeedback){
-        throw new Error("Feedback not found");
+        throw new Error("Unable to update average rating");
     }
 
     return updatedFeedback;
 }
 
 exports.putFeedback = async(id, feedback) => {
+    if(!id){
+        throw new Error("Feedback ID is required");
+    }
+
+    if(!feedback.need || !feedback.user || !feedback.content || !feedback.imageUrl){
+        throw new Error("All fields are required");
+    }
+
     const updatedFeedback = await Feedback.findByIdAndUpdate(id, feedback, {new: true});
 
     if(!updatedFeedback){
@@ -58,6 +66,10 @@ exports.putFeedback = async(id, feedback) => {
 }                                               
 
 exports.removeFeedback = async(id) => {
+    if(!id){
+        throw new Error("Feedback ID is required");
+    }
+
     const deletedFeedback = await Feedback.findByIdAndDelete(id);
 
     if(!deletedFeedback){

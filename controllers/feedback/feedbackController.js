@@ -42,7 +42,11 @@ exports.updateAvgRating = async(req,res) => {
 
         res.status(200).json({message: "Average rating updated successfully", updatedFeedback});
     }catch(e){
-        res.status(404).json({error: e.message});
+        if(e.message === "Feedback ID is required") {
+            return res.status(400).json({ error: e.message});
+        }else {
+            res.status(404).json({error: e.message});
+        }
     }
 }
 
@@ -55,7 +59,11 @@ exports.updateFeedback = async(req,res) => {
 
         res.status(200).json({message: "Feedback updated successfully", updatedFeedback});
     }catch(e){
-        res.status(404).json({error: e.message});
+        if(e.message === "Feedback ID is required") {
+            return res.status(400).json({ error: e.message});
+        }else {
+            res.status(404).json({error: e.message});
+        }
     }
 }
 
@@ -67,6 +75,10 @@ exports.deleteFeedback = async(req,res) => {
 
         res.status(200).json({message: "Feedback deleted successfully", deletedFeedback});
     }catch(e){
-        res.status(404).json({error: e.message});
+        if(e.message === "Feedback ID is required") {
+            return res.status(400).json({ error: e.message});
+        }else {
+            res.status(404).json({error: e.message});
+        }
     }
 }

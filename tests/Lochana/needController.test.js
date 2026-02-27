@@ -12,10 +12,11 @@ describe('Need Endpoints Integration Testing', () => {
     let otherUserToken;
     let donorToken;
     let testNeedId;
+    let adminToken;
 
     beforeAll(async () => {
         // Clean up any existing test users before creating new ones
-        await User.deleteMany({ email: { $in: ['rec@test.com', 'donor@test.com'] } });
+        await User.deleteMany({ email: { $in: ['rec@test.com', 'donor@test.com', 'admin@test.com'] } });
 
         // 1. Create and Login a Regular User (Recipient)
         const userCreds = { username: 'recipient_test', email: 'rec@test.com', password: 'password123', role: 'Recipient' };
@@ -28,11 +29,17 @@ describe('Need Endpoints Integration Testing', () => {
         await User.create(donorCreds); // Direct create to ensure role is 'Donor'
         const donorLogin = await request(app).post('/api/v1/auth/login').send({ email: donorCreds.email, password: donorCreds.password });
         donorToken = donorLogin.body.token;
+
+        // 3. Create and Login an Admin User
+        const adminCreds = { username: 'admin_test', email: 'admin@test.com', password: 'password123', role: 'Admin' };
+        await User.create(adminCreds); // Direct create to ensure role is 'Admin'
+        const adminLogin = await request(app).post('/api/v1/auth/login').send({ email: adminCreds.email, password: adminCreds.password });
+        adminToken = adminLogin.body.token;
     });
 
     afterAll(async () => {
         await Need.deleteMany({});
-        await User.deleteMany({ email: { $in: ['rec@test.com', 'donor@test.com'] } });
+        await User.deleteMany({ email: { $in: ['rec@test.com', 'donor@test.com', 'admin@test.com'] } });
     });
 
     // --- TEST: Create Need ---
@@ -146,7 +153,7 @@ describe('Need Endpoints Integration Testing', () => {
         it('Should update progress/status successfully', async () => {
             const res = await request(app)
                 .patch(`${API_PREFIX}/update/${testNeedId}`)
-                .set('Authorization', `Bearer ${userToken}`)
+                .set('Authorization', `Bearer ${adminToken}`)
                 .send({ amount: 1000 });
 
             expect(res.statusCode).toBe(200);
@@ -154,24 +161,24 @@ describe('Need Endpoints Integration Testing', () => {
         });
     });
 
-    // --- TEST: Verify Need (Donor Only) ---
+    // --- TEST: Verify Need (Admin Only) ---
     describe(`PATCH ${API_PREFIX}/approve/:needId`, () => {
-        it('Should successfully verify need if user is Donor', async () => {
+        it('Should successfully verify need if user is Admin', async () => {
             const res = await request(app)
                 .patch(`${API_PREFIX}/approve/${testNeedId}`)
-                .set('Authorization', `Bearer ${donorToken}`);
+                .set('Authorization', `Bearer ${adminToken}`);
 
             expect(res.statusCode).toBe(200);
             expect(res.body.message).toContain('Verified Successfully');
             expect(res.body.data.isVerified).toBe(true);
         });
 
-        it('Should fail verification if user is not a Donor', async () => {
+        it('Should fail verification if user is not an Admin', async () => {
             const res = await request(app)
                 .patch(`${API_PREFIX}/approve/${testNeedId}`)
                 .set('Authorization', `Bearer ${userToken}`);
 
-            // Assuming authorize('Donor') returns 403
+            // Assuming authorize('Admin') returns 403
             expect(res.statusCode).toBe(403);
         });
     });

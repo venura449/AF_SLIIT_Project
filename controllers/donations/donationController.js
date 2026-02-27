@@ -1,4 +1,16 @@
 
+/*
+  _Controller_
+   Handles HTTP requests related to donation operations.
+
+  Responsible for:
+   - Validating request data
+   - Checking business rules
+   - Calling service layer
+   - Sending proper HTTP responses
+ 
+    Business logic is delegated to service layer for clean architecture.
+ */
 const donationService = require('../../services/donations/donationService');
 const Need = require('../../models/donations/Need');
 

@@ -1,6 +1,17 @@
 //donationService.js 
 const Donation = require("../../models/donations/Donation");
 const Need = require('../../models/donations/Need');
+
+/*
+   Contains core business logic.
+   Responsible for:
+    - Database operations
+    - Updating related models
+    - Maintaining data consistency
+ 
+  This keeps controllers clean and improves maintainability.
+
+ */
 // Create Donation
 exports.createDonation = async ({ donor, need, amount }) => {
   if (!donor || !need || !amount) {
@@ -22,7 +33,11 @@ exports.createDonation = async ({ donor, need, amount }) => {
   return donation;
 };
 
-//Confirm Donation
+/*Confirm Donation
+Ensures:
+   - No double confirmation
+   - Need totals are updated correctly
+  */
  
 exports.confirmDonation = async (donationId, transactionId) => {
    const donation = await Donation.findById(donationId);
@@ -67,7 +82,11 @@ exports.getDonationById = async (id) => {
   return donation;
 };
 
-// Delete Donation 
+/*Delete Donation 
+Ensures:
+  - currentAmount does not go negative
+  - goalAmount does not exceed original value
+ */
 exports.deleteDonation = async (donationId) => {
   const donation = await Donation.findById(donationId);
 

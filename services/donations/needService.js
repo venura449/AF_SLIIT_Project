@@ -41,6 +41,10 @@ exports.updateNeedsStatus = async (needId, updateData)=>{
     const need = await Need.findById(needId);
     if(!need) throw new Error('Need not found');
 
+    if(need.status === 'Fulfilled'){
+        throw new Error('Cannot update a fulfilled need');
+    }
+
     if(updateData.amount){
         need.currentAmount += Number(updateData.amount);
     }
@@ -83,7 +87,7 @@ exports.deleteNeedRequest = async (needId, userId)=>{
     const need = await Need.findById(needId);
 
     if(!need) throw new Error('Need not found');
-
+    //only creator can delete
     if(need.recipient.toString() !== userId.toString()){
         throw new Error('Unauthorized');
     }

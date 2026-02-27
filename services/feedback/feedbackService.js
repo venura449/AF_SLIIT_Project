@@ -1,5 +1,6 @@
 const Feedback = require( '../../models/feedback/Feedback.js');
 const Review = require('../../models/feedback/Review.js');
+const User = require('../../models/users/User.js');
 
 exports.createFeedback = async({need, user, content, rating, imageUrl}) => {
     if(!need || !user || !content || !imageUrl){
@@ -8,6 +9,12 @@ exports.createFeedback = async({need, user, content, rating, imageUrl}) => {
     
     if(rating == null){
         rating = 0;
+    }
+
+    const userDoc = await User.findById(user).select('role');
+
+    if (!userDoc || userDoc.role !== 'Recipient') {
+        throw new Error("Only recipients can create feedback");
     }
 
     const newFeedback = new Feedback({need, user, content, rating, imageUrl});
@@ -25,10 +32,6 @@ exports.getFeedbacks = async() => {
 }
 
 exports.putFeedbackAvgRating = async(id) => {
-    if(!id){
-        throw new Error("Feedback ID is required");
-    }
-
     const reviewRatings = await Review.find({feedback: id});
 
     if(reviewRatings.length === 0){

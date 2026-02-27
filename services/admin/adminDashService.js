@@ -1,6 +1,7 @@
 const Feedback = require('../../models/feedback/Feedback');
 const User = require('../../models/users/User');
 const Need = require('../../models/donations/Need');
+const Donation = require('../../models/donations/Donation');
 
 exports.countTotUsers = async () => {
     const totalUsers = await User.countDocuments();
@@ -25,21 +26,21 @@ exports.countActiveUsers = async () => {
     return activeUsers;
 }
 
-// exports.getMonthlyDonations = async () => {
-//     const monthlyDonations = await Donation.aggregate([
-//         {
-//             $group: {
-//                 _id: { $month: "$createdAt" },
-//                 totalAmount: { $sum: "$amount" }
-//             }
-//         },
-//         {
-//             $sort: { _id: 1 }
-//         }
-//     ]);
+exports.getMonthlyDonations = async () => {
+    const monthlyDonations = await Donation.aggregate([
+        {
+            $group: {
+                _id: { $month: "$createdAt" },
+                totalAmount: { $sum: "$amount" }
+            }
+        },
+        {
+            $sort: { _id: 1 }
+        }
+    ]);
 
-//     return monthlyDonations;
-// }
+    return monthlyDonations;
+}
 
 exports.getMonthlyGrowth = async () => {
     const monthlyGrowth = await User.aggregate([

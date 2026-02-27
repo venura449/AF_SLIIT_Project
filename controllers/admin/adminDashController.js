@@ -3,17 +3,19 @@ const{
     countTotFeedbacks,
     countTotNeeds,
     countActiveUsers,
-    getMonthlyGrowth
+    getMonthlyGrowth,
+    getMonthlyDonations
 } = require('../../services/admin/adminDashService.js');
 
 exports.getAdminDashStats = async (req, res) => {
     try{
-        const [totalUsers, totalFeedbacks, totalNeeds, activeUsers, monthlyGrowth] = await Promise.all([
+        const [totalUsers, totalFeedbacks, totalNeeds, activeUsers, monthlyGrowth, monthlyDonations] = await Promise.all([
             countTotUsers(),
             countTotFeedbacks(),
             countTotNeeds(),
             countActiveUsers(),
-            getMonthlyGrowth()
+            getMonthlyGrowth(),
+            getMonthlyDonations()
         ]);
 
         res.status(200).json({
@@ -21,7 +23,8 @@ exports.getAdminDashStats = async (req, res) => {
             totalFeedbacks,
             totalNeeds,
             activeUsers,
-            monthlyGrowth
+            monthlyGrowth,
+            monthlyDonations
         });
     }
     catch(e){

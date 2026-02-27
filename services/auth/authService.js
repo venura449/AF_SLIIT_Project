@@ -139,6 +139,40 @@ exports.updateUserService = async (userId, updateData) => {
   return userResponse;
 };
 
+// Update User Email Service
+exports.updateEmailService = async (userId, newEmail) => {
+  // Validate new email
+  if (!newEmail) {
+    throw new Error('Email is required');
+  }
+
+  // Check if email is valid format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(newEmail)) {
+    throw new Error('Invalid email format');
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Check if new email is already taken by another user
+  const existingUser = await User.findOne({ email: newEmail, _id: { $ne: userId } });
+  if (existingUser) {
+    throw new Error('Email already in use');
+  }
+
+  // Update email
+  user.email = newEmail;
+  await user.save();
+
+  const userResponse = user.toObject();
+  delete userResponse.password;
+  return userResponse;
+};
+
 // Delete User Service (Admin)
 exports.deleteUserService = async (userId) => {
   const user = await User.findById(userId);

@@ -3,6 +3,7 @@ const {
   getAllUsers,
   updateUserStatus,
   updateUser,
+  updateEmail,
   deleteUser,
 } = require("../../controllers/auth/authController");
 const { protect, authorize } = require("../../middleware/authmiddleware");
@@ -141,5 +142,52 @@ router.put("/:userId", protect, authorize("Admin"), updateUser);
  *         description: Unauthorized
  */
 router.delete("/:userId", protect, authorize("Admin"), deleteUser);
+
+/**
+ * @swagger
+ * /api/v1/users/email/update:
+ *   patch:
+ *     summary: Update User Email
+ *     description: Update the authenticated user's email address
+ *     tags:
+ *       - User Management
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - newEmail
+ *             properties:
+ *               newEmail:
+ *                 type: string
+ *                 format: email
+ *                 description: New email address
+ *                 example: newemail@example.com
+ *     responses:
+ *       200:
+ *         description: Email updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid email format or email already in use
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized - Token missing or invalid
+ */
+router.patch("/email/update", protect, updateEmail);
 
 module.exports = router;

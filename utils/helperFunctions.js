@@ -42,8 +42,8 @@ function fetchweather(lat, lon) {
             }
             const currentTemp = data.main.temp;
             const weatherDescription = data.weather?.[0]?.description || 'Unknown';
-            return { 
-                currentTemp, 
+            return {
+                currentTemp,
                 weatherDescription,
                 // Return additional useful data from current weather
                 humidity: data.main.humidity,

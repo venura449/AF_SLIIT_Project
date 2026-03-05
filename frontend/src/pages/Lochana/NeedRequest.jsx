@@ -201,20 +201,20 @@ const NeedRequest = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none"
           >
-            <option value="all">All Categories</option>
-            <option value="Food">Food</option>
-            <option value="Medical">Medical</option>
-            <option value="Education">Education</option>
+            <option value="all" style={{color: '#000'}}>All Categories</option>
+            <option value="Food" style={{color: '#000'}}>Food</option>
+            <option value="Medical" style={{color: '#000'}}>Medical</option>
+            <option value="Education" style={{color: '#000'}}>Education</option>
           </select>
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
             className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none"
           >
-            <option value="all">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Fulfilled">Fulfilled</option>
-            <option value="Pending">Pending</option>
+            <option value="all" style={{color: '#000'}}>All Statuses</option>
+            <option value="Active" style={{color: '#000'}}>Active</option>
+            <option value="Fulfilled" style={{color: '#000'}}>Fulfilled</option>
+            <option value="Pending" style={{color: '#000'}}>Pending</option>
           </select>
         </div>
 
@@ -328,9 +328,9 @@ const NeedRequest = () => {
                     onChange={(e) => setNewRequest({ ...newRequest, category: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-400/50"
                   >
-                    <option value="Food">Food</option>
-                    <option value="Medical">Medical</option>
-                    <option value="Education">Education</option>
+                    <option value="Food" style={{color: '#000'}}>Food</option>
+                    <option value="Medical" style={{color: '#000'}}>Medical</option>
+                    <option value="Education" style={{color: '#000'}}>Education</option>
                   </select>
                 </div>
 
@@ -344,10 +344,10 @@ const NeedRequest = () => {
                     onChange={(e) => setNewRequest({ ...newRequest, urgency: e.target.value })}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-400/50"
                   >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
+                    <option value="Low" style={{color: '#000'}}>Low</option>
+                    <option value="Medium" style={{color: '#000'}}>Medium</option>
+                    <option value="High" style={{color: '#000'}}>High</option>
+                    <option value="Critical" style={{color: '#000'}}>Critical</option>
                   </select>
                 </div>
               </div>

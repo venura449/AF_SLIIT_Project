@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Need = require("../../models/donations/Need.js");
 
 const { cloudinary } = require("../../utils/cloudinaryConfig.js");
@@ -45,7 +46,13 @@ exports.getFilteredNeeds = async (filters, pagination) => {
 };
 
 exports.getNeedsByRecipient = async (userId) => {
-  return (await Need.find({ recipient: userId })).toSorted({ createdAt: -1 });
+  try{
+    const queryId = new mongoose.Types.ObjectId(userId);
+    return (await Need.find({recipient: queryId}).sort({createdAt:-1}));
+  }catch(err){
+    console.error("Error in getNeedsByRecipient:", err);
+    throw err;
+  }
 };
 
 exports.updateNeedsStatus = async (needId, updateData) => {

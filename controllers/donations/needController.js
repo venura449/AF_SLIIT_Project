@@ -48,9 +48,12 @@ exports.getAllNeeds = async (req, res) => {
 //get needs of a specific user
 exports.getMyNeeds = async (req, res) => {
   try {
-    const needs = await needService.getNeedsByRecipient(req.user._id);
+    console.log("user from middleware:", req.user);
+    const needs = await needService.getNeedsByRecipient(req.user.id);
+    console.log("Needs found:", needs.length);
     res.status(200).json({ success: true, count: needs.length, data: needs });
   } catch (error) {
+    console.log("CONTROLLER ERROR:", error.stack);
     res.status(500).json({ success: false, message: error.message });
   }
 };

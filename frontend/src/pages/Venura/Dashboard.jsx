@@ -1,6 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getProfile, logout, getDocumentStatus } from '../../services/authService';
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  getProfile,
+  logout,
+  getDocumentStatus,
+} from "../../services/authService";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -21,11 +25,14 @@ const Dashboard = () => {
         setUser(profile);
         setDocumentStatus(docStatus);
         // Show upload banner if document not uploaded or rejected
-        if (docStatus?.documentStatus === 'not_uploaded' || docStatus?.documentStatus === 'rejected') {
+        if (
+          docStatus?.documentStatus === "not_uploaded" ||
+          docStatus?.documentStatus === "rejected"
+        ) {
           setShowUploadBanner(true);
         }
       } catch (err) {
-        navigate('/login');
+        navigate("/login");
       } finally {
         setLoading(false);
       }
@@ -35,22 +42,30 @@ const Dashboard = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target)
+      ) {
         setShowProfileMenu(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const getInitials = (name) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   if (loading) {
@@ -69,9 +84,30 @@ const Dashboard = () => {
       {/* Background Elements */}
       <div className="fixed inset-0 opacity-10 pointer-events-none">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <line x1="10%" y1="20%" x2="30%" y2="80%" stroke="#4ADE80" strokeWidth="1" />
-          <line x1="90%" y1="30%" x2="70%" y2="90%" stroke="#22C55E" strokeWidth="1" />
-          <line x1="20%" y1="90%" x2="80%" y2="10%" stroke="#16A34A" strokeWidth="1" />
+          <line
+            x1="10%"
+            y1="20%"
+            x2="30%"
+            y2="80%"
+            stroke="#4ADE80"
+            strokeWidth="1"
+          />
+          <line
+            x1="90%"
+            y1="30%"
+            x2="70%"
+            y2="90%"
+            stroke="#22C55E"
+            strokeWidth="1"
+          />
+          <line
+            x1="20%"
+            y1="90%"
+            x2="80%"
+            y2="10%"
+            stroke="#16A34A"
+            strokeWidth="1"
+          />
           <circle cx="30%" cy="20%" r="3" fill="#4ADE80" opacity="0.5" />
           <circle cx="70%" cy="80%" r="3" fill="#22C55E" opacity="0.5" />
         </svg>
@@ -87,7 +123,10 @@ const Dashboard = () => {
                 <i className="fas fa-hand-holding-heart text-lg"></i>
               </div>
               <h1 className="text-xl font-light text-white tracking-wider">
-                Bridge<span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">Connect</span>
+                Bridge
+                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+                  Connect
+                </span>
               </h1>
             </div>
 
@@ -98,12 +137,14 @@ const Dashboard = () => {
                 className="flex items-center space-x-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full py-2 px-4 transition-all duration-300 group"
               >
                 <span className="text-sm text-green-200/80 group-hover:text-white transition-colors hidden sm:block">
-                  {user?.username || 'User'}
+                  {user?.username || "User"}
                 </span>
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-500 to-emerald-400 flex items-center justify-center text-white font-semibold text-sm shadow-md shadow-green-500/30">
                   {getInitials(user?.username)}
                 </div>
-                <i className={`fas fa-chevron-down text-xs text-green-300/50 transition-transform duration-300 ${showProfileMenu ? 'rotate-180' : ''}`}></i>
+                <i
+                  className={`fas fa-chevron-down text-xs text-green-300/50 transition-transform duration-300 ${showProfileMenu ? "rotate-180" : ""}`}
+                ></i>
               </button>
 
               {/* Profile Dropdown Menu */}
@@ -115,34 +156,44 @@ const Dashboard = () => {
                         {getInitials(user?.username)}
                       </div>
                       <div>
-                        <p className="text-white font-medium">{user?.username}</p>
-                        <p className="text-xs text-green-200/50">{user?.email}</p>
+                        <p className="text-white font-medium">
+                          {user?.username}
+                        </p>
+                        <p className="text-xs text-green-200/50">
+                          {user?.email}
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   <div className="p-2">
                     <button
-                      onClick={() => navigate('/profile')}
+                      onClick={() => navigate("/profile")}
                       className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-green-200/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
                     >
                       <i className="fas fa-user-circle w-5"></i>
                       <span>My Profile</span>
                     </button>
                     <button
-                      onClick={() => navigate('/upload-id')}
+                      onClick={() => navigate("/upload-id")}
                       className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-green-200/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
                     >
                       <i className="fas fa-id-card w-5"></i>
                       <span>Upload ID</span>
-                      {documentStatus?.documentStatus === 'not_uploaded' && (
-                        <span className="ml-auto px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded-full">Required</span>
+                      {documentStatus?.documentStatus === "not_uploaded" && (
+                        <span className="ml-auto px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded-full">
+                          Required
+                        </span>
                       )}
-                      {documentStatus?.documentStatus === 'pending' && (
-                        <span className="ml-auto px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">Pending</span>
+                      {documentStatus?.documentStatus === "pending" && (
+                        <span className="ml-auto px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
+                          Pending
+                        </span>
                       )}
-                      {documentStatus?.documentStatus === 'verified' && (
-                        <span className="ml-auto px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">Verified</span>
+                      {documentStatus?.documentStatus === "verified" && (
+                        <span className="ml-auto px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                          Verified
+                        </span>
                       )}
                     </button>
                     <button className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-green-200/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200">
@@ -182,14 +233,14 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-white font-medium">
-                  {documentStatus?.documentStatus === 'rejected' 
-                    ? 'Your ID verification was rejected' 
-                    : 'Verify your identity to unlock all features'}
+                  {documentStatus?.documentStatus === "rejected"
+                    ? "Your ID verification was rejected"
+                    : "Verify your identity to unlock all features"}
                 </p>
                 <p className="text-sm text-orange-200/70">
-                  {documentStatus?.documentStatus === 'rejected'
-                    ? 'Please upload a clearer document to complete verification.'
-                    : 'Upload your National Identity Card (NIC) to get verified.'}
+                  {documentStatus?.documentStatus === "rejected"
+                    ? "Please upload a clearer document to complete verification."
+                    : "Upload your National Identity Card (NIC) to get verified."}
                 </p>
               </div>
             </div>
@@ -201,7 +252,7 @@ const Dashboard = () => {
                 <i className="fas fa-times"></i>
               </button>
               <button
-                onClick={() => navigate('/upload-id')}
+                onClick={() => navigate("/upload-id")}
                 className="px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white font-medium rounded-xl transition-colors text-sm"
               >
                 <i className="fas fa-upload mr-2"></i>
@@ -214,9 +265,14 @@ const Dashboard = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-light text-white mb-2">
-            Welcome back, <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">{user?.username}</span>
+            Welcome back,{" "}
+            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+              {user?.username}
+            </span>
           </h2>
-          <p className="text-green-200/60">Here's what's happening in your community today.</p>
+          <p className="text-green-200/60">
+            Here's what's happening in your community today.
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -226,7 +282,9 @@ const Dashboard = () => {
               <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <i className="fas fa-hand-holding-heart text-xl text-green-400"></i>
               </div>
-              <span className="text-xs text-green-400 bg-green-500/20 px-2 py-1 rounded-full">+12%</span>
+              <span className="text-xs text-green-400 bg-green-500/20 px-2 py-1 rounded-full">
+                +12%
+              </span>
             </div>
             <h3 className="text-2xl font-bold text-white mb-1">1,247</h3>
             <p className="text-sm text-green-200/50">Total Donations</p>
@@ -237,7 +295,9 @@ const Dashboard = () => {
               <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <i className="fas fa-users text-xl text-blue-400"></i>
               </div>
-              <span className="text-xs text-blue-400 bg-blue-500/20 px-2 py-1 rounded-full">+8%</span>
+              <span className="text-xs text-blue-400 bg-blue-500/20 px-2 py-1 rounded-full">
+                +8%
+              </span>
             </div>
             <h3 className="text-2xl font-bold text-white mb-1">892</h3>
             <p className="text-sm text-green-200/50">People Helped</p>
@@ -248,7 +308,9 @@ const Dashboard = () => {
               <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <i className="fas fa-map-marker-alt text-xl text-purple-400"></i>
               </div>
-              <span className="text-xs text-purple-400 bg-purple-500/20 px-2 py-1 rounded-full">+3</span>
+              <span className="text-xs text-purple-400 bg-purple-500/20 px-2 py-1 rounded-full">
+                +3
+              </span>
             </div>
             <h3 className="text-2xl font-bold text-white mb-1">15</h3>
             <p className="text-sm text-green-200/50">Communities</p>
@@ -259,7 +321,9 @@ const Dashboard = () => {
               <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <i className="fas fa-star text-xl text-yellow-400"></i>
               </div>
-              <span className="text-xs text-yellow-400 bg-yellow-500/20 px-2 py-1 rounded-full">4.9</span>
+              <span className="text-xs text-yellow-400 bg-yellow-500/20 px-2 py-1 rounded-full">
+                4.9
+              </span>
             </div>
             <h3 className="text-2xl font-bold text-white mb-1">98%</h3>
             <p className="text-sm text-green-200/50">Success Rate</p>
@@ -274,6 +338,15 @@ const Dashboard = () => {
               Quick Actions
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <button
+                onClick={() => navigate("/needs")} 
+                className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+              >
+                <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fas fa-list-check text-emerald-400"></i>
+                </div>
+                <span className="text-sm text-green-200/80">My Requests</span>
+              </button>
               <button className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group">
                 <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                   <i className="fas fa-plus text-green-400"></i>

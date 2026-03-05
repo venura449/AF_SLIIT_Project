@@ -149,7 +149,7 @@ router.post('/create', protect, needController.createNeed);
  *       404:
  *         description: Need not found
  */
-router.patch('/update/:needId', protect, authorize('Admin'), needController.updateNeedsProgress);
+router.patch('/update/:needId', protect, authorize('Admin','Donor'), needController.updateNeedsProgress);
 
 /**
  * @swagger
@@ -211,7 +211,7 @@ router.patch('/upload-verification/:needId', protect, upload.array('admin', 3), 
  *       403:
  *         description: Forbidden - Admin role required
  */
-router.patch('/approve/:needId', protect, authorize('Admin'), needController.verfyNeedRequest);
+router.patch('/approve/:needId', protect, authorize('Admin'), needController.verifyNeedRequest);
 
 /**
  * @swagger

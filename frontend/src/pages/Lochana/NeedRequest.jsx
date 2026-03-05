@@ -275,8 +275,146 @@ const NeedRequest = () => {
         )}
       </main>
 
-      {/* Keep Create Modal as it was */}
-      {/* ... (Create Modal Code) ... */}
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-[#0D2B3E] to-[#0A1A2F] border border-white/10 rounded-3xl p-8 max-w-2xl w-full max-h-screen overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-semibold text-white">Create New Request</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-green-200/60 hover:text-green-400 transition-all"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateRequest} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-green-200 mb-2">
+                  <i className="fas fa-heading mr-2"></i>Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newRequest.title}
+                  onChange={(e) => setNewRequest({ ...newRequest, title: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-400/50"
+                  placeholder="e.g., Emergency Medical Surgery"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-green-200 mb-2">
+                  <i className="fas fa-align-left mr-2"></i>Description *
+                </label>
+                <textarea
+                  required
+                  value={newRequest.description}
+                  onChange={(e) => setNewRequest({ ...newRequest, description: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-400/50 h-24 resize-none"
+                  placeholder="Describe your need in detail..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-green-200 mb-2">
+                    <i className="fas fa-list mr-2"></i>Category *
+                  </label>
+                  <select
+                    required
+                    value={newRequest.category}
+                    onChange={(e) => setNewRequest({ ...newRequest, category: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-400/50"
+                  >
+                    <option value="Food">Food</option>
+                    <option value="Medical">Medical</option>
+                    <option value="Education">Education</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-green-200 mb-2">
+                    <i className="fas fa-fire mr-2"></i>Urgency *
+                  </label>
+                  <select
+                    required
+                    value={newRequest.urgency}
+                    onChange={(e) => setNewRequest({ ...newRequest, urgency: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-400/50"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-green-200 mb-2">
+                  <i className="fas fa-map-marker-alt mr-2"></i>Location *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newRequest.location}
+                  onChange={(e) => setNewRequest({ ...newRequest, location: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-400/50"
+                  placeholder="e.g., Colombo, Sri Lanka"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-green-200 mb-2">
+                  <i className="fas fa-money-bill-wave mr-2"></i>Target Amount (LKR) *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={newRequest.targetAmount}
+                  onChange={(e) => setNewRequest({ ...newRequest, targetAmount: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-400/50"
+                  placeholder="0"
+                />
+              </div>
+
+              {newRequest.category === "Medical" && (
+                <div>
+                  <label className="block text-sm font-medium text-green-200 mb-2">
+                    <i className="fas fa-file-upload mr-2"></i>Medical Documents (Required for Medical Request)
+                  </label>
+                  <input
+                    type="file"
+                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-400/50"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  <p className="text-xs text-green-200/50 mt-2">Accepted formats: PDF, JPG, PNG (Max 5MB)</p>
+                </div>
+              )}
+
+              <div className="flex gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-all shadow-lg shadow-green-500/30"
+                >
+                  <i className="fas fa-check mr-2"></i>Create Request
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

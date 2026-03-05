@@ -338,15 +338,17 @@ const Dashboard = () => {
               Quick Actions
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <button
-                onClick={() => navigate("/needs")} 
-                className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
-              >
-                <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <i className="fas fa-list-check text-emerald-400"></i>
-                </div>
-                <span className="text-sm text-green-200/80">My Requests</span>
-              </button>
+              {user?.role === "Recipient" && (
+                <button
+                  onClick={() => navigate("/needs")} 
+                  className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                    <i className="fas fa-list-check text-emerald-400"></i>
+                  </div>
+                  <span className="text-sm text-green-200/80">My Requests</span>
+                </button>
+              )}
               <button className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group">
                 <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                   <i className="fas fa-plus text-green-400"></i>

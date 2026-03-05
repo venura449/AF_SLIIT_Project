@@ -6,12 +6,19 @@ const Need = require('../../models/donations/Need');
 // Create Donation
 exports.createDonation = async (req, res, next) => {
   try {
-    const { need, amount, isAnonymous } = req.body;
+    const { need, amount, isAnonymous, donationType, goodsDescription, phoneNumber, message } = req.body;
 
-    if (!need || !amount) {
+    if (!need || !donationType) {
       return res.status(400).json({
         success: false,
-        message: "Need ID and amount are required",
+        message: "Need ID and donation type are required",
+      });
+    }
+
+    if ((donationType === 'Cash' || donationType === 'Card') && !amount) {
+      return res.status(400).json({
+        success: false,
+        message: "Amount is required for Cash/Card donations",
       });
     }
 
@@ -43,41 +50,44 @@ exports.createDonation = async (req, res, next) => {
       });
     }
 
-    // Check Remaining Amount
-    if (Number(amount) > existingNeed.goalAmount) {
-      return res.status(400).json({
-        success: false,
-        message: `Only ${existingNeed.goalAmount} amount remaining`,
-      });
+    // For Cash/Card, check remaining amount
+    if (donationType === 'Cash' || donationType === 'Card') {
+      if (Number(amount) > existingNeed.goalAmount) {
+        return res.status(400).json({
+          success: false,
+          message: `Only LKR ${existingNeed.goalAmount} remaining`,
+        });
+      }
     }
-
 
     // Create Donation
     const donation = await donationService.createDonation({
       donor: req.user._id,
       need: existingNeed._id,
-      amount,
+      amount: donationType === 'Goods' ? 0 : Number(amount),
+      donationType,
+      goodsDescription: donationType === 'Goods' ? goodsDescription : undefined,
+      phoneNumber: (donationType === 'Cash' || donationType === 'Card') ? phoneNumber : undefined,
+      message: (donationType === 'Cash' || donationType === 'Card') ? message : undefined,
       isAnonymous,
     });
 
-    // Update Need progress
-   
-    // Increase collected amount
-    existingNeed.currentAmount =
-      Number(existingNeed.currentAmount) + Number(amount);
-    // Reduce remaining goal
-    existingNeed.goalAmount =
-      Number(existingNeed.goalAmount) - Number(amount);
+    // Update Need progress only for Cash/Card
+    if (donationType === 'Cash' || donationType === 'Card') {
+      existingNeed.currentAmount =
+        Number(existingNeed.currentAmount) + Number(amount);
+      existingNeed.goalAmount =
+        Number(existingNeed.goalAmount) - Number(amount);
 
-     // Update Status
-    if (existingNeed.goalAmount <= 0) {
-      existingNeed.goalAmount = 0;
-      existingNeed.status = "Fulfilled";
-    } else {
-      existingNeed.status = "Partially Funded";
+      if (existingNeed.goalAmount <= 0) {
+        existingNeed.goalAmount = 0;
+        existingNeed.status = "Fulfilled";
+      } else {
+        existingNeed.status = "Partially Funded";
+      }
+
+      await existingNeed.save();
     }
-
-    await existingNeed.save();
 
     res.status(201).json({
       success: true,
@@ -96,14 +106,14 @@ exports.confirmDonation = async (req, res, next) => {
     const donationId = req.params.id;
     const { transactionId } = req.body;
 
-     if (!transactionId) {
+    if (!transactionId) {
       return res.status(400).json({
         success: false,
         message: "Transaction ID is required",
       });
     }
 
-     // Find Donation
+    // Find Donation
     const donation = await donationService.getDonationById(donationId);
 
     if (!donation) {
@@ -202,6 +212,34 @@ exports.deleteDonation = async (req, res, next) => {
       data: deletedDonation,
     });
 
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get Donations by Need ID (Recipient views donations on their need)
+exports.getDonationsByNeed = async (req, res, next) => {
+  try {
+    const donations = await donationService.getDonationsByNeed(req.params.needId);
+    res.status(200).json({
+      success: true,
+      count: donations.length,
+      data: donations,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get Fulfilled Needs (Admin log)
+exports.getFulfilledNeeds = async (req, res, next) => {
+  try {
+    const needs = await donationService.getFulfilledNeeds();
+    res.status(200).json({
+      success: true,
+      count: needs.length,
+      data: needs,
+    });
   } catch (error) {
     next(error);
   }

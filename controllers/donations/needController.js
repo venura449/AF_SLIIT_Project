@@ -6,8 +6,7 @@ exports.createNeed = async (req, res) => {
     const need = await needService.createNeedRequest({
       ...req.body,
       recipient: req.user ? req.user._id : req.body.recipient,
-
-      isVerified: req.body.category === "Medical" ? false : true,
+      isVerified: false,
     });
     if (req.files && req.files.length > 0) {
       await needService.uploadVerificationDocs(need._id, req.files);
@@ -172,5 +171,15 @@ exports.updateNeed = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+//get all pending (unverified) need requests for admin
+exports.getPendingNeeds = async (req, res) => {
+  try {
+    const needs = await needService.getPendingNeeds();
+    res.status(200).json({ success: true, data: needs });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

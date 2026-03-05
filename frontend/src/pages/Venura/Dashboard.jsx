@@ -122,12 +122,37 @@ const Dashboard = () => {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-400 shadow-lg shadow-green-500/30 flex items-center justify-center text-white">
                 <i className="fas fa-hand-holding-heart text-lg"></i>
               </div>
-              <h1 className="text-xl font-light text-white tracking-wider">
-                Bridge
-                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
-                  Connect
-                </span>
-              </h1>
+              <div>
+                <h1 className="text-xl font-light text-white tracking-wider">
+                  Bridge
+                  <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+                    Connect
+                  </span>
+                </h1>
+              </div>
+            </div>
+
+            {/* Center Nav Links */}
+            <div className="hidden md:flex items-center space-x-1">
+              <button className="px-4 py-2 text-sm bg-gradient-to-r from-green-600/80 to-emerald-500/80 text-white rounded-xl shadow-lg shadow-green-500/20">
+                <i className="fas fa-home mr-2"></i>Dashboard
+              </button>
+              {user?.role === "Recipient" && (
+                <button
+                  onClick={() => navigate("/needs")}
+                  className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                >
+                  <i className="fas fa-hand-holding-heart mr-2"></i>My Requests
+                </button>
+              )}
+              {user?.role === "Donor" && (
+                <button
+                  onClick={() => navigate("/donor-needs")}
+                  className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                >
+                  <i className="fas fa-search-dollar mr-2"></i>Find Needs
+                </button>
+              )}
             </div>
 
             {/* Profile Section - Top Right */}
@@ -340,7 +365,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {user?.role === "Recipient" && (
                 <button
-                  onClick={() => navigate("/needs")} 
+                  onClick={() => navigate("/needs")}
                   className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
                 >
                   <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">

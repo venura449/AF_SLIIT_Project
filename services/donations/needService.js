@@ -12,14 +12,7 @@ exports.getFilteredNeeds = async (filters, pagination) => {
   const skip = (page - 1) * limit;
 
   const query = {
-    $and: [
-      {
-        $or: [
-          { category: { $ne: "Medical" } },
-          { category: "Medical", isVerified: true },
-        ],
-      },
-    ],
+    isVerified: true,
   };
 
   if (filters.category) {
@@ -46,10 +39,10 @@ exports.getFilteredNeeds = async (filters, pagination) => {
 };
 
 exports.getNeedsByRecipient = async (userId) => {
-  try{
+  try {
     const queryId = new mongoose.Types.ObjectId(userId);
-    return (await Need.find({recipient: queryId}).sort({createdAt:-1}));
-  }catch(err){
+    return (await Need.find({ recipient: queryId }).sort({ createdAt: -1 }));
+  } catch (err) {
     console.error("Error in getNeedsByRecipient:", err);
     throw err;
   }
@@ -142,4 +135,10 @@ exports.verifyNeedRequest = async (needId, adminId) => {
   need.verifiedBy = adminId;
 
   return await need.save();
+};
+
+exports.getPendingNeeds = async () => {
+  return await Need.find({ isVerified: false })
+    .populate('recipient', 'username email')
+    .sort({ createdAt: -1 });
 };

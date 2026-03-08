@@ -21,29 +21,22 @@ export const getAllNeeds = async (category = "all") => {
 
 export const getMyRequests = async () => {
   const token = sessionStorage.getItem("token");
-  const response = await axios.get(
-    `${baseUrl}/needs/my-needs`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const response = await axios.get(`${baseUrl}/needs/my-needs`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
   return response.data.data || response.data;
 };
 
 export const createNeed = async (needData) => {
   const token = sessionStorage.getItem("token");
-  const response = await axios.post(
-    `${baseUrl}/needs/create`,
-    needData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+  const response = await axios.post(`${baseUrl}/needs/create`, needData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
-  );
+  });
   return response.data.data || response.data;
 };
 
@@ -51,7 +44,7 @@ export const uploadNeedDocs = async (needId, file) => {
   const token = sessionStorage.getItem("token");
   const formData = new FormData();
   formData.append("admin", file);
-  
+
   const response = await axios.patch(
     `${baseUrl}/needs/upload-verification/${needId}`,
     formData,
@@ -71,4 +64,33 @@ export const updateNeed = async (needId, needData) => {
     getAuthConfig(),
   );
   return response.data.data || response.data;
+};
+
+export const getPendingNeeds = async () => {
+  const token = sessionStorage.getItem("token");
+  const response = await axios.get(`${baseUrl}/needs/getall?category=Medical`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const allNeeds = response.data.data || [];
+  return allNeeds.filter(need => need.category === "Medical" && !need.isVerified);
+};
+
+export const getPendingMedicalNeeds = async () => {
+  const token = sessionStorage.getItem("token");
+  const response = await axios.get(`${baseUrl}/needs/getall?category=Medical`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const allNeeds = response.data.data || [];
+  return allNeeds.filter(need => need.category === "Medical" && !need.isVerified);
+};
+
+// Call the verify endpoint
+export const approveMedicalNeed = async (needId) => {
+  const token = sessionStorage.getItem("token");
+  const response = await axios.patch(
+    `${baseUrl}/needs/approve/${needId}`,
+    {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return response.data;
 };

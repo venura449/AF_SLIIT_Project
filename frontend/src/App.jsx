@@ -6,6 +6,7 @@ import AdminDashboard from './pages/Venura/AdminDashboard';
 import Profile from './pages/Venura/Profile';
 import DocumentUpload from './pages/Venura/DocumentUpload';
 import NeedRequest from './pages/Lochana/NeedRequest';
+import AdminVerification from './pages/Lochana/AdminVerification';
 import './index.css';
 import { useEffect, useState } from 'react';
 import { requestForToken } from '../firebase';
@@ -56,6 +57,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/upload-id" element={<DocumentUpload />} />
         <Route path="/needs" element={<NeedRequest />} />
+        <Route path="/admin-verification" element={<AdminVerification />} />
       </Routes>
     </Router>
   );

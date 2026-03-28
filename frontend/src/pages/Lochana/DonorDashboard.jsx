@@ -540,353 +540,346 @@ const DonorDashboard = () => {
         </div>
 
         {/* ===== DASHBOARD CONTENT ===== */}
-          <div className="space-y-6">
-            {/* Quick Actions + Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Quick Actions */}
-              <div className="lg:col-span-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                  <i className="fas fa-bolt text-yellow-400 mr-2"></i>
-                  Quick Actions
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <button
-                    onClick={() => navigate("/donor-needs")}
-                    className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <i className="fas fa-donate text-green-400"></i>
-                    </div>
-                    <span className="text-sm text-green-200/80">
-                      Find Needs
-                    </span>
-                  </button>
+        <div className="space-y-6">
+          {/* Quick Actions + Recent Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Quick Actions */}
+            <div className="lg:col-span-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                <i className="fas fa-bolt text-yellow-400 mr-2"></i>
+                Quick Actions
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <button
+                  onClick={() => navigate("/donor-needs")}
+                  className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <i className="fas fa-donate text-green-400"></i>
+                  </div>
+                  <span className="text-sm text-green-200/80">Find Needs</span>
+                </button>
 
-                  <button
-                    onClick={() => navigate("/donor-items")}
-                    className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <i className="fas fa-plus-circle text-purple-400"></i>
-                    </div>
-                    <span className="text-sm text-green-200/80">List Item</span>
-                  </button>
+                <button
+                  onClick={() => navigate("/donor-items")}
+                  className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <i className="fas fa-plus-circle text-purple-400"></i>
+                  </div>
+                  <span className="text-sm text-green-200/80">List Item</span>
+                </button>
 
-                  <button
-                    onClick={() => navigate("/browse-items")}
-                    className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <i className="fas fa-store text-blue-400"></i>
-                    </div>
-                    <span className="text-sm text-green-200/80">
-                      Browse Items
-                    </span>
-                  </button>
+                <button
+                  onClick={() => navigate("/browse-items")}
+                  className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <i className="fas fa-store text-blue-400"></i>
+                  </div>
+                  <span className="text-sm text-green-200/80">
+                    Browse Items
+                  </span>
+                </button>
 
-                  <button
-                    onClick={() => navigate("/profile")}
-                    className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <i className="fas fa-user-edit text-orange-400"></i>
-                    </div>
-                    <span className="text-sm text-green-200/80">Profile</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Recent Activity */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                  <i className="fas fa-clock text-green-400 mr-2"></i>
-                  Recent Activity
-                </h3>
-                <div className="space-y-3">
-                  {myDonations.length === 0 ? (
-                    <div className="text-center py-6">
-                      <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
-                        <i className="fas fa-inbox text-green-200/20 text-lg"></i>
-                      </div>
-                      <p className="text-sm text-green-200/40">
-                        No activity yet
-                      </p>
-                      <p className="text-xs text-green-200/30 mt-1">
-                        Start by making a donation or listing an item
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      {myDonations.slice(0, 4).map((donation) => (
-                        <div
-                          key={donation._id}
-                          className="flex items-start space-x-3"
-                        >
-                          <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                            <i className="fas fa-hand-holding-usd text-green-400 text-xs"></i>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm text-white truncate">
-                              Donated{" "}
-                              {donation.donationType === "Goods"
-                                ? "Goods"
-                                : `LKR ${donation.amount?.toLocaleString()}`}
-                            </p>
-                            <p className="text-xs text-green-200/40">
-                              {donation.need?.title || "Need"} &middot;{" "}
-                              {timeAgo(donation.createdAt)}
-                            </p>
-                          </div>
-                          <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ${getStatusColor(donation.paymentStatus)}`}
-                          >
-                            {donation.paymentStatus}
-                          </span>
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
+                <button
+                  onClick={() => navigate("/profile")}
+                  className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <i className="fas fa-user-edit text-orange-400"></i>
+                  </div>
+                  <span className="text-sm text-green-200/80">Profile</span>
+                </button>
               </div>
             </div>
 
-            {/* Recent Donations Summary + Top Needs */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Recent Donations */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white flex items-center">
-                    <i className="fas fa-hand-holding-heart text-green-400 mr-2"></i>
-                    Recent Donations
-                  </h3>
-                  <button
-                    onClick={() => navigate("/donor-needs")}
-                    className="text-xs text-green-400 hover:text-green-300 transition-colors"
-                  >
-                    View All <i className="fas fa-arrow-right ml-1"></i>
-                  </button>
-                </div>
+            {/* Recent Activity */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                <i className="fas fa-clock text-green-400 mr-2"></i>
+                Recent Activity
+              </h3>
+              <div className="space-y-3">
                 {myDonations.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
-                      <i className="fas fa-donate text-green-200/15 text-xl"></i>
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
+                      <i className="fas fa-inbox text-green-200/20 text-lg"></i>
                     </div>
-                    <p className="text-sm text-green-200/40">
-                      No donations yet
+                    <p className="text-sm text-green-200/40">No activity yet</p>
+                    <p className="text-xs text-green-200/30 mt-1">
+                      Start by making a donation or listing an item
                     </p>
-                    <button
-                      onClick={() => navigate("/donor-needs")}
-                      className="mt-3 text-xs text-green-400 hover:text-green-300"
-                    >
-                      Find needs to support{" "}
-                      <i className="fas fa-arrow-right ml-1"></i>
-                    </button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {myDonations.slice(0, 5).map((donation) => (
+                  <>
+                    {myDonations.slice(0, 4).map((donation) => (
                       <div
                         key={donation._id}
-                        className="flex items-center justify-between p-3 bg-white/5 rounded-xl hover:bg-white/[0.08] transition-colors"
+                        className="flex items-start space-x-3"
                       >
-                        <div className="flex items-center space-x-3 min-w-0">
-                          <div
-                            className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                              donation.donationType === "Cash"
-                                ? "bg-green-500/20"
-                                : donation.donationType === "Card"
-                                  ? "bg-blue-500/20"
-                                  : "bg-purple-500/20"
-                            }`}
-                          >
-                            <i
-                              className={`fas ${
-                                donation.donationType === "Cash"
-                                  ? "fa-money-bill text-green-400"
-                                  : donation.donationType === "Card"
-                                    ? "fa-credit-card text-blue-400"
-                                    : "fa-box text-purple-400"
-                              } text-sm`}
-                            ></i>
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm text-white font-medium truncate">
-                              {donation.need?.title || "Donation"}
-                            </p>
-                            <p className="text-[11px] text-green-200/40">
-                              {donation.donationType} &middot;{" "}
-                              {timeAgo(donation.createdAt)}
-                            </p>
-                          </div>
+                        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                          <i className="fas fa-hand-holding-usd text-green-400 text-xs"></i>
                         </div>
-                        <div className="text-right flex-shrink-0 ml-3">
-                          <p className="text-sm font-semibold text-white">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white truncate">
+                            Donated{" "}
                             {donation.donationType === "Goods"
                               ? "Goods"
                               : `LKR ${donation.amount?.toLocaleString()}`}
                           </p>
-                          <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full ${getStatusColor(donation.paymentStatus)}`}
-                          >
-                            {donation.paymentStatus}
-                          </span>
+                          <p className="text-xs text-green-200/40">
+                            {donation.need?.title || "Need"} &middot;{" "}
+                            {timeAgo(donation.createdAt)}
+                          </p>
                         </div>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ${getStatusColor(donation.paymentStatus)}`}
+                        >
+                          {donation.paymentStatus}
+                        </span>
                       </div>
                     ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Top Active Needs */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white flex items-center">
-                    <i className="fas fa-fire text-orange-400 mr-2"></i>
-                    Active Needs
-                  </h3>
-                  <button
-                    onClick={() => navigate("/donor-needs")}
-                    className="text-xs text-green-400 hover:text-green-300 transition-colors"
-                  >
-                    View All <i className="fas fa-arrow-right ml-1"></i>
-                  </button>
-                </div>
-                {approvedNeeds.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
-                      <i className="fas fa-search text-green-200/15 text-xl"></i>
-                    </div>
-                    <p className="text-sm text-green-200/40">
-                      No active needs right now
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {approvedNeeds
-                      .filter((n) => n.status !== "Fulfilled")
-                      .slice(0, 4)
-                      .map((need) => {
-                        const progress =
-                          need.currentAmount && need.goalAmount
-                            ? Math.round(
-                                (need.currentAmount /
-                                  (need.currentAmount + need.goalAmount)) *
-                                  100,
-                              )
-                            : 0;
-                        return (
-                          <div
-                            key={need._id}
-                            className="p-3 bg-white/5 rounded-xl hover:bg-white/[0.08] transition-colors"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-2 min-w-0">
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0 ${getUrgencyColor(need.urgency)}`}
-                                >
-                                  {need.urgency}
-                                </span>
-                                <p className="text-sm text-white font-medium truncate">
-                                  {need.title}
-                                </p>
-                              </div>
-                              <span className="text-[10px] text-green-200/30 flex-shrink-0 ml-2">
-                                {need.category}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                              <div className="flex-1 bg-white/10 h-1.5 rounded-full overflow-hidden">
-                                <div
-                                  className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all"
-                                  style={{
-                                    width: `${Math.min(progress, 100)}%`,
-                                  }}
-                                ></div>
-                              </div>
-                              <span className="text-[11px] text-green-200/50 flex-shrink-0">
-                                {progress}%
-                              </span>
-                            </div>
-                            <div className="flex justify-between mt-1.5 text-[11px] text-green-200/30">
-                              <span>
-                                LKR {(need.currentAmount || 0).toLocaleString()}{" "}
-                                raised
-                              </span>
-                              <span>
-                                LKR {need.goalAmount?.toLocaleString()}{" "}
-                                remaining
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
+                  </>
                 )}
               </div>
             </div>
+          </div>
 
-            {/* My Items Preview */}
-            {myItems.length > 0 && (
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white flex items-center">
-                    <i className="fas fa-gift text-purple-400 mr-2"></i>
-                    My Listed Items
-                  </h3>
+          {/* Recent Donations Summary + Top Needs */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Donations */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <i className="fas fa-hand-holding-heart text-green-400 mr-2"></i>
+                  Recent Donations
+                </h3>
+                <button
+                  onClick={() => navigate("/donor-needs")}
+                  className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                >
+                  View All <i className="fas fa-arrow-right ml-1"></i>
+                </button>
+              </div>
+              {myDonations.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
+                    <i className="fas fa-donate text-green-200/15 text-xl"></i>
+                  </div>
+                  <p className="text-sm text-green-200/40">No donations yet</p>
                   <button
-                    onClick={() => navigate("/donor-items")}
-                    className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                    onClick={() => navigate("/donor-needs")}
+                    className="mt-3 text-xs text-green-400 hover:text-green-300"
                   >
-                    Manage Items <i className="fas fa-arrow-right ml-1"></i>
+                    Find needs to support{" "}
+                    <i className="fas fa-arrow-right ml-1"></i>
                   </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {myItems.slice(0, 4).map((item) => (
+              ) : (
+                <div className="space-y-3">
+                  {myDonations.slice(0, 5).map((donation) => (
                     <div
-                      key={item._id}
-                      className="bg-white/5 rounded-xl overflow-hidden hover:bg-white/[0.08] transition-all group cursor-pointer"
-                      onClick={() => navigate("/donor-items")}
+                      key={donation._id}
+                      className="flex items-center justify-between p-3 bg-white/5 rounded-xl hover:bg-white/[0.08] transition-colors"
                     >
-                      <div className="h-32 bg-white/5 overflow-hidden">
-                        {item.images?.[0] ? (
-                          <img
-                            src={getImageUrl(item.images[0])}
-                            alt={item.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <i className="fas fa-box text-green-200/15 text-3xl"></i>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-3">
-                        <p className="text-sm text-white font-medium truncate">
-                          {item.title}
-                        </p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-[11px] text-green-200/40">
-                            {item.category}
-                          </span>
-                          <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full ${
-                              item.status === "Available"
-                                ? "bg-green-500/20 text-green-400"
-                                : item.status === "Reserved"
-                                  ? "bg-yellow-500/20 text-yellow-400"
-                                  : "bg-blue-500/20 text-blue-400"
-                            }`}
-                          >
-                            {item.status}
-                          </span>
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            donation.donationType === "Cash"
+                              ? "bg-green-500/20"
+                              : donation.donationType === "Card"
+                                ? "bg-blue-500/20"
+                                : "bg-purple-500/20"
+                          }`}
+                        >
+                          <i
+                            className={`fas ${
+                              donation.donationType === "Cash"
+                                ? "fa-money-bill text-green-400"
+                                : donation.donationType === "Card"
+                                  ? "fa-credit-card text-blue-400"
+                                  : "fa-box text-purple-400"
+                            } text-sm`}
+                          ></i>
                         </div>
+                        <div className="min-w-0">
+                          <p className="text-sm text-white font-medium truncate">
+                            {donation.need?.title || "Donation"}
+                          </p>
+                          <p className="text-[11px] text-green-200/40">
+                            {donation.donationType} &middot;{" "}
+                            {timeAgo(donation.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-3">
+                        <p className="text-sm font-semibold text-white">
+                          {donation.donationType === "Goods"
+                            ? "Goods"
+                            : `LKR ${donation.amount?.toLocaleString()}`}
+                        </p>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full ${getStatusColor(donation.paymentStatus)}`}
+                        >
+                          {donation.paymentStatus}
+                        </span>
                       </div>
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+
+            {/* Top Active Needs */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <i className="fas fa-fire text-orange-400 mr-2"></i>
+                  Active Needs
+                </h3>
+                <button
+                  onClick={() => navigate("/donor-needs")}
+                  className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                >
+                  View All <i className="fas fa-arrow-right ml-1"></i>
+                </button>
               </div>
-            )}
+              {approvedNeeds.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
+                    <i className="fas fa-search text-green-200/15 text-xl"></i>
+                  </div>
+                  <p className="text-sm text-green-200/40">
+                    No active needs right now
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {approvedNeeds
+                    .filter((n) => n.status !== "Fulfilled")
+                    .slice(0, 4)
+                    .map((need) => {
+                      const progress =
+                        need.currentAmount && need.goalAmount
+                          ? Math.round(
+                              (need.currentAmount /
+                                (need.currentAmount + need.goalAmount)) *
+                                100,
+                            )
+                          : 0;
+                      return (
+                        <div
+                          key={need._id}
+                          className="p-3 bg-white/5 rounded-xl hover:bg-white/[0.08] transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2 min-w-0">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0 ${getUrgencyColor(need.urgency)}`}
+                              >
+                                {need.urgency}
+                              </span>
+                              <p className="text-sm text-white font-medium truncate">
+                                {need.title}
+                              </p>
+                            </div>
+                            <span className="text-[10px] text-green-200/30 flex-shrink-0 ml-2">
+                              {need.category}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <div className="flex-1 bg-white/10 h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all"
+                                style={{
+                                  width: `${Math.min(progress, 100)}%`,
+                                }}
+                              ></div>
+                            </div>
+                            <span className="text-[11px] text-green-200/50 flex-shrink-0">
+                              {progress}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between mt-1.5 text-[11px] text-green-200/30">
+                            <span>
+                              LKR {(need.currentAmount || 0).toLocaleString()}{" "}
+                              raised
+                            </span>
+                            <span>
+                              LKR {need.goalAmount?.toLocaleString()} remaining
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* My Items Preview */}
+          {myItems.length > 0 && (
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <i className="fas fa-gift text-purple-400 mr-2"></i>
+                  My Listed Items
+                </h3>
+                <button
+                  onClick={() => navigate("/donor-items")}
+                  className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                >
+                  Manage Items <i className="fas fa-arrow-right ml-1"></i>
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {myItems.slice(0, 4).map((item) => (
+                  <div
+                    key={item._id}
+                    className="bg-white/5 rounded-xl overflow-hidden hover:bg-white/[0.08] transition-all group cursor-pointer"
+                    onClick={() => navigate("/donor-items")}
+                  >
+                    <div className="h-32 bg-white/5 overflow-hidden">
+                      {item.images?.[0] ? (
+                        <img
+                          src={getImageUrl(item.images[0])}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <i className="fas fa-box text-green-200/15 text-3xl"></i>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="text-sm text-white font-medium truncate">
+                        {item.title}
+                      </p>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-[11px] text-green-200/40">
+                          {item.category}
+                        </span>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full ${
+                            item.status === "Available"
+                              ? "bg-green-500/20 text-green-400"
+                              : item.status === "Reserved"
+                                ? "bg-yellow-500/20 text-yellow-400"
+                                : "bg-blue-500/20 text-blue-400"
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Floating Bubbles */}

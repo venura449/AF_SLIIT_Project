@@ -2,19 +2,23 @@
 const Donation = require("../../models/donations/Donation");
 const Need = require('../../models/donations/Need');
 // Create Donation
-exports.createDonation = async ({ donor, need, amount }) => {
-  if (!donor || !need || !amount) {
-    throw new Error("Donor, Need and Amount are required");
+exports.createDonation = async ({ donor, need, amount, donationType, goodsDescription, phoneNumber, message }) => {
+  if (!donor || !need || !donationType) {
+    throw new Error("Donor, Need and Donation Type are required");
   }
 
-  if (amount <= 0) {
-    throw new Error("Amount must be greater than 0");
+  if ((donationType === 'Cash' || donationType === 'Card') && (!amount || amount <= 0)) {
+    throw new Error("Amount must be greater than 0 for Cash/Card donations");
   }
 
   const donation = new Donation({
     donor,
     need,
-    amount,
+    amount: donationType === 'Goods' ? 0 : amount,
+    donationType,
+    goodsDescription,
+    phoneNumber,
+    message,
     paymentStatus: "Pending",
   });
 
@@ -23,9 +27,9 @@ exports.createDonation = async ({ donor, need, amount }) => {
 };
 
 //Confirm Donation
- 
+
 exports.confirmDonation = async (donationId, transactionId) => {
-   const donation = await Donation.findById(donationId);
+  const donation = await Donation.findById(donationId);
 
   if (!donation) {
     throw new Error("Donation not found");
@@ -65,6 +69,21 @@ exports.getDonationById = async (id) => {
   }
 
   return donation;
+};
+
+// Delete Donation 
+// Get Donations by Need ID (for recipient to view)
+exports.getDonationsByNeed = async (needId) => {
+  return await Donation.find({ need: needId })
+    .populate("donor", "username email")
+    .sort({ createdAt: -1 });
+};
+
+// Get Fulfilled Needs (for admin log)
+exports.getFulfilledNeeds = async () => {
+  return await Need.find({ status: "Fulfilled", isVerified: true })
+    .populate("recipient", "username email")
+    .sort({ updatedAt: -1 });
 };
 
 // Delete Donation 

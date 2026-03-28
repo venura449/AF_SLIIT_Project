@@ -1,12 +1,14 @@
 const express = require('express');
 
-const {protect} = require('../../middleware/authmiddleware.js');
+const { protect } = require('../../middleware/authmiddleware.js');
 const {
     addFeedback,
     feedback,
     updateFeedback,
     deleteFeedback,
-    updateAvgRating
+    updateAvgRating,
+    submitPlatformReview,
+    getPlatformReviews
 } = require('../../controllers/feedback/feedbackController.js');
 const {
     addReview,
@@ -275,5 +277,9 @@ router.put('/updateReview/:id', updateReview);
  *         description: Review not found
  */
 router.delete('/deleteReview/:id', deleteReview);
+
+// Platform review routes
+router.post('/platform-review', protect, submitPlatformReview);
+router.get('/platform-reviews', protect, getPlatformReviews);
 
 module.exports = router;

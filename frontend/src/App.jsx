@@ -14,6 +14,7 @@ import NeedRequest from "./pages/Lochana/NeedRequest";
 import DonorNeeds from "./pages/Lochana/DonorNeeds";
 import DonorItems from "./pages/Lochana/DonorItems";
 import BrowseItems from "./pages/Lochana/BrowseItems";
+import DonorDashboard from "./pages/Lochana/DonorDashboard";
 import "./index.css";
 import { useEffect, useState } from "react";
 import { requestForToken } from "../firebase";
@@ -61,6 +62,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/donor-dashboard" element={<DonorDashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/upload-id" element={<DocumentUpload />} />

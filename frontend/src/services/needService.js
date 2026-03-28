@@ -139,3 +139,11 @@ export const getPlatformReviews = async () => {
   );
   return response.data.data || response.data;
 };
+
+export const getMyDonations = async () => {
+  const response = await axios.get(
+    `${baseUrl}/donation/my`,
+    getAuthConfig(),
+  );
+  return response.data.data || response.data;
+};

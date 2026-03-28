@@ -22,6 +22,13 @@ const Dashboard = () => {
           getProfile(),
           getDocumentStatus(),
         ]);
+
+        // Redirect Donor users to the dedicated donor dashboard
+        if (profile.role === "Donor") {
+          navigate("/donor-dashboard", { replace: true });
+          return;
+        }
+
         setUser(profile);
         setDocumentStatus(docStatus);
         // Show upload banner if document not uploaded or rejected

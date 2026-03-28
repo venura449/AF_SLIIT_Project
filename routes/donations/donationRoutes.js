@@ -154,6 +154,21 @@ router.get(
   donationController.getAllDonations
 );
 
+// Get Donations by Need ID (for Recipient to see donations on their need)
+router.get(
+  "/by-need/:needId",
+  protect,
+  donationController.getDonationsByNeed
+);
+
+// Get Fulfilled Needs (Admin log)
+router.get(
+  "/fulfilled-needs",
+  protect,
+  authorize("Admin"),
+  donationController.getFulfilledNeeds
+);
+
 /**
  * @swagger
  * /api/v1/donation/{id}:

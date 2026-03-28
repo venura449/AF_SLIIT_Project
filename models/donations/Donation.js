@@ -1,21 +1,29 @@
 const mongoose = require("mongoose");
 const donationSchema = new mongoose.Schema({
   donor: {  //Who donated
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
   need: { //What need they donated to
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Need', 
-    required: true 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Need',
+    required: true
   },
   amount: { type: Number, required: true },
-  currency: { type: String, default: 'USD' },
+  donationType: {
+    type: String,
+    enum: ['Cash', 'Card', 'Goods'],
+    required: true
+  },
+  goodsDescription: { type: String },
+  phoneNumber: { type: String },
+  message: { type: String },
+  currency: { type: String, default: 'LKR' },
   paymentStatus: { //Payment result
-    type: String, 
-    enum: ['Pending', 'Completed', 'Failed'], 
-    default: 'Pending' 
+    type: String,
+    enum: ['Pending', 'Completed', 'Failed'],
+    default: 'Pending'
   },
   transactionId: { type: String }, // From Stripe/PayPal
   //External gateway transaction reference

@@ -1,13 +1,13 @@
-const Feedback = require( '../../models/feedback/Feedback.js');
+const Feedback = require('../../models/feedback/Feedback.js');
 const Review = require('../../models/feedback/Review.js');
 const User = require('../../models/users/User.js');
 
-exports.createFeedback = async({need, user, content, rating, imageUrl}) => {
-    if(!need || !user || !content || !imageUrl){
+exports.createFeedback = async ({ need, user, content, rating, imageUrl }) => {
+    if (!need || !user || !content || !imageUrl) {
         throw new Error("All fields are required");
     }
-    
-    if(rating == null){
+
+    if (rating == null) {
         rating = 0;
     }
 
@@ -17,24 +17,24 @@ exports.createFeedback = async({need, user, content, rating, imageUrl}) => {
         throw new Error("Only recipients can create feedback");
     }
 
-    const newFeedback = new Feedback({need, user, content, rating, imageUrl});
+    const newFeedback = new Feedback({ need, user, content, rating, imageUrl });
     await newFeedback.save();
     return newFeedback;
 }
 
-exports.getFeedbacks = async() => {
+exports.getFeedbacks = async () => {
     const feedbacks = await Feedback.find();
 
-    if(feedbacks.length === 0){
+    if (feedbacks.length === 0) {
         throw new Error("No feedback found");
     }
     return feedbacks;
 }
 
-exports.putFeedbackAvgRating = async(id) => {
-    const reviewRatings = await Review.find({feedback: id});
+exports.putFeedbackAvgRating = async (id) => {
+    const reviewRatings = await Review.find({ feedback: id });
 
-    if(reviewRatings.length === 0){
+    if (reviewRatings.length === 0) {
         return 0;
     }
 
@@ -44,27 +44,43 @@ exports.putFeedbackAvgRating = async(id) => {
 
     const updatedFeedback = await Feedback.findByIdAndUpdate(id, { rating: avgRating }, { new: true });
 
-    if(!updatedFeedback){
+    if (!updatedFeedback) {
         throw new Error("Feedback not found");
     }
 
     return updatedFeedback;
 }
 
-exports.putFeedback = async(id, feedback) => {
-    const updatedFeedback = await Feedback.findByIdAndUpdate(id, feedback, {new: true});
+exports.putFeedback = async (id, feedback) => {
+    const updatedFeedback = await Feedback.findByIdAndUpdate(id, feedback, { new: true });
 
-    if(!updatedFeedback){
+    if (!updatedFeedback) {
         throw new Error("Feedback not found");
     }
     return updatedFeedback;
-}                                               
+}
 
-exports.removeFeedback = async(id) => {
+exports.removeFeedback = async (id) => {
     const deletedFeedback = await Feedback.findByIdAndDelete(id);
 
-    if(!deletedFeedback){
+    if (!deletedFeedback) {
         throw new Error("Feedback not found");
     }
     return deletedFeedback;
+}
+
+exports.submitPlatformReview = async ({ user, content, rating }) => {
+    if (!user || !content) {
+        throw new Error("User and content are required");
+    }
+    const newFeedback = new Feedback({ user, content, rating: rating || 0 });
+    await newFeedback.save();
+    return newFeedback;
+}
+
+exports.getPlatformReviews = async () => {
+    const reviews = await Feedback.find({ need: { $exists: false } })
+        .populate('user', 'username email role')
+        .sort({ createdAt: -1 });
+    return reviews;
 }

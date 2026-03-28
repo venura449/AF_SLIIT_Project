@@ -68,6 +68,11 @@ export const deleteProfile = async () => {
 };
 
 // Admin API methods
+export const getAdminDashStats = async () => {
+  const response = await api.get("/admin/dashboard");
+  return response.data;
+};
+
 export const getAllUsers = async () => {
   const response = await api.get("/users");
   return response.data;

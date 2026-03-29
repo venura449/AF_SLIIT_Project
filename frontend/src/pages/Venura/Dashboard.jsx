@@ -382,6 +382,17 @@ const Dashboard = () => {
                   <span className="text-sm text-green-200/80">My Requests</span>
                 </button>
               )}
+              {user?.role === "Recipient" && (
+                <button
+                  onClick={() => navigate("/needs", { state: { openCreateModal: true } })}
+                  className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                    <i className="fas fa-plus text-blue-400"></i>
+                  </div>
+                  <span className="text-sm text-green-200/80">New Request</span>
+                </button>
+              )}
               {user?.role == "Donor" && (
                 <button className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group">
                   <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
@@ -402,19 +413,24 @@ const Dashboard = () => {
                 </button>
               )}
 
-              <button className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group">
+              <button
+                onClick={() => navigate("/request-history")}
+                className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+              >
                 <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                   <i className="fas fa-history text-purple-400"></i>
                 </div>
                 <span className="text-sm text-green-200/80">History</span>
               </button>
 
-              <button className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group">
-                <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <i className="fas fa-chart-line text-orange-400"></i>
-                </div>
-                <span className="text-sm text-green-200/80">Analytics</span>
-              </button>
+              {user?.role === "Admin" && (
+                <button className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group">
+                  <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                    <i className="fas fa-chart-line text-orange-400"></i>
+                  </div>
+                  <span className="text-sm text-green-200/80">Analytics</span>
+                </button>
+              )}
             </div>
           </div>
 

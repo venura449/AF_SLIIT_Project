@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getProfile, logout } from "../../services/authService";
 import * as needService from "../../services/needService";
 import ReviewBubble from "./ReviewBubble";
 
 const NeedRequest = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   // REMOVED: activeTab state
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -71,6 +72,15 @@ const NeedRequest = () => {
     };
     fetchProfile();
   }, [navigate]);
+
+  // Open modal if navigated from dashboard with state
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setShowCreateModal(true);
+      // Clear the state after opening modal
+      navigate("/needs", { replace: true });
+    }
+  }, [location.state, navigate]);
 
   // ... (Keep handleLogout, getInitials, handleCreateRequest, and helper functions same as before) ...
 

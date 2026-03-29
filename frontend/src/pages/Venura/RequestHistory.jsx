@@ -155,7 +155,7 @@ const RequestHistory = () => {
 
         {/* Filter Buttons */}
         <div className="mb-6 flex flex-wrap gap-2">
-          {["All", "Pending", "Partially Funded", "Fulfilled", "Cancelled"].map(
+          {["All", "Pending", "Partially Funded", "Fulfilled"].map(
             (status) => (
               <button
                 key={status}

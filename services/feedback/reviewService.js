@@ -19,11 +19,15 @@ exports.addReview = async ({ feedbackId, userId, description, rating }) => {
         rating
     });
 
-    return await newReview.save();
+    await newReview.save();
+    return await Review.findById(newReview._id)
+        .populate('user', 'username email role');
 };
 
 exports.getReviews = async () => {
-    const reviews = await Review.find().populate('user', 'name');
+    const reviews = await Review.find()
+        .populate('user', 'username email role')
+        .sort({ createdAt: -1 });
 
     return reviews;
 };
@@ -33,7 +37,7 @@ exports.getReview = async (reviewId) => {
         throw new Error("Review ID is required");
     }
 
-    const review = await Review.findById(reviewId).populate('user', 'name');
+    const review = await Review.findById(reviewId).populate('user', 'username email role');
 
     if (!review) {
         throw new Error("Review not found");
@@ -62,9 +66,11 @@ exports.updateReview = async (reviewId, { description, rating }) => {
 
     const review = await Review.findByIdAndUpdate(
         reviewId,
-        { description, rating },
+        Object.fromEntries(
+            Object.entries({ description, rating }).filter(([, value]) => value !== undefined)
+        ),
         { new: true, runValidators: true }
-    );
+    ).populate('user', 'username email role');
 
     
     return {review,rateChange};

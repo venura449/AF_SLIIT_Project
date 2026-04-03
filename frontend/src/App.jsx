@@ -15,6 +15,7 @@ import NeedRequest from "./pages/Lochana/NeedRequest";
 import DonorNeeds from "./pages/Lochana/DonorNeeds";
 import DonorItems from "./pages/Lochana/DonorItems";
 import BrowseItems from "./pages/Lochana/BrowseItems";
+import FeedbackPage from "./pages/Heyli/Feedback";
 import "./index.css";
 import { useEffect, useState } from "react";
 import { requestForToken } from "../firebase";
@@ -70,6 +71,7 @@ function App() {
         <Route path="/donor-needs" element={<DonorNeeds />} />
         <Route path="/donor-items" element={<DonorItems />} />
         <Route path="/browse-items" element={<BrowseItems />} />
+        <Route path="/feedback" element={<FeedbackPage />} />
       </Routes>
     </Router>
   );

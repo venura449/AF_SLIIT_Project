@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getProfile, logout } from "../../services/authService";
 import * as needService from "../../services/needService";
-import ReviewBubble from "./ReviewBubble";
 
 const NeedRequest = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   // REMOVED: activeTab state
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -71,6 +71,15 @@ const NeedRequest = () => {
     };
     fetchProfile();
   }, [navigate]);
+
+  // Open modal if navigated from dashboard with state
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setShowCreateModal(true);
+      // Clear the state after opening modal
+      navigate("/needs", { replace: true });
+    }
+  }, [location.state, navigate]);
 
   // ... (Keep handleLogout, getInitials, handleCreateRequest, and helper functions same as before) ...
 
@@ -1369,7 +1378,16 @@ const NeedRequest = () => {
           </div>
         </div>
       )}
-      <ReviewBubble />
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => navigate("/feedback")}
+          className="w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-green-500/30"
+          aria-label="Go to feedback page"
+          title="Feedback"
+        >
+          <i className="fas fa-comment-dots text-xl"></i>
+        </button>
+      </div>
     </div>
   );
 };

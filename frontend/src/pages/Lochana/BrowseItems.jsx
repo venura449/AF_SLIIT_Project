@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { getProfile, logout } from "../../services/authService";
 import * as itemService from "../../services/itemService";
 import { getImageUrl } from "../../services/itemService";
-import ReviewBubble from "./ReviewBubble";
 
 const BrowseItems = () => {
   const navigate = useNavigate();
@@ -752,7 +751,16 @@ const BrowseItems = () => {
         </div>
       )}
 
-      <ReviewBubble />
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => navigate("/feedback")}
+          className="w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-green-500/30"
+          aria-label="Go to feedback page"
+          title="Feedback"
+        >
+          <i className="fas fa-comment-dots text-xl"></i>
+        </button>
+      </div>
     </div>
   );
 };

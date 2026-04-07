@@ -10,11 +10,21 @@ const {
 
 exports.addFeedback = async (req, res) => {
     try {
-        const { need, content, rating, imageUrl } = req.body;
+        const { need, needId, content, description, rating, imageUrl } = req.body;
 
-        const user = req.user ? req.user._id : null;
+        const user =
+            req.user?._id ||
+            req.user?.id ||
+            req.body.user;
+        const uploadedImageUrl = req.file ? `/uploads/feedbacks/${req.file.filename}` : imageUrl;
 
-        const savedFeedback = await createFeedback({ need, user, content, rating, imageUrl });
+        const savedFeedback = await createFeedback({
+            need: need || needId,
+            user,
+            content: content || description,
+            rating,
+            imageUrl: uploadedImageUrl
+        });
 
         if (savedFeedback) {
             res.status(201).json({ message: "Feedback added successfully", savedFeedback });
@@ -55,9 +65,16 @@ exports.updateAvgRating = async (req, res) => {
 exports.updateFeedback = async (req, res) => {
     try {
         const { id } = req.params;
-        const { need, user, content, rating, imageUrl } = req.body;
+        const { need, needId, user, content, description, rating, imageUrl } = req.body;
+        const uploadedImageUrl = req.file ? `/uploads/feedbacks/${req.file.filename}` : imageUrl;
 
-        const updatedFeedback = await putFeedback(id, { need, user, content, rating, imageUrl });
+        const updatedFeedback = await putFeedback(id, {
+            need: need || needId,
+            user,
+            content: content || description,
+            rating,
+            imageUrl: uploadedImageUrl
+        });
 
         res.status(200).json({ message: "Feedback updated successfully", updatedFeedback });
     } catch (e) {

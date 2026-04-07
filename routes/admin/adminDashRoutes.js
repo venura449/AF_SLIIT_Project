@@ -1,4 +1,5 @@
 const express = require('express');
+const { protect, authorize } = require('../../middleware/authmiddleware.js');
 
 const {
     getAdminDashStats,
@@ -40,7 +41,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.get('/dashboard', getAdminDashStats);
+router.get('/dashboard', protect, authorize('Admin'), getAdminDashStats);
 
 /**
  * @swagger
@@ -114,6 +115,6 @@ router.get('/dashboard', getAdminDashStats);
  *       500:
  *         description: Internal server error or failed to fetch weather data (network error, service unavailable)
  */
-router.get('/weather', getWeather);
+router.get('/weather', protect, authorize('Admin'), getWeather);
 
 module.exports = router;

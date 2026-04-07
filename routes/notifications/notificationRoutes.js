@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { sendNotificationToUser,saveFCMToken } = require("../../controllers/notification/notificationController");
+const { sendNotificationToUser, saveFCMToken } = require("../../controllers/notification/notificationController");
 const { protect } = require("../../middleware/authmiddleware");
 
 /**

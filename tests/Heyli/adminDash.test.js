@@ -1,5 +1,13 @@
 jest.mock('../../services/admin/adminDashService.js');
 
+jest.mock('../../middleware/authmiddleware.js', () => ({
+    protect: (req, res, next) => {
+        req.user = { _id: 'testadminid', role: 'Admin' };
+        next();
+    },
+    authorize: (...roles) => (req, res, next) => next(),
+}));
+
 const request = require('supertest');
 const app = require('../../Server');
 const services = require('../../services/admin/adminDashService.js');
@@ -35,11 +43,11 @@ describe('Admin Dashboard Endpoints Testing Started ! ', () => {
             services.countTotNeeds.mockResolvedValue(25);
             services.countActiveUsers.mockResolvedValue(80);
             services.getMonthlyDonations.mockResolvedValue([
-                { _id: 1, totalAmount: 1000 },  
+                { _id: 1, totalAmount: 1000 },
                 { _id: 2, totalAmount: 1500 },
             ]);
             services.getMonthlyGrowth.mockResolvedValue([
-                { _id: 1, totalUsers: 10 },  
+                { _id: 1, totalUsers: 10 },
                 { _id: 2, totalUsers: 20 },
             ]);
 

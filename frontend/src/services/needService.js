@@ -1,17 +1,6 @@
-import axios from "axios";
+import { api } from "./authService";
 
 const baseUrl = import.meta.env.VITE_API_URL;
-
-// Helper to get the token and config
-const getAuthConfig = () => {
-  const token =
-    sessionStorage.getItem("token") || localStorage.getItem("token");
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-};
 
 export const getAllNeeds = async (category = "all") => {
   const query = category !== "all" ? `?category=${category}` : "";
@@ -20,133 +9,72 @@ export const getAllNeeds = async (category = "all") => {
 };
 
 export const getMyRequests = async () => {
-  const token =
-    sessionStorage.getItem("token") || localStorage.getItem("token");
-  const response = await axios.get(
-    `${baseUrl}/needs/my-needs`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
+  const response = await api.get(`${baseUrl}/needs/my-needs`);
   return response.data.data || response.data;
 };
 
 export const createNeed = async (needData) => {
-  const token =
-    sessionStorage.getItem("token") || localStorage.getItem("token");
-  const response = await axios.post(
-    `${baseUrl}/needs/create`,
-    needData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    },
-  );
+  const response = await api.post(`${baseUrl}/needs/create`, needData);
   return response.data.data || response.data;
 };
 
 export const uploadNeedDocs = async (needId, file) => {
-  const token =
-    sessionStorage.getItem("token") || localStorage.getItem("token");
   const formData = new FormData();
   formData.append("admin", file);
-
-  const response = await axios.patch(
+  const response = await api.patch(
     `${baseUrl}/needs/upload-verification/${needId}`,
     formData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
+    { headers: { "Content-Type": "multipart/form-data" } },
   );
   return response.data.data || response.data;
 };
 
 export const updateNeed = async (needId, needData) => {
-  const response = await axios.put(
-    `${baseUrl}/needs/update-need/${needId}`,
-    needData,
-    getAuthConfig(),
-  );
+  const response = await api.put(`${baseUrl}/needs/update-need/${needId}`, needData);
   return response.data.data || response.data;
 };
 
 export const deleteNeed = async (needId) => {
-  const response = await axios.delete(
-    `${baseUrl}/needs/delete/${needId}`,
-    getAuthConfig(),
-  );
+  const response = await api.delete(`${baseUrl}/needs/delete/${needId}`);
   return response.data;
 };
 
 export const getPendingNeeds = async () => {
-  const response = await axios.get(
-    `${baseUrl}/needs/pending`,
-    getAuthConfig(),
-  );
+  const response = await api.get(`${baseUrl}/needs/pending`);
   return response.data.data || response.data;
 };
 
 export const approveNeed = async (needId) => {
-  const response = await axios.patch(
-    `${baseUrl}/needs/approve/${needId}`,
-    {},
-    getAuthConfig(),
-  );
+  const response = await api.patch(`${baseUrl}/needs/approve/${needId}`, {});
   return response.data.data || response.data;
 };
 
 export const createDonation = async (donationData) => {
-  const response = await axios.post(
-    `${baseUrl}/donation`,
-    donationData,
-    getAuthConfig(),
-  );
+  const response = await api.post(`${baseUrl}/donation`, donationData);
   return response.data.data || response.data;
 };
 
 export const getDonationsByNeed = async (needId) => {
-  const response = await axios.get(
-    `${baseUrl}/donation/by-need/${needId}`,
-    getAuthConfig(),
-  );
+  const response = await api.get(`${baseUrl}/donation/by-need/${needId}`);
   return response.data.data || response.data;
 };
 
 export const getFulfilledNeeds = async () => {
-  const response = await axios.get(
-    `${baseUrl}/donation/fulfilled-needs`,
-    getAuthConfig(),
-  );
+  const response = await api.get(`${baseUrl}/donation/fulfilled-needs`);
   return response.data.data || response.data;
 };
 
 export const submitPlatformReview = async ({ content, rating }) => {
-  const response = await axios.post(
-    `${baseUrl}/feedbacks/platform-review`,
-    { content, rating },
-    getAuthConfig(),
-  );
+  const response = await api.post(`${baseUrl}/feedbacks/platform-review`, { content, rating });
   return response.data.data || response.data;
 };
 
 export const getPlatformReviews = async () => {
-  const response = await axios.get(
-    `${baseUrl}/feedbacks/platform-reviews`,
-    getAuthConfig(),
-  );
+  const response = await api.get(`${baseUrl}/feedbacks/platform-reviews`);
   return response.data.data || response.data;
 };
 
 export const getMyDonations = async () => {
-  const response = await axios.get(
-    `${baseUrl}/donation/my`,
-    getAuthConfig(),
-  );
+  const response = await api.get(`${baseUrl}/donation/my`);
   return response.data.data || response.data;
 };

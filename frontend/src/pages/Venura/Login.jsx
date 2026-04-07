@@ -1,46 +1,46 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../../services/authService';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { login as loginApi } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError('');
+    setError("");
   };
-
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const result = await login(formData.email, formData.password);
-      if (rememberMe) {
-        localStorage.setItem('token', result.token);
-      } else {
-        sessionStorage.setItem('token', result.token);
-      }
-      
+      const result = await loginApi(formData.email, formData.password);
+
+      // Update AuthContext state (also persists token to storage)
+      authLogin(result.token, result.user, rememberMe);
+
       // Redirect based on user role
-      if (result.user?.role === 'Admin') {
-        navigate('/admin-dashboard');
+      if (result.user?.role === "Admin") {
+        navigate("/admin-dashboard");
+      } else if (result.user?.role === "Donor") {
+        navigate("/donor-dashboard");
       } else {
-        navigate('/dashboard');
+        navigate("/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.');
+      setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -51,9 +51,33 @@ const Login = () => {
       {/* Abstract Connection Lines SVG */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <line x1="10%" y1="20%" x2="30%" y2="80%" stroke="#4ADE80" strokeWidth="1" className="connecting-line" />
-          <line x1="90%" y1="30%" x2="70%" y2="90%" stroke="#22C55E" strokeWidth="1" className="connecting-line" />
-          <line x1="20%" y1="90%" x2="80%" y2="10%" stroke="#16A34A" strokeWidth="1" className="connecting-line" />
+          <line
+            x1="10%"
+            y1="20%"
+            x2="30%"
+            y2="80%"
+            stroke="#4ADE80"
+            strokeWidth="1"
+            className="connecting-line"
+          />
+          <line
+            x1="90%"
+            y1="30%"
+            x2="70%"
+            y2="90%"
+            stroke="#22C55E"
+            strokeWidth="1"
+            className="connecting-line"
+          />
+          <line
+            x1="20%"
+            y1="90%"
+            x2="80%"
+            y2="10%"
+            stroke="#16A34A"
+            strokeWidth="1"
+            className="connecting-line"
+          />
           <circle cx="30%" cy="20%" r="3" fill="#4ADE80" opacity="0.5" />
           <circle cx="70%" cy="80%" r="3" fill="#22C55E" opacity="0.5" />
         </svg>
@@ -62,8 +86,14 @@ const Login = () => {
       {/* Floating Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-2 h-2 bg-green-400/20 rounded-full top-1/4 left-1/4 animate-pulse"></div>
-        <div className="absolute w-3 h-3 bg-blue-400/20 rounded-full top-3/4 left-2/3 animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute w-1.5 h-1.5 bg-emerald-300/20 rounded-full top-1/2 left-1/2 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div
+          className="absolute w-3 h-3 bg-blue-400/20 rounded-full top-3/4 left-2/3 animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute w-1.5 h-1.5 bg-emerald-300/20 rounded-full top-1/2 left-1/2 animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
       </div>
 
       {/* Main Card */}
@@ -78,15 +108,22 @@ const Login = () => {
               <i className="fas fa-hand-holding-heart text-2xl"></i>
             </div>
             <div className="absolute -right-2 top-1/2 w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
-            <div className="absolute -left-2 top-1/2 w-2 h-2 bg-emerald-400 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+            <div
+              className="absolute -left-2 top-1/2 w-2 h-2 bg-emerald-400 rounded-full animate-ping"
+              style={{ animationDelay: "1s" }}
+            ></div>
           </div>
 
           <h1 className="text-2xl font-light text-white tracking-wider">
-            Bridge<span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">Connect</span>
+            Bridge
+            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+              Connect
+            </span>
           </h1>
 
           <p className="text-sm text-green-200/70 font-light mt-2 max-w-xs mx-auto">
-            "Connecting donors with underprivileged individuals in local communities"
+            "Connecting donors with underprivileged individuals in local
+            communities"
           </p>
 
           <div className="w-16 h-0.5 bg-gradient-to-r from-green-400 to-emerald-300 mx-auto mt-2 rounded-full"></div>
@@ -95,7 +132,8 @@ const Login = () => {
         {/* Error Message */}
         {error && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm text-center">
-            <i className="fas fa-exclamation-circle mr-2"></i>{error}
+            <i className="fas fa-exclamation-circle mr-2"></i>
+            {error}
           </div>
         )}
 
@@ -103,7 +141,10 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Field */}
           <div className="space-y-1">
-            <label htmlFor="email" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
+            <label
+              htmlFor="email"
+              className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center"
+            >
               <i className="fas fa-envelope mr-2 text-xs"></i> Email / Username
             </label>
             <div className="relative group">
@@ -125,7 +166,10 @@ const Login = () => {
 
           {/* Password Field */}
           <div className="space-y-1">
-            <label htmlFor="password" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
+            <label
+              htmlFor="password"
+              className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center"
+            >
               <i className="fas fa-lock mr-2 text-xs"></i> Password
             </label>
             <div className="relative group">
@@ -133,7 +177,7 @@ const Login = () => {
                 <i className="fas fa-key"></i>
               </span>
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
                 value={formData.password}
@@ -147,7 +191,9 @@ const Login = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-green-300/50 hover:text-green-300"
               >
-                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                <i
+                  className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye"}`}
+                ></i>
               </button>
             </div>
           </div>
@@ -165,7 +211,10 @@ const Login = () => {
                 <i className="fas fa-check-circle mr-1 text-xs"></i>Remember me
               </span>
             </label>
-            <Link to="/forgot-password" className="text-green-300/70 hover:text-green-300 transition-colors duration-300 border-b border-transparent hover:border-green-400/50 text-xs">
+            <Link
+              to="/forgot-password"
+              className="text-green-300/70 hover:text-green-300 transition-colors duration-300 border-b border-transparent hover:border-green-400/50 text-xs"
+            >
               Forgot password?
             </Link>
           </div>
@@ -180,7 +229,9 @@ const Login = () => {
               <i className="fas fa-spinner fa-spin"></i>
             ) : (
               <>
-                <span><i className="fas fa-arrow-right-to-bracket"></i></span>
+                <span>
+                  <i className="fas fa-arrow-right-to-bracket"></i>
+                </span>
                 <span>Access BridgeConnect Platform</span>
               </>
             )}
@@ -194,16 +245,24 @@ const Login = () => {
               <div className="w-full border-t border-white/10"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-3 bg-transparent text-green-200/50">Or continue with</span>
+              <span className="px-3 bg-transparent text-green-200/50">
+                Or continue with
+              </span>
             </div>
           </div>
 
           <div className="flex space-x-3 mt-4">
-            <button type="button" className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2">
+            <button
+              type="button"
+              className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2"
+            >
               <i className="fab fa-google text-lg"></i>
               <span className="text-sm">Google</span>
             </button>
-            <button type="button" className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2">
+            <button
+              type="button"
+              className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2"
+            >
               <i className="fab fa-facebook-f text-lg"></i>
               <span className="text-sm">Facebook</span>
             </button>
@@ -213,9 +272,13 @@ const Login = () => {
         {/* Registration Link */}
         <div className="mt-4 text-center">
           <p className="text-sm text-green-200/50">
-            New to BridgeConnect?{' '}
-            <Link to="/register" className="text-green-400 hover:text-green-300 font-medium transition-colors border-b border-green-400/30 hover:border-green-300">
-              Create an account <i className="fas fa-arrow-right text-xs ml-1"></i>
+            New to BridgeConnect?{" "}
+            <Link
+              to="/register"
+              className="text-green-400 hover:text-green-300 font-medium transition-colors border-b border-green-400/30 hover:border-green-300"
+            >
+              Create an account{" "}
+              <i className="fas fa-arrow-right text-xs ml-1"></i>
             </Link>
           </p>
         </div>

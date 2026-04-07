@@ -35,22 +35,23 @@ function AppRoutes() {
           console.log("FCM Token:", fcmToken);
           setFcmToken(fcmToken);
 
-          // Send token to backend
-          const apiUrl =
-            import.meta.env.VITE_API_URL || "http://localhost:5001/api/v1";
-          await axios.patch(
-            `${apiUrl}/notifications/save-fcm-token`,
-            {
-              fcmToken: fcmToken,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+          // Only attempt to save FCM token if the user is authenticated
+          const authToken =
+            localStorage.getItem("token") || sessionStorage.getItem("token");
+          if (authToken) {
+            const apiUrl =
+              import.meta.env.VITE_API_URL || "http://localhost:5001/api/v1";
+            await axios.patch(
+              `${apiUrl}/notifications/save-fcm-token`,
+              { fcmToken: fcmToken },
+              {
+                headers: {
+                  Authorization: `Bearer ${authToken}`,
+                },
               },
-            },
-          );
-
-          console.log("Token saved to backend");
+            );
+            console.log("Token saved to backend");
+          }
         }
       } catch (err) {
         console.log("Error getting token:", err);

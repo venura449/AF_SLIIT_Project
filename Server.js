@@ -2,6 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+
+// Load environment variables FIRST, before any other imports that read process.env
+dotenv.config();
+
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swaggerConfig.js');
 const connectDB = require('./config/db.js');

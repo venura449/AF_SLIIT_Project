@@ -45,6 +45,9 @@ export function AuthProvider({ children }) {
   }, [loadUser]);
 
   const login = (newToken, userData, remember = true) => {
+    // Clear both storages first to avoid stale tokens from a previous session
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     if (remember) {
       localStorage.setItem("token", newToken);
     } else {

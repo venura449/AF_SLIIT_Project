@@ -1,5 +1,13 @@
 jest.mock('../../services/admin/adminDashService.js');
 
+jest.mock('../../middleware/authmiddleware.js', () => ({
+    protect: (req, res, next) => {
+        req.user = { _id: 'testadminid', role: 'Admin' };
+        next();
+    },
+    authorize: (...roles) => (req, res, next) => next(),
+}));
+
 const request = require('supertest');
 const app = require('../../Server');
 const services = require('../../services/admin/adminDashService.js');

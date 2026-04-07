@@ -19,8 +19,10 @@ import "./index.css";
 import { useEffect, useState } from "react";
 import { requestForToken } from "../firebase";
 import axios from "axios";
+import { AuthProvider } from "./context/AuthContext";
+import PrivateRoute from "./components/PrivateRoute";
 
-function App() {
+function AppRoutes() {
   const [fcmToken, setFcmToken] = useState(null);
 
   useEffect(() => {
@@ -33,8 +35,10 @@ function App() {
           setFcmToken(fcmToken);
 
           // Send token to backend
+          const apiUrl =
+            import.meta.env.VITE_API_URL || "http://localhost:5001/api/v1";
           await axios.patch(
-            "http://localhost:5001/api/v1/notifications/save-fcm-token",
+            `${apiUrl}/notifications/save-fcm-token`,
             {
               fcmToken: fcmToken,
             },
@@ -56,21 +60,100 @@ function App() {
   }, []);
 
   return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+      {/* Recipient-only routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute roles={["Recipient"]}>
+            <Dashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/needs"
+        element={
+          <PrivateRoute roles={["Recipient"]}>
+            <NeedRequest />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/upload-id"
+        element={
+          <PrivateRoute roles={["Recipient"]}>
+            <DocumentUpload />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Donor-only routes */}
+      <Route
+        path="/donor-dashboard"
+        element={
+          <PrivateRoute roles={["Donor"]}>
+            <DonorDashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/donor-needs"
+        element={
+          <PrivateRoute roles={["Donor"]}>
+            <DonorNeeds />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/donor-items"
+        element={
+          <PrivateRoute roles={["Donor"]}>
+            <DonorItems />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Admin-only routes */}
+      <Route
+        path="/admin-dashboard"
+        element={
+          <PrivateRoute roles={["Admin"]}>
+            <AdminDashboard />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Authenticated routes (any role) */}
+      <Route
+        path="/profile"
+        element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/browse-items"
+        element={
+          <PrivateRoute>
+            <BrowseItems />
+          </PrivateRoute>
+        }
+      />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/donor-dashboard" element={<DonorDashboard />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/upload-id" element={<DocumentUpload />} />
-        <Route path="/needs" element={<NeedRequest />} />
-        <Route path="/donor-needs" element={<DonorNeeds />} />
-        <Route path="/donor-items" element={<DonorItems />} />
-        <Route path="/browse-items" element={<BrowseItems />} />
-      </Routes>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </Router>
   );
 }

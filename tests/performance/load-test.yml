@@ -1,0 +1,88 @@
+config:
+  target: "http://localhost:5001"
+  phases:
+    # Warm-up phase – ramp from 1 to 10 users over 30 seconds
+    - duration: 30
+      arrivalRate: 1
+      rampTo: 10
+      name: "Warm-up"
+    # Sustained load – 10 virtual users for 60 seconds
+    - duration: 60
+      arrivalRate: 10
+      name: "Sustained Load"
+    # Spike phase – burst to 30 users for 20 seconds
+    - duration: 20
+      arrivalRate: 30
+      name: "Spike"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  # ─────────────────────────────────────────────
+  # 1. Public health-check scenario
+  # ─────────────────────────────────────────────
+  - name: "Health Check"
+    weight: 20
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+
+  # ─────────────────────────────────────────────
+  # 2. Auth flow: signup → login → profile
+  #    Uses Artillery built-in faker via {{ $randomString() }}
+  # ─────────────────────────────────────────────
+  - name: "Auth Flow"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/v1/auth/signup"
+          json:
+            username: "perf_{{ $randomString() }}"
+            email: "perf_{{ $randomString() }}@loadtest.com"
+            password: "loadtest123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - get:
+          url: "/api/v1/auth/profile"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # ─────────────────────────────────────────────
+  # 3. Browse public needs (no auth required)
+  # ─────────────────────────────────────────────
+  - name: "Browse Needs"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/v1/needs/getall"
+          qs:
+            page: 1
+            limit: 10
+          expect:
+            - statusCode: 200
+
+  # ─────────────────────────────────────────────
+  # 4. Login then browse available items
+  # ─────────────────────────────────────────────
+  - name: "Browse Items (Authenticated)"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "{{ $processEnvironment.PERF_USER_EMAIL }}"
+            password: "{{ $processEnvironment.PERF_USER_PASSWORD }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          ifTrue: "PERF_USER_EMAIL"
+      - get:
+          url: "/api/v1/items/available"
+          headers:
+            Authorization: "Bearer {{ authToken }}"

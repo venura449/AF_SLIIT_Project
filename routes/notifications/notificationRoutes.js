@@ -44,7 +44,7 @@ const { protect } = require("../../middleware/authmiddleware");
  *       400:
  *         description: Invalid token provided
  */
-router.patch("/save-fcm-token", saveFCMToken);
+router.patch("/save-fcm-token", protect, saveFCMToken);
 
 /**
  * @swagger

@@ -22,7 +22,7 @@ exports.countTotNeeds = async () => {
 }
 
 exports.countActiveUsers = async () => {
-    const activeUsers = await User.countDocuments({ status: 'active' });
+    const activeUsers = await User.countDocuments({ isActive: true });
 
     return activeUsers;
 }

@@ -143,10 +143,10 @@ export const getPlatformReviews = async () => {
   return response.data.data || response.data;
 };
 
-export const getMyNeeds = async () => {
+export const getMyDonations = async () => {
   const response = await axios.get(
-    `${baseUrl}/needs/my-needs`,
+    `${baseUrl}/donation/my`,
     getAuthConfig(),
   );
   return response.data.data || response.data;
-}
+};

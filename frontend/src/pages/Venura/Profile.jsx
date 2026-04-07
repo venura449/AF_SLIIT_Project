@@ -1,24 +1,29 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { getProfile, updateProfile, getDocumentStatus } from '../../services/authService';
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  getProfile,
+  updateProfile,
+  getDocumentStatus,
+} from "../../services/authService";
+import { toast } from "react-toastify";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [documentStatus, setDocumentStatus] = useState(null);
   const totalPages = 3;
-  
+
   const [formData, setFormData] = useState({
-    username: '',
-    fullName: '',
-    phone: '',
-    address: '',
-    bio: '',
+    username: "",
+    fullName: "",
+    phone: "",
+    address: "",
+    bio: "",
   });
 
   useEffect(() => {
@@ -31,14 +36,14 @@ const Profile = () => {
         setUser(profile);
         setDocumentStatus(docStatus);
         setFormData({
-          username: profile.username || '',
-          fullName: profile.profile?.fullName || '',
-          phone: profile.profile?.phone || '',
-          address: profile.profile?.address || '',
-          bio: profile.profile?.bio || '',
+          username: profile.username || "",
+          fullName: profile.profile?.fullName || "",
+          phone: profile.profile?.phone || "",
+          address: profile.profile?.address || "",
+          bio: profile.profile?.bio || "",
         });
       } catch (err) {
-        navigate('/login');
+        navigate("/login");
       } finally {
         setLoading(false);
       }
@@ -48,15 +53,15 @@ const Profile = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const updatedUser = await updateProfile({
@@ -69,18 +74,28 @@ const Profile = () => {
         },
       });
       setUser(updatedUser);
-      setSuccess('Profile updated successfully!');
+      setSuccess("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
       setCurrentPage(1);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to update profile. Please try again.');
+      const msg =
+        err.response?.data?.error ||
+        "Failed to update profile. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
   };
 
   const getInitials = (name) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   if (loading) {
@@ -99,9 +114,30 @@ const Profile = () => {
       {/* Background Elements */}
       <div className="fixed inset-0 opacity-10 pointer-events-none">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <line x1="10%" y1="20%" x2="30%" y2="80%" stroke="#4ADE80" strokeWidth="1" />
-          <line x1="90%" y1="30%" x2="70%" y2="90%" stroke="#22C55E" strokeWidth="1" />
-          <line x1="20%" y1="90%" x2="80%" y2="10%" stroke="#16A34A" strokeWidth="1" />
+          <line
+            x1="10%"
+            y1="20%"
+            x2="30%"
+            y2="80%"
+            stroke="#4ADE80"
+            strokeWidth="1"
+          />
+          <line
+            x1="90%"
+            y1="30%"
+            x2="70%"
+            y2="90%"
+            stroke="#22C55E"
+            strokeWidth="1"
+          />
+          <line
+            x1="20%"
+            y1="90%"
+            x2="80%"
+            y2="10%"
+            stroke="#16A34A"
+            strokeWidth="1"
+          />
           <circle cx="30%" cy="20%" r="3" fill="#4ADE80" opacity="0.5" />
           <circle cx="70%" cy="80%" r="3" fill="#22C55E" opacity="0.5" />
         </svg>
@@ -117,7 +153,10 @@ const Profile = () => {
                 <i className="fas fa-hand-holding-heart text-lg"></i>
               </div>
               <h1 className="text-xl font-light text-white tracking-wider">
-                Bridge<span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">Connect</span>
+                Bridge
+                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+                  Connect
+                </span>
               </h1>
             </Link>
 
@@ -138,9 +177,14 @@ const Profile = () => {
         {/* Page Header */}
         <div className="mb-8">
           <h2 className="text-3xl font-light text-white mb-2">
-            My <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">Profile</span>
+            My{" "}
+            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+              Profile
+            </span>
           </h2>
-          <p className="text-green-200/60">Manage your account information and preferences.</p>
+          <p className="text-green-200/60">
+            Manage your account information and preferences.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -150,18 +194,24 @@ const Profile = () => {
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-500 to-emerald-400 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4 shadow-lg shadow-green-500/30">
                 {getInitials(formData.fullName || user?.username)}
               </div>
-              <h3 className="text-xl font-semibold text-white mb-1">{formData.fullName || user?.username}</h3>
+              <h3 className="text-xl font-semibold text-white mb-1">
+                {formData.fullName || user?.username}
+              </h3>
               <p className="text-sm text-green-200/50 mb-4">{user?.email}</p>
-              
+
               <div className="flex items-center justify-center space-x-2 mb-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  user?.role === 'Donor' 
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                    : user?.role === 'Admin'
-                    ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                    : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                }`}>
-                  <i className={`fas ${user?.role === 'Donor' ? 'fa-hand-holding-heart' : user?.role === 'Admin' ? 'fa-shield-alt' : 'fa-user'} mr-1`}></i>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    user?.role === "Donor"
+                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                      : user?.role === "Admin"
+                        ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                        : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                  }`}
+                >
+                  <i
+                    className={`fas ${user?.role === "Donor" ? "fa-hand-holding-heart" : user?.role === "Admin" ? "fa-shield-alt" : "fa-user"} mr-1`}
+                  ></i>
                   {user?.role}
                 </span>
                 {user?.isVerified && (
@@ -176,33 +226,46 @@ const Profile = () => {
               <Link
                 to="/upload-id"
                 className={`block w-full p-3 rounded-xl border transition-all duration-300 mb-4 ${
-                  documentStatus?.documentStatus === 'verified'
-                    ? 'bg-green-500/10 border-green-500/30 hover:bg-green-500/20'
-                    : documentStatus?.documentStatus === 'pending'
-                    ? 'bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20'
-                    : documentStatus?.documentStatus === 'rejected'
-                    ? 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20'
-                    : 'bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20'
+                  documentStatus?.documentStatus === "verified"
+                    ? "bg-green-500/10 border-green-500/30 hover:bg-green-500/20"
+                    : documentStatus?.documentStatus === "pending"
+                      ? "bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20"
+                      : documentStatus?.documentStatus === "rejected"
+                        ? "bg-red-500/10 border-red-500/30 hover:bg-red-500/20"
+                        : "bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <i className={`fas ${
-                      documentStatus?.documentStatus === 'verified' ? 'fa-check-circle text-green-400' :
-                      documentStatus?.documentStatus === 'pending' ? 'fa-clock text-yellow-400' :
-                      documentStatus?.documentStatus === 'rejected' ? 'fa-times-circle text-red-400' :
-                      'fa-id-card text-orange-400'
-                    }`}></i>
-                    <span className={`text-sm font-medium ${
-                      documentStatus?.documentStatus === 'verified' ? 'text-green-400' :
-                      documentStatus?.documentStatus === 'pending' ? 'text-yellow-400' :
-                      documentStatus?.documentStatus === 'rejected' ? 'text-red-400' :
-                      'text-orange-400'
-                    }`}>
-                      {documentStatus?.documentStatus === 'verified' ? 'ID Verified' :
-                       documentStatus?.documentStatus === 'pending' ? 'Verification Pending' :
-                       documentStatus?.documentStatus === 'rejected' ? 'ID Rejected' :
-                       'Upload ID'}
+                    <i
+                      className={`fas ${
+                        documentStatus?.documentStatus === "verified"
+                          ? "fa-check-circle text-green-400"
+                          : documentStatus?.documentStatus === "pending"
+                            ? "fa-clock text-yellow-400"
+                            : documentStatus?.documentStatus === "rejected"
+                              ? "fa-times-circle text-red-400"
+                              : "fa-id-card text-orange-400"
+                      }`}
+                    ></i>
+                    <span
+                      className={`text-sm font-medium ${
+                        documentStatus?.documentStatus === "verified"
+                          ? "text-green-400"
+                          : documentStatus?.documentStatus === "pending"
+                            ? "text-yellow-400"
+                            : documentStatus?.documentStatus === "rejected"
+                              ? "text-red-400"
+                              : "text-orange-400"
+                      }`}
+                    >
+                      {documentStatus?.documentStatus === "verified"
+                        ? "ID Verified"
+                        : documentStatus?.documentStatus === "pending"
+                          ? "Verification Pending"
+                          : documentStatus?.documentStatus === "rejected"
+                            ? "ID Rejected"
+                            : "Upload ID"}
                     </span>
                   </div>
                   <i className="fas fa-chevron-right text-green-200/30"></i>
@@ -211,16 +274,23 @@ const Profile = () => {
 
               <div className="pt-4 border-t border-white/10">
                 <p className="text-xs text-green-200/40 mb-4">
-                  Member since {new Date(user?.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  Member since{" "}
+                  {new Date(user?.createdAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </p>
-                
+
                 {/* Inspirational Quote */}
                 <div className="mt-4 p-4 bg-white/5 rounded-xl border border-white/10">
                   <i className="fas fa-quote-left text-green-400/30 text-lg mb-2"></i>
                   <p className="text-sm text-green-200/60 italic leading-relaxed">
-                    "The best way to find yourself is to lose yourself in the service of others."
+                    "The best way to find yourself is to lose yourself in the
+                    service of others."
                   </p>
-                  <p className="text-xs text-green-400/50 mt-2 text-right">— Mahatma Gandhi</p>
+                  <p className="text-xs text-green-400/50 mt-2 text-right">
+                    — Mahatma Gandhi
+                  </p>
                 </div>
               </div>
             </div>
@@ -242,8 +312,8 @@ const Profile = () => {
                       onClick={() => setCurrentPage(page)}
                       className={`w-8 h-8 rounded-full text-sm font-medium transition-all duration-300 ${
                         currentPage === page
-                          ? 'bg-green-500 text-white shadow-md shadow-green-500/30'
-                          : 'bg-white/10 text-green-200/50 hover:bg-white/20 hover:text-white'
+                          ? "bg-green-500 text-white shadow-md shadow-green-500/30"
+                          : "bg-white/10 text-green-200/50 hover:bg-white/20 hover:text-white"
                       }`}
                     >
                       {page}
@@ -255,15 +325,21 @@ const Profile = () => {
               {/* Page Labels */}
               <div className="flex justify-center mb-6">
                 <div className="flex items-center space-x-4 text-xs">
-                  <span className={`flex items-center ${currentPage === 1 ? 'text-green-400' : 'text-green-200/40'}`}>
+                  <span
+                    className={`flex items-center ${currentPage === 1 ? "text-green-400" : "text-green-200/40"}`}
+                  >
                     <i className="fas fa-user mr-1"></i> Account
                   </span>
                   <i className="fas fa-chevron-right text-green-200/20"></i>
-                  <span className={`flex items-center ${currentPage === 2 ? 'text-green-400' : 'text-green-200/40'}`}>
+                  <span
+                    className={`flex items-center ${currentPage === 2 ? "text-green-400" : "text-green-200/40"}`}
+                  >
                     <i className="fas fa-id-card mr-1"></i> Personal
                   </span>
                   <i className="fas fa-chevron-right text-green-200/20"></i>
-                  <span className={`flex items-center ${currentPage === 3 ? 'text-green-400' : 'text-green-200/40'}`}>
+                  <span
+                    className={`flex items-center ${currentPage === 3 ? "text-green-400" : "text-green-200/40"}`}
+                  >
                     <i className="fas fa-info-circle mr-1"></i> About
                   </span>
                 </div>
@@ -272,14 +348,16 @@ const Profile = () => {
               {/* Success Message */}
               {success && (
                 <div className="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-green-300 text-sm text-center">
-                  <i className="fas fa-check-circle mr-2"></i>{success}
+                  <i className="fas fa-check-circle mr-2"></i>
+                  {success}
                 </div>
               )}
 
               {/* Error Message */}
               {error && (
                 <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm text-center">
-                  <i className="fas fa-exclamation-circle mr-2"></i>{error}
+                  <i className="fas fa-exclamation-circle mr-2"></i>
+                  {error}
                 </div>
               )}
 
@@ -291,15 +369,22 @@ const Profile = () => {
                       <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
                         <i className="fas fa-user text-green-400 text-xl"></i>
                       </div>
-                      <h4 className="text-white font-medium">Account Information</h4>
-                      <p className="text-xs text-green-200/50 mt-1">Your basic account details</p>
+                      <h4 className="text-white font-medium">
+                        Account Information
+                      </h4>
+                      <p className="text-xs text-green-200/50 mt-1">
+                        Your basic account details
+                      </p>
                     </div>
 
                     {/* Email (Read-only) */}
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
-                        <i className="fas fa-envelope mr-2 text-xs"></i> Email Address
-                        <span className="ml-2 text-xs text-green-200/40 normal-case">(Cannot be changed)</span>
+                        <i className="fas fa-envelope mr-2 text-xs"></i> Email
+                        Address
+                        <span className="ml-2 text-xs text-green-200/40 normal-case">
+                          (Cannot be changed)
+                        </span>
                       </label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-300/30">
@@ -307,7 +392,7 @@ const Profile = () => {
                         </span>
                         <input
                           type="email"
-                          value={user?.email || ''}
+                          value={user?.email || ""}
                           disabled
                           className="w-full bg-white/5 border border-white/10 py-2.5 pl-10 pr-4 text-green-200/50 rounded-xl outline-none cursor-not-allowed"
                         />
@@ -316,7 +401,10 @@ const Profile = () => {
 
                     {/* Username */}
                     <div className="space-y-1">
-                      <label htmlFor="username" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
+                      <label
+                        htmlFor="username"
+                        className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center"
+                      >
                         <i className="fas fa-at mr-2 text-xs"></i> Username
                       </label>
                       <div className="relative group">
@@ -346,14 +434,22 @@ const Profile = () => {
                       <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-3">
                         <i className="fas fa-id-card text-blue-400 text-xl"></i>
                       </div>
-                      <h4 className="text-white font-medium">Personal Information</h4>
-                      <p className="text-xs text-green-200/50 mt-1">Your contact and location details</p>
+                      <h4 className="text-white font-medium">
+                        Personal Information
+                      </h4>
+                      <p className="text-xs text-green-200/50 mt-1">
+                        Your contact and location details
+                      </p>
                     </div>
 
                     {/* Full Name */}
                     <div className="space-y-1">
-                      <label htmlFor="fullName" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
-                        <i className="fas fa-id-card mr-2 text-xs"></i> Full Name
+                      <label
+                        htmlFor="fullName"
+                        className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center"
+                      >
+                        <i className="fas fa-id-card mr-2 text-xs"></i> Full
+                        Name
                       </label>
                       <div className="relative group">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-300/50 group-hover:text-green-300 transition-colors">
@@ -373,8 +469,12 @@ const Profile = () => {
 
                     {/* Phone */}
                     <div className="space-y-1">
-                      <label htmlFor="phone" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
-                        <i className="fas fa-phone mr-2 text-xs"></i> Phone Number
+                      <label
+                        htmlFor="phone"
+                        className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center"
+                      >
+                        <i className="fas fa-phone mr-2 text-xs"></i> Phone
+                        Number
                       </label>
                       <div className="relative group">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-300/50 group-hover:text-green-300 transition-colors">
@@ -394,8 +494,12 @@ const Profile = () => {
 
                     {/* Address */}
                     <div className="space-y-1">
-                      <label htmlFor="address" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
-                        <i className="fas fa-map-marker-alt mr-2 text-xs"></i> Address
+                      <label
+                        htmlFor="address"
+                        className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center"
+                      >
+                        <i className="fas fa-map-marker-alt mr-2 text-xs"></i>{" "}
+                        Address
                       </label>
                       <div className="relative group">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-300/50 group-hover:text-green-300 transition-colors">
@@ -423,12 +527,17 @@ const Profile = () => {
                         <i className="fas fa-info-circle text-purple-400 text-xl"></i>
                       </div>
                       <h4 className="text-white font-medium">About You</h4>
-                      <p className="text-xs text-green-200/50 mt-1">Tell others about yourself</p>
+                      <p className="text-xs text-green-200/50 mt-1">
+                        Tell others about yourself
+                      </p>
                     </div>
 
                     {/* Bio */}
                     <div className="space-y-1">
-                      <label htmlFor="bio" className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center">
+                      <label
+                        htmlFor="bio"
+                        className="text-xs font-medium text-green-200/70 uppercase tracking-wider flex items-center"
+                      >
                         <i className="fas fa-pen mr-2 text-xs"></i> Bio
                       </label>
                       <textarea
@@ -445,7 +554,8 @@ const Profile = () => {
                     <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                       <p className="text-xs text-green-200/50">
                         <i className="fas fa-lightbulb text-yellow-400 mr-2"></i>
-                        Tip: A detailed bio helps build trust and connection with the community.
+                        Tip: A detailed bio helps build trust and connection
+                        with the community.
                       </p>
                     </div>
                   </div>
@@ -459,8 +569,8 @@ const Profile = () => {
                     disabled={currentPage === 1}
                     className={`px-4 py-2.5 text-sm rounded-xl transition-all duration-300 flex items-center space-x-2 ${
                       currentPage === 1
-                        ? 'text-green-200/30 cursor-not-allowed'
-                        : 'text-green-200/70 hover:text-white border border-white/10 hover:border-white/20'
+                        ? "text-green-200/30 cursor-not-allowed"
+                        : "text-green-200/70 hover:text-white border border-white/10 hover:border-white/20"
                     }`}
                   >
                     <i className="fas fa-arrow-left"></i>
@@ -478,7 +588,9 @@ const Profile = () => {
                     {currentPage < totalPages ? (
                       <button
                         type="button"
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        onClick={() =>
+                          setCurrentPage(Math.min(totalPages, currentPage + 1))
+                        }
                         className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white font-medium rounded-xl shadow-lg shadow-green-500/30 hover:shadow-emerald-500/40 transition-all duration-300 text-sm flex items-center space-x-2"
                       >
                         <span>Next</span>

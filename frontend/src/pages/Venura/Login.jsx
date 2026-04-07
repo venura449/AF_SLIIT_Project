@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login as loginApi } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -31,6 +32,8 @@ const Login = () => {
       // Update AuthContext state (also persists token to storage)
       authLogin(result.token, result.user, rememberMe);
 
+      toast.success(`Welcome back, ${result.user?.username || "User"}!`);
+
       // Redirect based on user role
       if (result.user?.role === "Admin") {
         navigate("/admin-dashboard");
@@ -40,6 +43,9 @@ const Login = () => {
         navigate("/dashboard");
       }
     } catch (err) {
+      toast.error(
+        err.response?.data?.error || "Login failed. Please try again.",
+      );
       setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
       setLoading(false);

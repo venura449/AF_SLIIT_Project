@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import * as itemService from "../../services/itemService";
 import { getImageUrl } from "../../services/itemService";
+import { toast } from "react-toastify";
 
 const ChatBubble = ({ user }) => {
   const [open, setOpen] = useState(false);
@@ -71,6 +72,7 @@ const ChatBubble = ({ user }) => {
       );
     } catch (err) {
       console.error("Failed to send:", err);
+      toast.error("Failed to send message. Please try again.");
     } finally {
       setSending(false);
     }

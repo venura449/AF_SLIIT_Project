@@ -4,6 +4,7 @@ import { getProfile, logout } from "../../services/authService";
 import * as itemService from "../../services/itemService";
 import { getImageUrl } from "../../services/itemService";
 import ChatBubble from "./ChatBubble";
+import { toast } from "react-toastify";
 
 const DonorItems = () => {
   const navigate = useNavigate();
@@ -161,8 +162,10 @@ const DonorItems = () => {
       setSelectedFiles([]);
       setPreviews([]);
       fetchItems();
+      toast.success("Item listed successfully!");
     } catch (err) {
       setCreateError(err.response?.data?.error || "Failed to create item");
+      toast.error(err.response?.data?.error || "Failed to create item.");
     } finally {
       setCreating(false);
     }
@@ -194,8 +197,10 @@ const DonorItems = () => {
       await itemService.updateItem(editItem._id, editData);
       setShowEditModal(false);
       fetchItems();
+      toast.success("Item updated successfully!");
     } catch (err) {
       setEditError(err.response?.data?.error || "Failed to update item");
+      toast.error(err.response?.data?.error || "Failed to update item.");
     } finally {
       setEditing(false);
     }
@@ -209,8 +214,10 @@ const DonorItems = () => {
       setShowDeleteModal(false);
       setDeleteTarget(null);
       fetchItems();
+      toast.success("Item deleted successfully!");
     } catch (err) {
       console.error("Delete failed:", err);
+      toast.error(err.response?.data?.error || "Failed to delete item.");
     } finally {
       setDeleting(false);
     }

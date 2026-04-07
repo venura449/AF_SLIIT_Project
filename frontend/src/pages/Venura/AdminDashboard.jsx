@@ -14,6 +14,7 @@ import {
 import * as needService from "../../services/needService";
 import * as itemService from "../../services/itemService";
 import { getImageUrl } from "../../services/itemService";
+import { toast } from "react-toastify";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
 
@@ -290,8 +291,12 @@ const AdminDashboard = () => {
       await updateUserStatus(userId, !currentStatus);
       // Refresh users list
       await fetchUsers();
+      toast.success(
+        `User ${currentStatus ? "deactivated" : "activated"} successfully.`,
+      );
     } catch (err) {
       console.error("Error updating user status:", err);
+      toast.error(err.response?.data?.error || "Failed to update user status.");
     } finally {
       setActionLoading(null);
     }
@@ -319,8 +324,10 @@ const AdminDashboard = () => {
       await fetchUsers();
       setShowEditModal(false);
       setEditingUser(null);
+      toast.success("User updated successfully.");
     } catch (err) {
       console.error("Error updating user:", err);
+      toast.error(err.response?.data?.error || "Failed to update user.");
     } finally {
       setActionLoading(null);
     }
@@ -340,8 +347,10 @@ const AdminDashboard = () => {
       await fetchUsers();
       setShowDeleteModal(false);
       setDeletingUser(null);
+      toast.success("User deleted successfully.");
     } catch (err) {
       console.error("Error deleting user:", err);
+      toast.error(err.response?.data?.error || "Failed to delete user.");
     } finally {
       setActionLoading(null);
     }
@@ -366,8 +375,10 @@ const AdminDashboard = () => {
       await fetchUsers();
       setShowDocumentModal(false);
       setViewingDocument(null);
+      toast.success("Document approved successfully.");
     } catch (err) {
       console.error("Error approving document:", err);
+      toast.error(err.response?.data?.error || "Failed to approve document.");
     } finally {
       setActionLoading(null);
     }
@@ -394,8 +405,10 @@ const AdminDashboard = () => {
       setShowRejectModal(false);
       setRejectingUser(null);
       setRejectionReason("");
+      toast.success("Document rejected and user notified.");
     } catch (err) {
       console.error("Error rejecting document:", err);
+      toast.error(err.response?.data?.error || "Failed to reject document.");
     } finally {
       setActionLoading(null);
     }

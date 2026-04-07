@@ -38,7 +38,12 @@ exports.login = async (req, res) => {
       ...result,
     });
   } catch (error) {
-    res.status(401).json({ error: error.message });
+    const authErrors = [
+      'Email and password are required',
+      'Invalid email or password',
+    ];
+    const status = authErrors.includes(error.message) ? 401 : 500;
+    res.status(status).json({ error: error.message });
   }
 };
 

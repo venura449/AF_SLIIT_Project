@@ -1,49 +1,28 @@
+import { api } from "./authService";
 import axios from "axios";
 
 const baseUrl = import.meta.env.VITE_API_URL;
 
-const getAuthHeaders = (contentType) => {
-  const token =
-    sessionStorage.getItem("token") || localStorage.getItem("token");
-
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  if (contentType) {
-    headers["Content-Type"] = contentType;
-  }
-
-  return { headers };
-};
-
 export const submitFeedback = async (feedbackData) => {
-  const response = await axios.post(
-    `${baseUrl}/feedbacks/createFeedback`,
-    feedbackData,
-    getAuthHeaders(),
-  );
+  const response = await api.post(`${baseUrl}/feedbacks/createFeedback`, feedbackData);
   return response.data.savedFeedback;
 };
 
 export const getFeedbacks = async () => {
+  // Public endpoint — no auth needed
   const response = await axios.get(`${baseUrl}/feedbacks/fetchFeedbacks`);
   return response.data.feedbacks || [];
 };
 
 export const deleteFeedback = async (feedbackId) => {
-  const response = await axios.delete(
-    `${baseUrl}/feedbacks/deleteFeedback/${feedbackId}`,
-    getAuthHeaders(),
-  );
+  const response = await api.delete(`${baseUrl}/feedbacks/deleteFeedback/${feedbackId}`);
   return response.data.deletedFeedback;
 };
 
 export const editFeedback = async (feedbackId, updatedData) => {
-  const response = await axios.put(
+  const response = await api.put(
     `${baseUrl}/feedbacks/updateFeedback/${feedbackId}`,
     updatedData,
-    getAuthHeaders(),
   );
   return response.data.updatedFeedback;
 };

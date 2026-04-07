@@ -3,7 +3,10 @@ const Review = require('../../models/feedback/Review.js');
 const User = require('../../models/users/User.js');
 
 exports.createFeedback = async ({ need, user, content, rating, imageUrl }) => {
-    if (!need || !user || !content || !imageUrl) {
+    if (!need || !user || !content ) {
+        if (!need) console.log("Missing field: need");
+        if (!user) console.log("Missing field: user");
+        if (!content) console.log("Missing field: content");
         throw new Error("All fields are required");
     }
 
@@ -11,24 +14,24 @@ exports.createFeedback = async ({ need, user, content, rating, imageUrl }) => {
         rating = 0;
     }
 
-    const userDoc = await User.findById(user).select('role');
+    const userDoc = await User.findById(user).select('username email role');
 
-    if (!userDoc || userDoc.role !== 'Recipient') {
-        throw new Error("Only recipients can create feedback");
+    if (!userDoc) {
+        throw new Error("User not found");
     }
 
     const newFeedback = new Feedback({ need, user, content, rating, imageUrl });
     await newFeedback.save();
-    return newFeedback;
+    return await Feedback.findById(newFeedback._id)
+        .populate('user', 'username email role')
+        .populate('need', 'title');
 }
 
 exports.getFeedbacks = async () => {
-    const feedbacks = await Feedback.find();
-
-    if (feedbacks.length === 0) {
-        throw new Error("No feedback found");
-    }
-    return feedbacks;
+    return await Feedback.find({ need: { $exists: true, $ne: null } })
+        .populate('user', 'username email role')
+        .populate('need', 'title')
+        .sort({ createdAt: -1 });
 }
 
 exports.putFeedbackAvgRating = async (id) => {
@@ -52,7 +55,13 @@ exports.putFeedbackAvgRating = async (id) => {
 }
 
 exports.putFeedback = async (id, feedback) => {
-    const updatedFeedback = await Feedback.findByIdAndUpdate(id, feedback, { new: true });
+    const updatePayload = Object.fromEntries(
+        Object.entries(feedback).filter(([, value]) => value !== undefined)
+    );
+
+    const updatedFeedback = await Feedback.findByIdAndUpdate(id, updatePayload, { new: true })
+        .populate('user', 'username email role')
+        .populate('need', 'title');
 
     if (!updatedFeedback) {
         throw new Error("Feedback not found");
@@ -66,6 +75,8 @@ exports.removeFeedback = async (id) => {
     if (!deletedFeedback) {
         throw new Error("Feedback not found");
     }
+
+    await Review.deleteMany({ feedback: id });
     return deletedFeedback;
 }
 

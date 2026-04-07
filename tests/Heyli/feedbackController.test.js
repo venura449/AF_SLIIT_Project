@@ -7,17 +7,25 @@ const API_PREFIX = '/api/v1/feedbacks';
 
 describe('Feedback Endpoints Testing Started ! ', () => {
     let userToken;
+    let userId;
+    let userEmail;
+    let username;
 
     beforeAll(async () => {
         // 1. Create and Login a Regular User (Recipient)
-        const userCreds = { username: 'recipient_test', email: 'rec@test.com', password: 'password123', role: 'Recipient' };
-        await supertest(app).post('/api/v1/auth/signup').send(userCreds);
+        const timestamp = Date.now();
+        username = `recipient_test_${timestamp}`;
+        userEmail = `rec_${timestamp}@test.com`;
+        const userCreds = { username, email: userEmail, password: 'password123', role: 'Recipient' };
+        const signupRes = await supertest(app).post('/api/v1/auth/signup').send(userCreds);
         const userLogin = await supertest(app).post('/api/v1/auth/login').send({ email: userCreds.email, password: userCreds.password });
         userToken = userLogin.body.token;
+        userId = signupRes.body.user.id;
     });
 
     afterAll(async () => {
         await Feedback.deleteMany({});
+        await User.deleteMany({ email: userEmail, username });
     });
     describe(`POST ${API_PREFIX}/createFeedback`, () => {
         it('Should successfully submit feedback', async () => {
@@ -28,7 +36,7 @@ describe('Feedback Endpoints Testing Started ! ', () => {
                     need: '6992a98e8c7a4a7cfd4b6a47',
                     content: 'This is a test feedback message.',
                     rating: 4,
-                    imageUrl: 'http://example.com/image.jpg',
+                    imageUrl: 'upload/feedback/feedback-image-1697059200000.jpg',
                 });
             expect(res.status).toBe(201);
             expect(res.body.message).toBe('Feedback added successfully');
@@ -44,20 +52,7 @@ describe('Feedback Endpoints Testing Started ! ', () => {
                 .send({
                     need: '6992a98e8c7a4a7cfd4b6a47',
                     rating: 4,
-                    imageUrl: 'http://example.com/image.jpg',
-                });
-            expect(res.status).toBe(400);
-            expect(res.body.error).toBe('All fields are required');
-        });
-
-        it('Should fail when imageUrl is missing', async () => {
-            const res = await supertest(app)
-                .post(`${API_PREFIX}/createFeedback`)
-                .set('Authorization', `Bearer ${userToken}`)
-                .send({
-                    need: '6992a98e8c7a4a7cfd4b6a47',
-                    content: 'This is a test feedback message.',
-                    rating: 4,
+                    imageUrl: 'upload/feedback/feedback-image-1697059200000.jpg',
                 });
             expect(res.status).toBe(400);
             expect(res.body.error).toBe('All fields are required');
@@ -92,7 +87,7 @@ describe('Feedback Endpoints Testing Started ! ', () => {
         it('Should successfully update feedback', async () => {
             const feedback = new Feedback({
                 need: '6992a98e8c7a4a7cfd4b6a47',
-                user: '698f150949022e1b9f7f82f6',
+                user: userId,
                 content: 'Original feedback message.',
                 rating: 3,
                 imageUrl: 'http://example.com/original-image.jpg',
@@ -100,12 +95,13 @@ describe('Feedback Endpoints Testing Started ! ', () => {
             await feedback.save();
             const res = await supertest(app)
                 .put(`${API_PREFIX}/updateFeedback/${feedback._id}`)
+                .set('Authorization', `Bearer ${userToken}`)
                 .send({
                     need: '6992a98e8c7a4a7cfd4b6a47',
-                    user: '698f150949022e1b9f7f82f6',
+                    user: userId,
                     content: 'Updated feedback message.',
                     rating: 5,
-                    imageUrl: 'http://example.com/updated-image.jpg',
+                    imageUrl: 'upload/feedback/feedback-image-1697059200000.jpg',
                 });
             expect(res.status).toBe(200);
             expect(res.body.message).toBe('Feedback updated successfully');
@@ -117,12 +113,13 @@ describe('Feedback Endpoints Testing Started ! ', () => {
             const nonExistentId = '6987026e5c4ff18435a10228';
             const res = await supertest(app)
                 .put(`${API_PREFIX}/updateFeedback/${nonExistentId}`)
+                .set('Authorization', `Bearer ${userToken}`)
                 .send({
                     need: '6992a98e8c7a4a7cfd4b6a47',
-                    user: '698f150949022e1b9f7f82f6',
+                    user: userId,
                     content: 'Updated feedback message.',
                     rating: 5,
-                    imageUrl: 'http://example.com/updated-image.jpg',
+                    imageUrl: 'upload/feedback/feedback-image-1697059200000.jpg',
                 });
             expect(res.status).toBe(404);
             expect(res.body.error).toBe('Feedback not found');
@@ -133,14 +130,15 @@ describe('Feedback Endpoints Testing Started ! ', () => {
         it('Should successfully delete feedback', async () => {
             const feedback = new Feedback({
                 need: '6992a98e8c7a4a7cfd4b6a47',
-                user: '698f150949022e1b9f7f82f6',
+                user: userId,
                 content: 'Feedback to be deleted.',
                 rating: 2,
-                imageUrl: 'http://example.com/delete-image.jpg',
+                imageUrl: 'upload/feedback/feedback-image-1697059200000.jpg',
             });
             await feedback.save();
             const res = await supertest(app)
-                .delete(`${API_PREFIX}/deleteFeedback/${feedback._id}`);
+                .delete(`${API_PREFIX}/deleteFeedback/${feedback._id}`)
+                .set('Authorization', `Bearer ${userToken}`);
             expect(res.status).toBe(200);
             expect(res.body.message).toBe('Feedback deleted successfully');
         });
@@ -148,7 +146,8 @@ describe('Feedback Endpoints Testing Started ! ', () => {
         it('Should fail when feedback does not exist', async () => {
             const nonExistentId = '6987026e5c4ff18435aa0228';
             const res = await supertest(app)
-                .delete(`${API_PREFIX}/deleteFeedback/${nonExistentId}`);
+                .delete(`${API_PREFIX}/deleteFeedback/${nonExistentId}`)
+                .set('Authorization', `Bearer ${userToken}`);
             expect(res.status).toBe(404);
             expect(res.body.error).toBe('Feedback not found');
         });

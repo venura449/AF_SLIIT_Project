@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProfile, logout } from "../../services/authService";
 import * as needService from "../../services/needService";
-import ReviewBubble from "./ReviewBubble";
 import ChatBubble from "./ChatBubble";
 
 const DonorNeeds = () => {
@@ -233,7 +232,7 @@ const DonorNeeds = () => {
 
             <div className="hidden md:flex items-center space-x-1">
               <button
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/donor-dashboard")}
                 className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
               >
                 <i className="fas fa-home mr-2"></i>Dashboard
@@ -246,6 +245,12 @@ const DonorNeeds = () => {
                 className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
               >
                 <i className="fas fa-gift mr-2"></i>My Items
+              </button>
+              <button
+                onClick={() => navigate("/browse-items")}
+                className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+              >
+                <i className="fas fa-store mr-2"></i>Browse Items
               </button>
             </div>
 
@@ -282,7 +287,7 @@ const DonorNeeds = () => {
                   </div>
                   <div className="p-2">
                     <button
-                      onClick={() => navigate("/dashboard")}
+                      onClick={() => navigate("/donor-dashboard")}
                       className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-green-200/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
                     >
                       <i className="fas fa-home w-5"></i>
@@ -840,7 +845,16 @@ const DonorNeeds = () => {
           </div>
         </div>
       )}
-      <ReviewBubble />
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => navigate("/feedback")}
+          className="w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-green-500/30"
+          aria-label="Go to feedback page"
+          title="Feedback"
+        >
+          <i className="fas fa-comment-dots text-xl"></i>
+        </button>
+      </div>
       <ChatBubble user={user} />
     </div>
   );

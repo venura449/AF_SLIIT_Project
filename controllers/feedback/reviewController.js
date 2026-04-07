@@ -6,7 +6,7 @@ exports.addReview = async (req, res) => {
     try {
         const { description, rating } = req.body;
 
-        const userId = req.user ? req.user.id : req.body.user;
+        const userId = req.user?._id || req.user?.id || req.body.user;
 
         const feedbackId = req.params.feedbackId;
 

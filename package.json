@@ -8,6 +8,8 @@
   },
   "scripts": {
     "test": "set NODE_ENV=test && npx jest --forceExit",
+    "test:perf": "npx artillery run tests/performance/load-test.yml",
+    "test:perf:report": "npx artillery run tests/performance/load-test.yml --output tests/performance/report.json && npx artillery report tests/performance/report.json",
     "start": "node Server.js",
     "dev": "nodemon Server.js"
   },
@@ -29,6 +31,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.0",
+    "artillery": "^2.0.30",
     "babel-jest": "^30.2.0",
     "jest": "^30.2.0",
     "nodemon": "^3.1.11",

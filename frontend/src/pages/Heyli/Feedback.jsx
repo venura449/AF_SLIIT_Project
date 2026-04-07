@@ -19,6 +19,7 @@ import {
   submitReview,
 } from "../../services/reviewService";
 import { getImageUrl } from "../../services/itemService";
+import { toast } from "react-toastify";
 
 const FeedbackPage = () => {
   const navigate = useNavigate();
@@ -195,7 +196,9 @@ const FeedbackPage = () => {
       image: null,
       existingImageUrl: feedback.imageUrl || "",
     });
-    setFeedbackImagePreview(feedback.imageUrl ? getImageUrl(feedback.imageUrl) : "");
+    setFeedbackImagePreview(
+      feedback.imageUrl ? getImageUrl(feedback.imageUrl) : "",
+    );
     setShowFeedbackModal(true);
   };
 
@@ -250,8 +253,10 @@ const FeedbackPage = () => {
 
       if (feedbackModalMode === "edit" && editingFeedbackId) {
         await editFeedback(editingFeedbackId, formData);
+        toast.success("Feedback updated successfully!");
       } else {
         await submitFeedback(formData);
+        toast.success("Feedback submitted successfully!");
       }
 
       await loadFeedbackData();
@@ -259,9 +264,9 @@ const FeedbackPage = () => {
       setShowFeedbackModal(false);
     } catch (error) {
       console.error("Error submitting feedback:", error);
-      setFeedbackError(
-        error?.response?.data?.error || "Failed to submit feedback.",
-      );
+      const msg = error?.response?.data?.error || "Failed to submit feedback.";
+      setFeedbackError(msg);
+      toast.error(msg);
     } finally {
       setSubmittingFeedback(false);
     }
@@ -292,11 +297,13 @@ const FeedbackPage = () => {
           description: newReview.description.trim(),
           rating: newReview.rating,
         });
+        toast.success("Review updated successfully!");
       } else {
         await submitReview(selectedFeedbackId, {
           description: newReview.description.trim(),
           rating: newReview.rating,
         });
+        toast.success("Review submitted successfully!");
       }
 
       await loadFeedbackData();
@@ -304,9 +311,9 @@ const FeedbackPage = () => {
       setShowReviewModal(false);
     } catch (error) {
       console.error("Error submitting review:", error);
-      setReviewError(
-        error?.response?.data?.error || "Failed to submit review.",
-      );
+      const msg = error?.response?.data?.error || "Failed to submit review.";
+      setReviewError(msg);
+      toast.error(msg);
     } finally {
       setSubmittingReview(false);
     }
@@ -322,11 +329,12 @@ const FeedbackPage = () => {
     try {
       await deleteFeedback(feedbackId);
       await loadFeedbackData();
+      toast.success("Feedback deleted.");
     } catch (error) {
       console.error("Error deleting feedback:", error);
-      setFeedbackError(
-        error?.response?.data?.error || "Failed to delete feedback.",
-      );
+      const msg = error?.response?.data?.error || "Failed to delete feedback.";
+      setFeedbackError(msg);
+      toast.error(msg);
     }
   };
 
@@ -340,11 +348,12 @@ const FeedbackPage = () => {
     try {
       await deleteReview(reviewId);
       await loadFeedbackData();
+      toast.success("Review deleted.");
     } catch (error) {
       console.error("Error deleting review:", error);
-      setReviewError(
-        error?.response?.data?.error || "Failed to delete review.",
-      );
+      const msg = error?.response?.data?.error || "Failed to delete review.";
+      setReviewError(msg);
+      toast.error(msg);
     }
   };
 
@@ -680,7 +689,9 @@ const FeedbackPage = () => {
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-30 px-4">
             <div className="bg-[#0D2B3E] p-6 rounded-2xl w-full max-w-md border border-white/10">
               <h3 className="text-white mb-4">
-                {feedbackModalMode === "edit" ? "Edit Feedback" : "Add Feedback"}
+                {feedbackModalMode === "edit"
+                  ? "Edit Feedback"
+                  : "Add Feedback"}
               </h3>
 
               <select
@@ -694,7 +705,11 @@ const FeedbackPage = () => {
                   Select Need
                 </option>
                 {fulfilledNeeds.map((need) => (
-                  <option key={need._id} value={need._id} className="text-black">
+                  <option
+                    key={need._id}
+                    value={need._id}
+                    className="text-black"
+                  >
                     {need.title}
                   </option>
                 ))}

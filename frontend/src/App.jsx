@@ -22,6 +22,8 @@ import { requestForToken } from "../firebase";
 import axios from "axios";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function AppRoutes() {
   const [fcmToken, setFcmToken] = useState(null);
@@ -155,6 +157,16 @@ function App() {
     <Router>
       <AuthProvider>
         <AppRoutes />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnHover
+          draggable
+          theme="dark"
+        />
       </AuthProvider>
     </Router>
   );

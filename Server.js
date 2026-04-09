@@ -22,8 +22,6 @@ const notificationRoutes = require('./routes/notifications/notificationRoutes.js
 const itemListingRoutes = require('./routes/donations/itemListingRoutes.js');
 const messageRoutes = require('./routes/donations/messageRoutes.js');
 
-// Load environment variables
-dotenv.config();
 
 // Initialize Express app
 const app = express();

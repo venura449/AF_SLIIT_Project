@@ -24,7 +24,7 @@ describe('Feedback Endpoints Testing Started ! ', () => {
     });
 
     afterAll(async () => {
-        await Feedback.deleteMany({});
+        await Feedback.deleteMany({ user: userId });
         await User.deleteMany({ email: userEmail, username });
     });
     describe(`POST ${API_PREFIX}/createFeedback`, () => {

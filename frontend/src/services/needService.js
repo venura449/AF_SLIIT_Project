@@ -4,7 +4,7 @@ const baseUrl = import.meta.env.VITE_API_URL;
 
 export const getAllNeeds = async (category = "all") => {
   const query = category !== "all" ? `?category=${category}` : "";
-  const response = await axios.get(`${baseUrl}/needs/getall${query}`);
+  const response = await api.get(`${baseUrl}/needs/getall${query}`);
   return response.data.data || response.data;
 };
 

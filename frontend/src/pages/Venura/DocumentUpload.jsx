@@ -1,14 +1,19 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { getProfile, getDocumentStatus, uploadNicDocument } from '../../services/authService';
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  getProfile,
+  getDocumentStatus,
+  uploadNicDocument,
+} from "../../services/authService";
+import { toast } from "react-toastify";
 
 const DocumentUpload = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
   const [documentStatus, setDocumentStatus] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -24,7 +29,7 @@ const DocumentUpload = () => {
         setUser(profile);
         setDocumentStatus(docStatus);
       } catch (err) {
-        navigate('/login');
+        navigate("/login");
       } finally {
         setLoading(false);
       }
@@ -35,21 +40,31 @@ const DocumentUpload = () => {
   const handleFileSelect = (file) => {
     if (file) {
       // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "application/pdf",
+      ];
       if (!allowedTypes.includes(file.type)) {
-        setError('Invalid file type. Only JPEG, PNG, and PDF files are allowed.');
+        const msg =
+          "Invalid file type. Only JPEG, PNG, and PDF files are allowed.";
+        setError(msg);
+        toast.warn(msg);
         return;
       }
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError('File size must be less than 5MB.');
+        const msg = "File size must be less than 5MB.";
+        setError(msg);
+        toast.warn(msg);
         return;
       }
       setSelectedFile(file);
-      setError('');
-      
+      setError("");
+
       // Create preview for images
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onloadend = () => {
           setPreviewUrl(reader.result);
@@ -64,9 +79,9 @@ const DocumentUpload = () => {
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   };
@@ -89,28 +104,35 @@ const DocumentUpload = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFile) {
-      setError('Please select a file to upload.');
+      setError("Please select a file to upload.");
       return;
     }
 
     setUploading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const formData = new FormData();
-      formData.append('nicDocument', selectedFile);
+      formData.append("nicDocument", selectedFile);
 
       await uploadNicDocument(formData);
-      setSuccess('Document uploaded successfully! Your ID will be verified by an admin shortly.');
-      
+      const successMsg =
+        "Document uploaded successfully! Your ID will be verified by an admin shortly.";
+      setSuccess(successMsg);
+      toast.success(successMsg);
+
       // Refresh document status
       const docStatus = await getDocumentStatus();
       setDocumentStatus(docStatus);
       setSelectedFile(null);
       setPreviewUrl(null);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to upload document. Please try again.');
+      const msg =
+        err.response?.data?.error ||
+        "Failed to upload document. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setUploading(false);
     }
@@ -118,40 +140,40 @@ const DocumentUpload = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'verified':
-        return 'text-green-400 bg-green-500/20 border-green-500/30';
-      case 'pending':
-        return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
-      case 'rejected':
-        return 'text-red-400 bg-red-500/20 border-red-500/30';
+      case "verified":
+        return "text-green-400 bg-green-500/20 border-green-500/30";
+      case "pending":
+        return "text-yellow-400 bg-yellow-500/20 border-yellow-500/30";
+      case "rejected":
+        return "text-red-400 bg-red-500/20 border-red-500/30";
       default:
-        return 'text-gray-400 bg-gray-500/20 border-gray-500/30';
+        return "text-gray-400 bg-gray-500/20 border-gray-500/30";
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'verified':
-        return 'fa-check-circle';
-      case 'pending':
-        return 'fa-clock';
-      case 'rejected':
-        return 'fa-times-circle';
+      case "verified":
+        return "fa-check-circle";
+      case "pending":
+        return "fa-clock";
+      case "rejected":
+        return "fa-times-circle";
       default:
-        return 'fa-upload';
+        return "fa-upload";
     }
   };
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'verified':
-        return 'Verified';
-      case 'pending':
-        return 'Pending Verification';
-      case 'rejected':
-        return 'Rejected';
+      case "verified":
+        return "Verified";
+      case "pending":
+        return "Pending Verification";
+      case "rejected":
+        return "Rejected";
       default:
-        return 'Not Uploaded';
+        return "Not Uploaded";
     }
   };
 
@@ -171,9 +193,30 @@ const DocumentUpload = () => {
       {/* Background Elements */}
       <div className="fixed inset-0 opacity-10 pointer-events-none">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <line x1="10%" y1="20%" x2="30%" y2="80%" stroke="#4ADE80" strokeWidth="1" />
-          <line x1="90%" y1="30%" x2="70%" y2="90%" stroke="#22C55E" strokeWidth="1" />
-          <line x1="20%" y1="90%" x2="80%" y2="10%" stroke="#16A34A" strokeWidth="1" />
+          <line
+            x1="10%"
+            y1="20%"
+            x2="30%"
+            y2="80%"
+            stroke="#4ADE80"
+            strokeWidth="1"
+          />
+          <line
+            x1="90%"
+            y1="30%"
+            x2="70%"
+            y2="90%"
+            stroke="#22C55E"
+            strokeWidth="1"
+          />
+          <line
+            x1="20%"
+            y1="90%"
+            x2="80%"
+            y2="10%"
+            stroke="#16A34A"
+            strokeWidth="1"
+          />
           <circle cx="30%" cy="20%" r="3" fill="#4ADE80" opacity="0.5" />
           <circle cx="70%" cy="80%" r="3" fill="#22C55E" opacity="0.5" />
         </svg>
@@ -189,7 +232,10 @@ const DocumentUpload = () => {
                 <i className="fas fa-hand-holding-heart text-lg"></i>
               </div>
               <h1 className="text-xl font-light text-white tracking-wider">
-                Bridge<span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">Connect</span>
+                Bridge
+                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+                  Connect
+                </span>
               </h1>
             </Link>
 
@@ -210,9 +256,14 @@ const DocumentUpload = () => {
         {/* Page Header */}
         <div className="mb-8">
           <h2 className="text-3xl font-light text-white mb-2">
-            ID <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">Verification</span>
+            ID{" "}
+            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+              Verification
+            </span>
           </h2>
-          <p className="text-green-200/60">Upload your National Identity Card (NIC) for account verification.</p>
+          <p className="text-green-200/60">
+            Upload your National Identity Card (NIC) for account verification.
+          </p>
         </div>
 
         {/* Current Status Card */}
@@ -221,25 +272,34 @@ const DocumentUpload = () => {
             <i className="fas fa-id-card text-green-400 mr-2"></i>
             Document Status
           </h3>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${getStatusColor(documentStatus?.documentStatus)}`}>
-                <i className={`fas ${getStatusIcon(documentStatus?.documentStatus)} text-xl`}></i>
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center ${getStatusColor(documentStatus?.documentStatus)}`}
+              >
+                <i
+                  className={`fas ${getStatusIcon(documentStatus?.documentStatus)} text-xl`}
+                ></i>
               </div>
               <div>
-                <p className={`font-medium ${getStatusColor(documentStatus?.documentStatus).split(' ')[0]}`}>
+                <p
+                  className={`font-medium ${getStatusColor(documentStatus?.documentStatus).split(" ")[0]}`}
+                >
                   {getStatusText(documentStatus?.documentStatus)}
                 </p>
                 {documentStatus?.nicDocument?.uploadedAt && (
                   <p className="text-xs text-green-200/50">
-                    Uploaded: {new Date(documentStatus.nicDocument.uploadedAt).toLocaleString()}
+                    Uploaded:{" "}
+                    {new Date(
+                      documentStatus.nicDocument.uploadedAt,
+                    ).toLocaleString()}
                   </p>
                 )}
               </div>
             </div>
-            
-            {documentStatus?.documentStatus === 'verified' && (
+
+            {documentStatus?.documentStatus === "verified" && (
               <span className="px-4 py-2 bg-green-500/20 text-green-400 rounded-xl text-sm font-medium border border-green-500/30">
                 <i className="fas fa-shield-alt mr-2"></i>Account Verified
               </span>
@@ -247,21 +307,23 @@ const DocumentUpload = () => {
           </div>
 
           {/* Rejection Reason */}
-          {documentStatus?.documentStatus === 'rejected' && documentStatus?.documentRejectionReason && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-              <p className="text-sm text-red-400">
-                <i className="fas fa-exclamation-triangle mr-2"></i>
-                <strong>Rejection Reason:</strong> {documentStatus.documentRejectionReason}
-              </p>
-              <p className="text-xs text-red-300/70 mt-2">
-                Please upload a clearer document to complete verification.
-              </p>
-            </div>
-          )}
+          {documentStatus?.documentStatus === "rejected" &&
+            documentStatus?.documentRejectionReason && (
+              <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                <p className="text-sm text-red-400">
+                  <i className="fas fa-exclamation-triangle mr-2"></i>
+                  <strong>Rejection Reason:</strong>{" "}
+                  {documentStatus.documentRejectionReason}
+                </p>
+                <p className="text-xs text-red-300/70 mt-2">
+                  Please upload a clearer document to complete verification.
+                </p>
+              </div>
+            )}
         </div>
 
         {/* Upload Form - Show only if not verified */}
-        {documentStatus?.documentStatus !== 'verified' && (
+        {documentStatus?.documentStatus !== "verified" && (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <i className="fas fa-upload text-green-400 mr-2"></i>
@@ -272,22 +334,25 @@ const DocumentUpload = () => {
             <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
               <p className="text-sm text-blue-300">
                 <i className="fas fa-info-circle mr-2"></i>
-                <strong>Important:</strong> Please upload a clear photo or scan of your National Identity Card (NIC). 
-                Accepted formats: JPEG, PNG, PDF. Maximum file size: 5MB.
+                <strong>Important:</strong> Please upload a clear photo or scan
+                of your National Identity Card (NIC). Accepted formats: JPEG,
+                PNG, PDF. Maximum file size: 5MB.
               </p>
             </div>
 
             {/* Success Message */}
             {success && (
               <div className="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-green-300 text-sm text-center">
-                <i className="fas fa-check-circle mr-2"></i>{success}
+                <i className="fas fa-check-circle mr-2"></i>
+                {success}
               </div>
             )}
 
             {/* Error Message */}
             {error && (
               <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm text-center">
-                <i className="fas fa-exclamation-circle mr-2"></i>{error}
+                <i className="fas fa-exclamation-circle mr-2"></i>
+                {error}
               </div>
             )}
 
@@ -296,10 +361,10 @@ const DocumentUpload = () => {
               <div
                 className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 ${
                   dragActive
-                    ? 'border-green-400 bg-green-500/10'
+                    ? "border-green-400 bg-green-500/10"
                     : selectedFile
-                    ? 'border-green-500/50 bg-green-500/5'
-                    : 'border-white/20 hover:border-white/40'
+                      ? "border-green-500/50 bg-green-500/5"
+                      : "border-white/20 hover:border-white/40"
                 }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
@@ -328,7 +393,7 @@ const DocumentUpload = () => {
                       <i className="fas fa-times mr-1"></i>Remove
                     </button>
                   </div>
-                ) : selectedFile && selectedFile.type === 'application/pdf' ? (
+                ) : selectedFile && selectedFile.type === "application/pdf" ? (
                   <div className="space-y-4">
                     <div className="w-20 h-20 mx-auto rounded-xl bg-red-500/20 flex items-center justify-center">
                       <i className="fas fa-file-pdf text-4xl text-red-400"></i>
@@ -419,7 +484,9 @@ const DocumentUpload = () => {
               </div>
               <div>
                 <p className="text-white text-sm font-medium">Build Trust</p>
-                <p className="text-xs text-green-200/50">Verified accounts are trusted more by the community.</p>
+                <p className="text-xs text-green-200/50">
+                  Verified accounts are trusted more by the community.
+                </p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
@@ -427,8 +494,12 @@ const DocumentUpload = () => {
                 <i className="fas fa-unlock text-blue-400 text-xs"></i>
               </div>
               <div>
-                <p className="text-white text-sm font-medium">Unlock Features</p>
-                <p className="text-xs text-green-200/50">Access all platform features after verification.</p>
+                <p className="text-white text-sm font-medium">
+                  Unlock Features
+                </p>
+                <p className="text-xs text-green-200/50">
+                  Access all platform features after verification.
+                </p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
@@ -436,8 +507,12 @@ const DocumentUpload = () => {
                 <i className="fas fa-hand-holding-heart text-purple-400 text-xs"></i>
               </div>
               <div>
-                <p className="text-white text-sm font-medium">Help & Get Help</p>
-                <p className="text-xs text-green-200/50">Start donating or receiving donations after verification.</p>
+                <p className="text-white text-sm font-medium">
+                  Help & Get Help
+                </p>
+                <p className="text-xs text-green-200/50">
+                  Start donating or receiving donations after verification.
+                </p>
               </div>
             </div>
           </div>

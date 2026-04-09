@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getProfile, logout } from "../../services/authService";
 import * as needService from "../../services/needService";
 import ChatBubble from "./ChatBubble";
+import { toast } from "react-toastify";
 
 const DonorNeeds = () => {
   const navigate = useNavigate();
@@ -174,10 +175,16 @@ const DonorNeeds = () => {
           ? "Goods donation submitted!"
           : "Donation successful!",
       );
+      toast.success(
+        donationType === "Goods"
+          ? "Goods donation submitted!"
+          : "Donation successful!",
+      );
       await fetchNeeds();
       setTimeout(() => setShowDonateModal(false), 1200);
     } catch (err) {
       setDonateError(err.response?.data?.message || "Donation failed");
+      toast.error(err.response?.data?.message || "Donation failed.");
     } finally {
       setDonating(false);
     }

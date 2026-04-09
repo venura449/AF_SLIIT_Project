@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getProfile, logout } from "../../services/authService";
 import * as needService from "../../services/needService";
+import { toast } from "react-toastify";
 
 const NeedRequest = () => {
   const navigate = useNavigate();
@@ -101,7 +102,8 @@ const NeedRequest = () => {
   const handleCreateRequest = async (e) => {
     e.preventDefault();
     if (newRequest.category === "Medical" && !selectedFile) {
-      return alert("Please upload a medical document for verification.");
+      toast.warn("Please upload a medical document for verification.");
+      return;
     }
 
     const amount = parseFloat(newRequest.targetAmount);
@@ -122,7 +124,7 @@ const NeedRequest = () => {
 
       // Refresh list
       fetchNeeds();
-      alert("Request created successfully!");
+      toast.success("Request created successfully!");
       setShowCreateModal(false);
       setNewRequest({
         title: "",
@@ -134,7 +136,9 @@ const NeedRequest = () => {
       });
       setSelectedFile(null);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to create need request.");
+      toast.error(
+        err.response?.data?.message || "Failed to create need request.",
+      );
     }
   };
 
@@ -164,11 +168,11 @@ const NeedRequest = () => {
     try {
       await needService.updateNeed(editRequest._id, needData);
       fetchNeeds();
-      alert("Request updated successfully!");
+      toast.success("Request updated successfully!");
       setShowEditModal(false);
       setEditRequest(null);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to update request.");
+      toast.error(err.response?.data?.message || "Failed to update request.");
     }
   };
 
@@ -177,11 +181,11 @@ const NeedRequest = () => {
     try {
       await needService.deleteNeed(deleteTarget._id);
       fetchNeeds();
-      alert("Request deleted successfully!");
+      toast.success("Request deleted successfully!");
       setShowDeleteConfirm(false);
       setDeleteTarget(null);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete request.");
+      toast.error(err.response?.data?.message || "Failed to delete request.");
     }
   };
 

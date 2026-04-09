@@ -102,6 +102,10 @@ const AdminDashboard = () => {
   const [itemCurrentPage, setItemCurrentPage] = useState(1);
   const itemsPerPageListing = 10;
 
+  // Reports date range filter state
+  const [reportFromDate, setReportFromDate] = useState("");
+  const [reportToDate, setReportToDate] = useState("");
+
   // Search, Filter & Pagination state
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -2322,12 +2326,26 @@ const AdminDashboard = () => {
 
               {activeTab === "reports" &&
                 (() => {
+                  // ── helpers ──────────────────────────────────────────
+                  const filterByDate = (items, field = "createdAt") =>
+                    items.filter((item) => {
+                      const d = new Date(item[field]);
+                      if (reportFromDate && d < new Date(reportFromDate))
+                        return false;
+                      if (
+                        reportToDate &&
+                        d > new Date(reportToDate + "T23:59:59")
+                      )
+                        return false;
+                      return true;
+                    });
+
                   const downloadCsv = (filename, headers, rows) => {
-                    const escape = (v) =>
+                    const esc = (v) =>
                       `"${String(v ?? "").replace(/"/g, '""')}"`;
                     const csv = [
                       headers.join(","),
-                      ...rows.map((r) => r.map(escape).join(",")),
+                      ...rows.map((r) => r.map(esc).join(",")),
                     ].join("\n");
                     const blob = new Blob([csv], {
                       type: "text/csv;charset=utf-8;",
@@ -2339,230 +2357,675 @@ const AdminDashboard = () => {
                     URL.revokeObjectURL(link.href);
                   };
 
-                  const exportUsers = () => {
-                    const headers = [
-                      "Username",
-                      "Email",
-                      "Role",
-                      "Phone",
-                      "Verified",
-                      "Created",
-                    ];
-                    const rows = users.map((u) => [
-                      u.username,
-                      u.email,
-                      u.role,
-                      u.phone || "",
-                      u.isVerified ? "Yes" : "No",
-                      new Date(u.createdAt).toLocaleDateString(),
-                    ]);
+                  // ── derived data ──────────────────────────────────────
+                  const allNeeds = [...pendingNeeds, ...fulfilledNeeds];
+                  const reviews = platformReviews;
+
+                  const fUsers = filterByDate(users);
+                  const fNeeds = filterByDate(allNeeds);
+                  const fItems = filterByDate(allItems);
+                  const fReviews = filterByDate(reviews);
+
+                  // ── exports ───────────────────────────────────────────
+                  const exportUsers = () =>
                     downloadCsv(
                       `users_report_${Date.now()}.csv`,
-                      headers,
-                      rows,
+                      [
+                        "Username",
+                        "Email",
+                        "Role",
+                        "Phone",
+                        "Verified",
+                        "Active",
+                        "Doc Status",
+                        "Created",
+                      ],
+                      fUsers.map((u) => [
+                        u.username,
+                        u.email,
+                        u.role,
+                        u.profile?.phone || "",
+                        u.isVerified ? "Yes" : "No",
+                        u.isActive !== false ? "Yes" : "No",
+                        u.documentStatus || "",
+                        new Date(u.createdAt).toLocaleDateString(),
+                      ]),
                     );
-                  };
 
-                  const exportNeeds = () => {
-                    const headers = [
-                      "Title",
-                      "Recipient",
-                      "Category",
-                      "Status",
-                      "Urgency",
-                      "Target Qty",
-                      "Fulfilled Qty",
-                      "Created",
-                    ];
-                    const rows = needRequests.map((n) => [
-                      n.title,
-                      n.recipient?.username || "",
-                      n.category,
-                      n.status,
-                      n.urgencyLevel,
-                      n.targetQuantity,
-                      n.fulfilledQuantity,
-                      new Date(n.createdAt).toLocaleDateString(),
-                    ]);
+                  const exportNeeds = () =>
                     downloadCsv(
                       `needs_report_${Date.now()}.csv`,
-                      headers,
-                      rows,
+                      [
+                        "Title",
+                        "Recipient",
+                        "Category",
+                        "Status",
+                        "Urgency",
+                        "Location",
+                        "Goal Amount",
+                        "Current Amount",
+                        "Verified",
+                        "Created",
+                      ],
+                      fNeeds.map((n) => [
+                        n.title,
+                        n.recipient?.username || "",
+                        n.category,
+                        n.status,
+                        n.urgency || "",
+                        n.location || "",
+                        n.goalAmount || 0,
+                        n.currentAmount || 0,
+                        n.isVerified ? "Yes" : "No",
+                        new Date(n.createdAt).toLocaleDateString(),
+                      ]),
                     );
-                  };
 
-                  const exportItems = () => {
-                    const headers = [
-                      "Title",
-                      "Donor",
-                      "Category",
-                      "Condition",
-                      "Status",
-                      "Created",
-                    ];
-                    const rows = allItems.map((i) => [
-                      i.title,
-                      i.donor?.username || "",
-                      i.category,
-                      i.condition,
-                      i.status,
-                      new Date(i.createdAt).toLocaleDateString(),
-                    ]);
+                  const exportItems = () =>
                     downloadCsv(
                       `items_report_${Date.now()}.csv`,
-                      headers,
-                      rows,
+                      [
+                        "Title",
+                        "Donor",
+                        "Category",
+                        "Condition",
+                        "Status",
+                        "Created",
+                      ],
+                      fItems.map((i) => [
+                        i.title,
+                        i.donor?.username || "",
+                        i.category,
+                        i.condition,
+                        i.status,
+                        new Date(i.createdAt).toLocaleDateString(),
+                      ]),
                     );
-                  };
 
-                  const exportReviews = () => {
-                    const headers = [
-                      "Reviewer",
-                      "Rating",
-                      "Comment",
-                      "Created",
-                    ];
-                    const rows = reviews.map((r) => [
-                      r.user?.username || "",
-                      r.rating,
-                      r.comment,
-                      new Date(r.createdAt).toLocaleDateString(),
-                    ]);
+                  const exportReviews = () =>
                     downloadCsv(
                       `reviews_report_${Date.now()}.csv`,
-                      headers,
-                      rows,
+                      ["Reviewer", "Rating", "Description", "Created"],
+                      fReviews.map((r) => [
+                        r.user?.username || "",
+                        r.rating,
+                        r.description || "",
+                        new Date(r.createdAt).toLocaleDateString(),
+                      ]),
                     );
-                  };
+
+                  // ── analytics ─────────────────────────────────────────
+                  const totalNeeds = allNeeds.length;
+                  const fulfilledRate =
+                    totalNeeds > 0
+                      ? Math.round((fulfilledNeeds.length / totalNeeds) * 100)
+                      : 0;
+                  const avgRating =
+                    reviews.length > 0
+                      ? (
+                          reviews.reduce(
+                            (s, r) => s + (Number(r.rating) || 0),
+                            0,
+                          ) / reviews.length
+                        ).toFixed(1)
+                      : "—";
+
+                  const roleData = [
+                    {
+                      label: "Donors",
+                      value: users.filter((u) => u.role === "Donor").length,
+                      color: "#22c55e",
+                    },
+                    {
+                      label: "Recipients",
+                      value: users.filter((u) => u.role === "Recipient").length,
+                      color: "#3b82f6",
+                    },
+                    {
+                      label: "Admins",
+                      value: users.filter((u) => u.role === "Admin").length,
+                      color: "#a855f7",
+                    },
+                  ];
+                  const totalRoles =
+                    roleData.reduce((s, d) => s + d.value, 0) || 1;
+                  const circum = 2 * Math.PI * 40;
+                  let cumOffset = 0;
+                  const donutSegs = roleData.map((d) => {
+                    const dash = (d.value / totalRoles) * circum;
+                    const seg = {
+                      ...d,
+                      dash,
+                      gap: circum - dash,
+                      offset: cumOffset,
+                    };
+                    cumOffset += dash;
+                    return seg;
+                  });
+
+                  const needCategories = [
+                    { name: "Food", icon: "🍚", barColor: "bg-green-500" },
+                    { name: "Education", icon: "📚", barColor: "bg-blue-500" },
+                    { name: "Medical", icon: "🏥", barColor: "bg-red-500" },
+                    { name: "Other", icon: "📦", barColor: "bg-purple-500" },
+                  ].map((c) => ({
+                    ...c,
+                    count: allNeeds.filter((n) => n.category === c.name).length,
+                    pct:
+                      totalNeeds > 0
+                        ? Math.round(
+                            (allNeeds.filter((n) => n.category === c.name)
+                              .length /
+                              totalNeeds) *
+                              100,
+                          )
+                        : 0,
+                  }));
+
+                  const needStatuses = [
+                    {
+                      label: "Pending",
+                      count: pendingNeeds.filter((n) => n.status === "Pending")
+                        .length,
+                      cls: "text-yellow-400 bg-yellow-500/15",
+                    },
+                    {
+                      label: "Partially Funded",
+                      count: pendingNeeds.filter(
+                        (n) => n.status === "Partially Funded",
+                      ).length,
+                      cls: "text-blue-400 bg-blue-500/15",
+                    },
+                    {
+                      label: "Fulfilled",
+                      count: fulfilledNeeds.length,
+                      cls: "text-green-400 bg-green-500/15",
+                    },
+                    {
+                      label: "Cancelled",
+                      count: pendingNeeds.filter(
+                        (n) => n.status === "Cancelled",
+                      ).length,
+                      cls: "text-red-400 bg-red-500/15",
+                    },
+                  ];
+
+                  const docStatuses = [
+                    {
+                      label: "Verified",
+                      count: users.filter(
+                        (u) => u.documentStatus === "verified",
+                      ).length,
+                      dot: "bg-green-500",
+                    },
+                    {
+                      label: "Pending",
+                      count: users.filter((u) => u.documentStatus === "pending")
+                        .length,
+                      dot: "bg-yellow-500",
+                    },
+                    {
+                      label: "Rejected",
+                      count: users.filter(
+                        (u) => u.documentStatus === "rejected",
+                      ).length,
+                      dot: "bg-red-500",
+                    },
+                    {
+                      label: "Not Uploaded",
+                      count: users.filter(
+                        (u) => u.documentStatus === "not_uploaded",
+                      ).length,
+                      dot: "bg-gray-500",
+                    },
+                  ];
+
+                  // export card definitions
+                  const exportCards = [
+                    {
+                      title: "Users Report",
+                      desc: "Usernames, emails, roles, verification status and registration dates.",
+                      iconCls: "fas fa-users text-blue-400",
+                      iconBg: "bg-blue-500/20",
+                      btnCls:
+                        "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600",
+                      count: fUsers.length,
+                      total: users.length,
+                      onExport: exportUsers,
+                      previewHeaders: ["User", "Role", "Doc Status"],
+                      previewRows: fUsers
+                        .slice(0, 3)
+                        .map((u) => [
+                          u.username,
+                          u.role,
+                          u.documentStatus || "—",
+                        ]),
+                    },
+                    {
+                      title: "Need Requests",
+                      desc: "Titles, recipients, categories, statuses, urgency levels and amounts.",
+                      iconCls: "fas fa-hand-holding-heart text-green-400",
+                      iconBg: "bg-green-500/20",
+                      btnCls:
+                        "bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600",
+                      count: fNeeds.length,
+                      total: totalNeeds,
+                      onExport: exportNeeds,
+                      previewHeaders: ["Title", "Category", "Status"],
+                      previewRows: fNeeds
+                        .slice(0, 3)
+                        .map((n) => [
+                          n.title?.slice(0, 20) || "—",
+                          n.category,
+                          n.status,
+                        ]),
+                    },
+                    {
+                      title: "Item Listings",
+                      desc: "Titles, donors, categories, conditions and availability statuses.",
+                      iconCls: "fas fa-gift text-cyan-400",
+                      iconBg: "bg-cyan-500/20",
+                      btnCls:
+                        "bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-700 hover:to-blue-600",
+                      count: fItems.length,
+                      total: allItems.length,
+                      onExport: exportItems,
+                      previewHeaders: ["Title", "Category", "Status"],
+                      previewRows: fItems
+                        .slice(0, 3)
+                        .map((i) => [
+                          i.title?.slice(0, 20) || "—",
+                          i.category,
+                          i.status,
+                        ]),
+                    },
+                    {
+                      title: "Reviews Report",
+                      desc: "Reviewer names, star ratings, descriptions and submission dates.",
+                      iconCls: "fas fa-star text-yellow-400",
+                      iconBg: "bg-yellow-500/20",
+                      btnCls:
+                        "bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-700 hover:to-amber-600",
+                      count: fReviews.length,
+                      total: reviews.length,
+                      onExport: exportReviews,
+                      previewHeaders: ["Reviewer", "Rating", "Comment"],
+                      previewRows: fReviews
+                        .slice(0, 3)
+                        .map((r) => [
+                          r.user?.username?.slice(0, 14) || "—",
+                          `${r.rating}/5`,
+                          (r.description || "—").slice(0, 20),
+                        ]),
+                    },
+                  ];
 
                   return (
                     <div className="space-y-6">
+                      {/* ── Header + Date Filter ────────────────────────── */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                        <div>
+                          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                            <i className="fas fa-file-alt text-green-400"></i>
+                            Platform Reports
+                          </h2>
+                          <p className="text-xs text-green-200/50 mt-1">
+                            Analytics overview and data exports for the
+                            BridgeConnect platform.
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 shrink-0">
+                          <i className="fas fa-calendar-alt text-green-400 text-xs"></i>
+                          <input
+                            type="date"
+                            value={reportFromDate}
+                            onChange={(e) => setReportFromDate(e.target.value)}
+                            className="bg-transparent text-white text-xs border-none outline-none"
+                          />
+                          <span className="text-green-200/30 text-xs">→</span>
+                          <input
+                            type="date"
+                            value={reportToDate}
+                            onChange={(e) => setReportToDate(e.target.value)}
+                            className="bg-transparent text-white text-xs border-none outline-none"
+                          />
+                          {(reportFromDate || reportToDate) && (
+                            <button
+                              onClick={() => {
+                                setReportFromDate("");
+                                setReportToDate("");
+                              }}
+                              className="text-red-400 hover:text-red-300 text-xs ml-1"
+                            >
+                              <i className="fas fa-times"></i>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* ── KPI Summary Cards ───────────────────────────── */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Users */}
+                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
+                          <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center mb-3">
+                            <i className="fas fa-users text-blue-400"></i>
+                          </div>
+                          <p className="text-2xl font-bold text-white">
+                            {users.length}
+                          </p>
+                          <p className="text-xs text-green-200/50 mt-0.5">
+                            Total Users
+                          </p>
+                          <p className="text-[10px] text-green-200/30 mt-0.5">
+                            {roleData[0].value} Donors · {roleData[1].value}{" "}
+                            Recipients
+                          </p>
+                        </div>
+                        {/* Needs */}
+                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
+                          <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center mb-3">
+                            <i className="fas fa-hand-holding-heart text-green-400"></i>
+                          </div>
+                          <p className="text-2xl font-bold text-white">
+                            {totalNeeds}
+                          </p>
+                          <p className="text-xs text-green-200/50 mt-0.5">
+                            Total Needs
+                          </p>
+                          <p className="text-[10px] text-green-200/30 mt-0.5">
+                            {fulfilledRate}% fulfilment rate
+                          </p>
+                        </div>
+                        {/* Items */}
+                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
+                          <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-3">
+                            <i className="fas fa-gift text-cyan-400"></i>
+                          </div>
+                          <p className="text-2xl font-bold text-white">
+                            {allItems.length}
+                          </p>
+                          <p className="text-xs text-green-200/50 mt-0.5">
+                            Item Listings
+                          </p>
+                          <p className="text-[10px] text-green-200/30 mt-0.5">
+                            {
+                              allItems.filter((i) => i.status === "Available")
+                                .length
+                            }{" "}
+                            available
+                          </p>
+                        </div>
+                        {/* Avg Rating */}
+                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
+                          <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center mb-3">
+                            <i className="fas fa-star text-yellow-400"></i>
+                          </div>
+                          <p className="text-2xl font-bold text-white">
+                            {avgRating}
+                          </p>
+                          <p className="text-xs text-green-200/50 mt-0.5">
+                            Avg Review Rating
+                          </p>
+                          <p className="text-[10px] text-green-200/30 mt-0.5">
+                            from {reviews.length} reviews
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* ── Analytics Charts ────────────────────────────── */}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        {/* Needs by Category + Status */}
+                        <div className="lg:col-span-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 space-y-6">
+                          {/* Category bars */}
+                          <div>
+                            <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                              <i className="fas fa-chart-bar text-green-400"></i>
+                              Needs by Category
+                            </h3>
+                            <div className="space-y-3">
+                              {needCategories.map(
+                                ({ name, icon, barColor, count, pct }) => (
+                                  <div key={name}>
+                                    <div className="flex justify-between items-center mb-1">
+                                      <span className="text-xs text-green-200/70">
+                                        {icon} {name}
+                                      </span>
+                                      <span className="text-xs text-white font-medium">
+                                        {count}{" "}
+                                        <span className="text-green-200/40">
+                                          ({pct}%)
+                                        </span>
+                                      </span>
+                                    </div>
+                                    <div className="w-full bg-white/5 rounded-full h-2">
+                                      <div
+                                        className={`${barColor} h-2 rounded-full transition-all duration-500`}
+                                        style={{ width: `${pct}%` }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Status pills */}
+                          <div>
+                            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                              <i className="fas fa-layer-group text-green-400"></i>
+                              Needs by Status
+                            </h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              {needStatuses.map(({ label, count, cls }) => (
+                                <div
+                                  key={label}
+                                  className={`rounded-xl p-3 ${cls.split(" ")[1]}`}
+                                >
+                                  <p
+                                    className={`text-xl font-bold ${cls.split(" ")[0]}`}
+                                  >
+                                    {count}
+                                  </p>
+                                  <p className="text-[10px] text-green-200/50 mt-0.5 leading-tight">
+                                    {label}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* User roles donut + doc status */}
+                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
+                          <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                            <i className="fas fa-user-tag text-green-400"></i>
+                            Users by Role
+                          </h3>
+                          <div className="flex justify-center my-3">
+                            <svg
+                              viewBox="0 0 100 100"
+                              width="130"
+                              height="130"
+                              className="-rotate-90"
+                            >
+                              {donutSegs.map((seg) => (
+                                <circle
+                                  key={seg.label}
+                                  cx="50"
+                                  cy="50"
+                                  r="40"
+                                  fill="none"
+                                  stroke={seg.color}
+                                  strokeWidth="16"
+                                  strokeDasharray={`${seg.dash} ${seg.gap}`}
+                                  strokeDashoffset={-seg.offset}
+                                />
+                              ))}
+                            </svg>
+                          </div>
+                          <div className="space-y-2">
+                            {[
+                              {
+                                label: "Donors",
+                                value: roleData[0].value,
+                                dot: "bg-green-500",
+                              },
+                              {
+                                label: "Recipients",
+                                value: roleData[1].value,
+                                dot: "bg-blue-500",
+                              },
+                              {
+                                label: "Admins",
+                                value: roleData[2].value,
+                                dot: "bg-purple-500",
+                              },
+                            ].map(({ label, value, dot }) => (
+                              <div
+                                key={label}
+                                className="flex items-center justify-between"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className={`w-2 h-2 rounded-full ${dot}`}
+                                  ></div>
+                                  <span className="text-xs text-green-200/70">
+                                    {label}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-white font-medium">
+                                  {value}{" "}
+                                  <span className="text-green-200/30">
+                                    (
+                                    {totalRoles > 0
+                                      ? Math.round((value / totalRoles) * 100)
+                                      : 0}
+                                    %)
+                                  </span>
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="mt-4 pt-4 border-t border-white/10">
+                            <p className="text-xs text-green-200/40 mb-2">
+                              Document Verification
+                            </p>
+                            <div className="space-y-1.5">
+                              {docStatuses.map(({ label, count, dot }) => (
+                                <div
+                                  key={label}
+                                  className="flex items-center gap-2"
+                                >
+                                  <div
+                                    className={`w-1.5 h-1.5 rounded-full ${dot}`}
+                                  ></div>
+                                  <span className="text-[10px] text-green-200/60 flex-1">
+                                    {label}
+                                  </span>
+                                  <span className="text-[10px] text-white">
+                                    {count}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ── Export Cards ─────────────────────────────────── */}
                       <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                        <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
-                          <i className="fas fa-file-alt text-green-400 mr-2"></i>
-                          System Reports
-                        </h3>
-                        <p className="text-xs text-green-200/50 mb-6">
-                          Export platform data as CSV files for analysis and
-                          record keeping.
+                        <div className="flex items-center gap-2 mb-1">
+                          <i className="fas fa-download text-green-400"></i>
+                          <h3 className="text-sm font-semibold text-white">
+                            Export Reports
+                          </h3>
+                        </div>
+                        <p className="text-xs text-green-200/40 mb-5">
+                          {reportFromDate || reportToDate
+                            ? `Filtered: ${reportFromDate || "start"} → ${reportToDate || "now"} · Use the date picker above to change range`
+                            : "Showing all records · Use the date picker above to filter by date range"}
                         </p>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {/* User Report */}
-                          <div className="p-5 bg-white/5 border border-white/10 rounded-xl">
-                            <div className="flex items-center space-x-3 mb-3">
-                              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                                <i className="fas fa-users text-blue-400"></i>
-                              </div>
-                              <div>
-                                <p className="text-white font-medium">
-                                  User Report
-                                </p>
-                                <p className="text-[11px] text-green-200/50">
-                                  {users.length} users
-                                </p>
-                              </div>
-                            </div>
-                            <p className="text-xs text-green-200/40 mb-4">
-                              Usernames, emails, roles, verification status,
-                              phone numbers and account creation dates.
-                            </p>
-                            <button
-                              onClick={exportUsers}
-                              disabled={users.length === 0}
-                              className="w-full py-2 text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-600 hover:to-blue-500 text-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                          {exportCards.map((card) => (
+                            <div
+                              key={card.title}
+                              className="bg-white/5 border border-white/10 rounded-xl overflow-hidden flex flex-col"
                             >
-                              <i className="fas fa-download mr-1.5"></i>Download
-                              CSV
-                            </button>
-                          </div>
+                              <div className="p-4 flex-1">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div
+                                    className={`w-9 h-9 rounded-lg ${card.iconBg} flex items-center justify-center`}
+                                  >
+                                    <i
+                                      className={`${card.iconCls} text-sm`}
+                                    ></i>
+                                  </div>
+                                  <div>
+                                    <p className="text-white text-sm font-medium">
+                                      {card.title}
+                                    </p>
+                                    <p className="text-[10px] text-green-200/40">
+                                      {card.count} / {card.total} records
+                                    </p>
+                                  </div>
+                                </div>
+                                <p className="text-[11px] text-green-200/40 mb-3 leading-relaxed">
+                                  {card.desc}
+                                </p>
 
-                          {/* Need Requests Report */}
-                          <div className="p-5 bg-white/5 border border-white/10 rounded-xl">
-                            <div className="flex items-center space-x-3 mb-3">
-                              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                                <i className="fas fa-hand-holding-heart text-green-400"></i>
+                                {/* Mini preview table */}
+                                {card.previewRows.length > 0 ? (
+                                  <div className="rounded-lg overflow-hidden border border-white/5">
+                                    <table className="w-full text-[10px]">
+                                      <thead>
+                                        <tr className="bg-white/5">
+                                          {card.previewHeaders.map((h) => (
+                                            <th
+                                              key={h}
+                                              className="px-2 py-1 text-left text-green-200/40 font-medium truncate"
+                                            >
+                                              {h}
+                                            </th>
+                                          ))}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {card.previewRows.map((row, i) => (
+                                          <tr
+                                            key={i}
+                                            className="border-t border-white/5"
+                                          >
+                                            {row.map((cell, j) => (
+                                              <td
+                                                key={j}
+                                                className="px-2 py-1 text-green-200/70 truncate max-w-[70px]"
+                                              >
+                                                {cell}
+                                              </td>
+                                            ))}
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                ) : (
+                                  <div className="py-4 text-center text-[10px] text-green-200/30 bg-white/5 rounded-lg">
+                                    No data in selected range
+                                  </div>
+                                )}
                               </div>
-                              <div>
-                                <p className="text-white font-medium">
-                                  Need Requests Report
-                                </p>
-                                <p className="text-[11px] text-green-200/50">
-                                  {needRequests.length} requests
-                                </p>
-                              </div>
+                              <button
+                                onClick={card.onExport}
+                                disabled={card.count === 0}
+                                className={`w-full py-2.5 text-xs font-medium text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 ${card.btnCls}`}
+                              >
+                                <i className="fas fa-download text-[10px]"></i>
+                                Download CSV
+                              </button>
                             </div>
-                            <p className="text-xs text-green-200/40 mb-4">
-                              Titles, recipients, categories, statuses, urgency
-                              levels, target and fulfilled quantities.
-                            </p>
-                            <button
-                              onClick={exportNeeds}
-                              disabled={needRequests.length === 0}
-                              className="w-full py-2 text-xs font-medium bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-600 hover:to-emerald-500 text-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                            >
-                              <i className="fas fa-download mr-1.5"></i>Download
-                              CSV
-                            </button>
-                          </div>
-
-                          {/* Item Listings Report */}
-                          <div className="p-5 bg-white/5 border border-white/10 rounded-xl">
-                            <div className="flex items-center space-x-3 mb-3">
-                              <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                                <i className="fas fa-gift text-cyan-400"></i>
-                              </div>
-                              <div>
-                                <p className="text-white font-medium">
-                                  Item Listings Report
-                                </p>
-                                <p className="text-[11px] text-green-200/50">
-                                  {allItems.length} items
-                                </p>
-                              </div>
-                            </div>
-                            <p className="text-xs text-green-200/40 mb-4">
-                              Titles, donors, categories, conditions,
-                              availability statuses and listing dates.
-                            </p>
-                            <button
-                              onClick={exportItems}
-                              disabled={allItems.length === 0}
-                              className="w-full py-2 text-xs font-medium bg-gradient-to-r from-cyan-500 to-blue-400 hover:from-cyan-600 hover:to-blue-500 text-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                            >
-                              <i className="fas fa-download mr-1.5"></i>Download
-                              CSV
-                            </button>
-                          </div>
-
-                          {/* Reviews Report */}
-                          <div className="p-5 bg-white/5 border border-white/10 rounded-xl">
-                            <div className="flex items-center space-x-3 mb-3">
-                              <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                                <i className="fas fa-star text-yellow-400"></i>
-                              </div>
-                              <div>
-                                <p className="text-white font-medium">
-                                  Reviews Report
-                                </p>
-                                <p className="text-[11px] text-green-200/50">
-                                  {reviews.length} reviews
-                                </p>
-                              </div>
-                            </div>
-                            <p className="text-xs text-green-200/40 mb-4">
-                              Reviewer names, star ratings, comments, and
-                              submission dates.
-                            </p>
-                            <button
-                              onClick={exportReviews}
-                              disabled={reviews.length === 0}
-                              className="w-full py-2 text-xs font-medium bg-gradient-to-r from-yellow-500 to-amber-400 hover:from-yellow-600 hover:to-amber-500 text-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                            >
-                              <i className="fas fa-download mr-1.5"></i>Download
-                              CSV
-                            </button>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     </div>

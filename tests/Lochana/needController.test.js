@@ -38,7 +38,8 @@ describe('Need Endpoints Integration Testing', () => {
     });
 
     afterAll(async () => {
-        await Need.deleteMany({});
+        const testUserIds = await User.find({ email: { $in: ['rec@test.com', 'donor@test.com', 'admin@test.com'] } }).distinct('_id');
+        await Need.deleteMany({ recipient: { $in: testUserIds } });
         await User.deleteMany({ email: { $in: ['rec@test.com', 'donor@test.com', 'admin@test.com'] } });
     });
 

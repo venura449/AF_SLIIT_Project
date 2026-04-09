@@ -4,9 +4,9 @@ const Need = require('../../models/donations/Need');
 
 
 // Create Donation
-exports.createDonation = async (req, res, next) => {
+exports.createDonationAfterPayment  = async (req, res, next) => {
   try {
-    const { need, amount, isAnonymous, donationType, goodsDescription, phoneNumber, message } = req.body;
+    const { need, amount, isAnonymous, donationType, goodsDescription, phoneNumber, message,paymentIntentId } = req.body;
 
     if (!need || !donationType) {
       return res.status(400).json({
@@ -20,7 +20,15 @@ exports.createDonation = async (req, res, next) => {
         success: false,
         message: "Amount is required for Cash/Card donations",
       });
+
     }
+     if (donationType === 'Card' && !paymentIntentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment ID is required for card donations",
+      });
+    }
+
 
     // Check if Need exists
     const existingNeed = await Need.findById(need);
@@ -72,6 +80,15 @@ exports.createDonation = async (req, res, next) => {
       isAnonymous,
     });
 
+     let finalDonation = donation;
+
+     if (donationType === "Card") {
+      finalDonation = await donationService.confirmDonation(
+        donation._id,
+        paymentIntentId // Stripe ID
+      );
+    }
+
     // Update Need progress only for Cash/Card
     if (donationType === 'Cash' || donationType === 'Card') {
       existingNeed.currentAmount =
@@ -92,7 +109,7 @@ exports.createDonation = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: "Donation created successfully",
-      data: donation,
+      data: finalDonation,
     });
 
   } catch (error) {

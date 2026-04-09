@@ -5,7 +5,7 @@ import {
   logout,
   getDocumentStatus,
 } from "../../services/authService";
-import { getMyNeeds } from "../../services/needService";
+import { getMyRequests } from "../../services/needService";
 import {
   deleteFeedback,
   editFeedback,
@@ -122,7 +122,7 @@ const FeedbackPage = () => {
         const [profile, docStatus, needs] = await Promise.all([
           getProfile(),
           getDocumentStatus(),
-          getMyNeeds(),
+          getMyRequests(),
         ]);
 
         setUser(profile);
@@ -467,6 +467,22 @@ const FeedbackPage = () => {
                   <i className="fas fa-search-dollar mr-2"></i>Find Needs
                 </button>
               )}
+              {user?.role === "Donor" && (
+                <button
+                onClick={() => navigate("/donor-items")}
+                className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                >
+                  <i className="fas fa-gift mr-2"></i>My Items
+                </button>                               
+              )}
+              {user?.role === "Donor" && (
+                <button
+                onClick={() => navigate("/browse-items")}
+                className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                >
+                  <i className="fas fa-store mr-2"></i>Browse Items
+                </button> 
+              )}
             </div>
 
             <div className="relative" ref={profileMenuRef}>
@@ -673,14 +689,12 @@ const FeedbackPage = () => {
                 ))}
               </div>
 
-              {user?.role === "Donor" && (
                 <button
                   onClick={() => openCreateReviewModal(fb._id)}
                   className="mt-4 text-green-400 text-sm hover:cursor-pointer"
                 >
                   Add Review
                 </button>
-              )}
             </div>
           ))}
         </div>

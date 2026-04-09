@@ -4,7 +4,14 @@ import axios from "axios";
 const baseUrl = import.meta.env.VITE_API_URL;
 
 export const submitFeedback = async (feedbackData) => {
-  const response = await api.post(`${baseUrl}/feedbacks/createFeedback`, feedbackData);
+  const response = await api.post(
+    `${baseUrl}/feedbacks/createFeedback`,
+    feedbackData,
+    {
+      headers: {"Content-Type" : "multipart/form-data"},
+      withCredentials: true,
+    },
+  );
   return response.data.savedFeedback;
 };
 
@@ -23,6 +30,10 @@ export const editFeedback = async (feedbackId, updatedData) => {
   const response = await api.put(
     `${baseUrl}/feedbacks/updateFeedback/${feedbackId}`,
     updatedData,
+    {
+      headers: {"Content-Type" : "multipart/form-data"},
+      withCredentials: true,
+    },
   );
   return response.data.updatedFeedback;
 };

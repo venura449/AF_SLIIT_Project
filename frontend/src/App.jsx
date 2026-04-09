@@ -16,6 +16,7 @@ import DonorNeeds from "./pages/Lochana/DonorNeeds";
 import DonorItems from "./pages/Lochana/DonorItems";
 import BrowseItems from "./pages/Lochana/BrowseItems";
 import DonorDashboard from "./pages/Lochana/DonorDashboard";
+import FeedbackPage from "./pages/Heyli/Feedback";
 import "./index.css";
 import { useEffect, useState } from "react";
 import { requestForToken } from "../firebase";
@@ -145,6 +146,15 @@ function AppRoutes() {
         element={
           <PrivateRoute>
             <BrowseItems />
+          </PrivateRoute>
+        }
+      />
+       
+      <Route
+        path="/feedback"
+        element={
+          <PrivateRoute>
+            <FeedbackPage />
           </PrivateRoute>
         }
       />

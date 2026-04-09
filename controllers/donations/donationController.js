@@ -1,6 +1,7 @@
 
 const donationService = require('../../services/donations/donationService');
 const Need = require('../../models/donations/Need');
+const {sendNotificationSingleUser} = require("../../services/notifications/notificationService");
 
 
 // Create Donation
@@ -87,6 +88,24 @@ exports.createDonation = async (req, res, next) => {
       }
 
       await existingNeed.save();
+    }
+
+    try{
+      // Send notification to recipient
+      if(existingNeed.recipient && String(existingNeed.recipient) !== String(req.user._id)) {
+        const recipientId = existingNeed.recipient;
+        const donorName = req.user?.username || "A donor";
+        const title = "New Donation Received";
+        const body = `${donorName} donated to your need "${existingNeed.title}".`;
+
+        await sendNotificationSingleUser(recipientId, title, body, {
+          type: "need_donation",
+          needId: existingNeed._id.toString(),
+          donationId: donation._id.toString(),
+        });
+      }
+    }catch (error) {
+      console.error("Error sending notification:", error);
     }
 
     res.status(201).json({

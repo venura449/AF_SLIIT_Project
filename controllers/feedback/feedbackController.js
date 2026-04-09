@@ -7,6 +7,8 @@ const {
     submitPlatformReview,
     getPlatformReviews
 } = require('../../services/feedback/feedbackService.js');
+const { sendNotificationToUsers} = require("../../services/notifications/notificationService");
+const Donation = require("../../models/donations/Donation.js");
 
 exports.addFeedback = async (req, res) => {
     try {
@@ -26,10 +28,30 @@ exports.addFeedback = async (req, res) => {
             imageUrl: uploadedImageUrl
         });
 
-        if (savedFeedback) {
-            res.status(201).json({ message: "Feedback added successfully", savedFeedback });
+        if(process.env.NODE_ENV === "test") {
+
+            try {
+                const donorIds = await Donation.distinct("donor", {
+                    need: savedFeedback.need?._id || savedFeedback.need,
+                });
+
+                if (donorIds.length > 0) {
+                    const title = "New Feedback On A Need You Supported";
+                    const body = `${req.user?.username || "A recipient"} added feedback for "${savedFeedback.need?.title || "a need"}".`;
+
+                    await sendNotificationToUsers(donorIds, title, body, {
+                        type: "need_feedback",
+                        needId: (savedFeedback.need?._id || savedFeedback.need).toString(),
+                        feedbackId: savedFeedback._id.toString(),
+                    });
+                }
+
+            } catch (notificationError) {
+                console.error("Feedback notification failed:", notificationError.message);
+            }
         }
 
+        res.status(201).json({ message: "Feedback added successfully", savedFeedback });
     } catch (e) {
         res.status(400).json({ error: e.message });
     }

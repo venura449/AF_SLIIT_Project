@@ -39,6 +39,6 @@ export const requestForToken = async () => {
     return currentToken;
   } catch (error) {
     console.error("Error getting token:", error);
-    return error;
+    return null;
   }
 };

@@ -1,7 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { sendNotificationToUser, saveFCMToken } = require("../../controllers/notification/notificationController");
-const { protect } = require("../../middleware/authmiddleware");
+const {
+  sendNotificationToUser,
+  sendNotificationToMultipleUsers,
+  saveFCMToken,
+} = require("../../controllers/notification/notificationController");
+const { protect, authorize } = require("../../middleware/authmiddleware");
 
 /**
  * @swagger
@@ -20,9 +24,9 @@ const { protect } = require("../../middleware/authmiddleware");
  *           schema:
  *             type: object
  *             required:
- *               - token
+ *               - fcmToken
  *             properties:
- *               token:
+ *               fcmToken:
  *                 type: string
  *                 description: Firebase Cloud Messaging token
  *     responses:
@@ -54,6 +58,8 @@ router.patch("/save-fcm-token", protect, saveFCMToken);
  *     description: Send a push notification to a user or multiple users
  *     tags:
  *       - Notifications
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -96,6 +102,13 @@ router.patch("/save-fcm-token", protect, saveFCMToken);
  *       500:
  *         description: Failed to send notification
  */
-router.post("/sendNotification", sendNotificationToUser);
+router.post("/sendNotification", protect, authorize("Admin"), sendNotificationToUser);
+
+router.post(
+  "/sendNotification/multiple",
+  protect,
+  authorize("Admin"),
+  sendNotificationToMultipleUsers,
+);
 
 module.exports = router;

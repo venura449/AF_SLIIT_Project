@@ -1,6 +1,7 @@
 const { addReview, getReviews, getReview, deleteReview, updateReview } = require('../../services/feedback/reviewService');
 const { putFeedbackAvgRating } = require('../../services/feedback/feedbackService.js');
-const Review = require('../../models/feedback/Review.js');
+const Feedback = require('../../models/feedback/Feedback.js');
+const { sendNotificationSingleUser} = require("../../services/notifications/notificationService");
 
 exports.addReview = async (req, res) => {
     try {
@@ -14,6 +15,25 @@ exports.addReview = async (req, res) => {
 
         if (savedReview) {
             await putFeedbackAvgRating(feedbackId);
+
+            try {
+                const feedback = await Feedback.findById(feedbackId).select("user need");
+
+                if (feedback?.user && feedback.user.toString() !== userId.toString()) {
+                    const title = "New Review Received";
+                    const body = "Your feedback has received a new review.";
+
+                    await sendNotificationSingleUser([feedback.user.toString()], title, body, {
+                        type: "feedback_review",
+                        feedbackId: feedbackId.toString(),
+                        reviewId: savedReview._id.toString(),
+                        needId: feedback.need?.toString(),
+                    });
+                }
+            } catch (notificationError) {
+                console.error("Review notification failed:", notificationError.message);
+            }
+
         }
 
         res.status(201).json({ success: true, message: "Review added successfully", review: savedReview });

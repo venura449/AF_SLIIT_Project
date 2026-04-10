@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login as loginApi } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
+import { requestForToken } from "../../../firebase";
+import axios from "axios";
 import { toast } from "react-toastify";
 
 const Login = () => {
@@ -15,6 +17,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fcmToken, setFcmToken] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,6 +44,32 @@ const Login = () => {
         navigate("/donor-dashboard");
       } else {
         navigate("/dashboard");
+      }
+
+      try {
+        const token = await requestForToken();
+        if (typeof token === "string" && token.trim()) {
+          console.log("FCM Token:", token);
+          setFcmToken(token);
+          const authToken =
+            localStorage.getItem("token") || sessionStorage.getItem("token");
+          if (authToken) {
+            const apiUrl =
+              import.meta.env.VITE_API_URL || "http://localhost:5001/api/v1";
+            await axios.patch(
+              `${apiUrl}/notifications/save-fcm-token`,
+              { fcmToken: token },
+              {
+                headers: {
+                  Authorization: `Bearer ${authToken}`,
+                },
+              },
+            );
+            console.log("Token saved to backend");
+          }
+        }
+      } catch (fcmError) {
+        console.error("FCM setup failed:", fcmError);
       }
     } catch (err) {
       toast.error(

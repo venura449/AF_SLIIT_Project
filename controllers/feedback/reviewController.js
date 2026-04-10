@@ -1,6 +1,8 @@
 const { addReview, getReviews, getReview, deleteReview, updateReview } = require('../../services/feedback/reviewService');
 const { putFeedbackAvgRating } = require('../../services/feedback/feedbackService.js');
 const Review = require('../../models/feedback/Review.js');
+const Feedback = require('../../models/feedback/Feedback.js');
+const { sendNotificationSingleUser } = require("../../services/notifications/notificationService");
 
 exports.addReview = async (req, res) => {
     try {
@@ -14,6 +16,21 @@ exports.addReview = async (req, res) => {
 
         if (savedReview) {
             await putFeedbackAvgRating(feedbackId);
+            try {
+                const feedback = await Feedback.findById(feedbackId).select("user need");
+                if (feedback?.user && feedback.user.toString() !== userId.toString()) {
+                    const title = "New Review Received";
+                    const body = "Your feedback has received a new review.";
+                    await sendNotificationSingleUser([feedback.user.toString()], title, body, {
+                        type: "feedback_review",
+                        feedbackId: feedbackId.toString(),
+                        reviewId: savedReview._id.toString(),
+                        needId: feedback.need?.toString(),
+                    });
+                }
+            } catch (notificationError) {
+                console.error("Review notification failed:", notificationError.message);
+            }
         }
 
         res.status(201).json({ success: true, message: "Review added successfully", review: savedReview });
@@ -24,7 +41,7 @@ exports.addReview = async (req, res) => {
 
 exports.getReviews = async (req, res) => {
     try {
-        const reviews = await getReviews();  
+        const reviews = await getReviews();
 
         res.status(200).json({ success: true, message: "Reviews fetched successfully", reviews });
     } catch (error) {
@@ -36,7 +53,7 @@ exports.getReview = async (req, res) => {
     try {
         const reviewId = req.params.id;
         const review = await getReview(reviewId);
-        
+
         res.status(200).json({ success: true, message: "Review fetched successfully", review });
     } catch (error) {
         res.status(404).json({ success: false, message: "Error fetching review", error: error.message });
@@ -50,15 +67,15 @@ exports.updateReview = async (req, res) => {
 
         const { review: updatedReview, rateChange } = await updateReview(reviewId, { description, rating });
 
-        if(rateChange) {
+        if (rateChange) {
             await putFeedbackAvgRating(updatedReview.feedback);
         }
 
         res.status(200).json({ success: true, message: "Review updated successfully", review: updatedReview });
     } catch (error) {
-        if(error.message === "Review not found") {
+        if (error.message === "Review not found") {
             return res.status(404).json({ success: false, message: "Review not found", error: error.message });
-        } else{
+        } else {
             res.status(500).json({ success: false, message: "Error updating review", error: error.message });
         }
     }
@@ -76,7 +93,7 @@ exports.deleteReview = async (req, res) => {
 
         res.status(200).json({ success: true, message: "Review deleted successfully", review: deletedReview });
     } catch (error) {
-        if(error.message === "Review not found") {
+        if (error.message === "Review not found") {
             return res.status(404).json({ success: false, message: "Review not found", error: error.message });
         } else {
             res.status(500).json({ success: false, message: "Error deleting review", error: error.message });

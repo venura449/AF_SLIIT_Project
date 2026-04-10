@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { useEffect } from "react";
 import Login from "./pages/Venura/Login";
 import Register from "./pages/Venura/Register";
 import ForgotPassword from "./pages/Venura/ForgotPassword";
@@ -20,52 +21,13 @@ import BrowseItems from "./pages/Lochana/BrowseItems";
 import DonorDashboard from "./pages/Lochana/DonorDashboard";
 import FeedbackPage from "./pages/Heyli/Feedback";
 import "./index.css";
-import { useEffect, useState } from "react";
-import { requestForToken } from "../firebase";
-import axios from "axios";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { listenForForegroundMessages } from "../firebase";
 
 function AppRoutes() {
-  const [fcmToken, setFcmToken] = useState(null);
-
-  useEffect(() => {
-    const fetchFCMToken = async () => {
-      try {
-        const fcmToken = await requestForToken();
-
-        if (fcmToken) {
-          console.log("FCM Token:", fcmToken);
-          setFcmToken(fcmToken);
-
-          // Only attempt to save FCM token if the user is authenticated
-          const authToken =
-            localStorage.getItem("token") || sessionStorage.getItem("token");
-          if (authToken) {
-            const apiUrl =
-              import.meta.env.VITE_API_URL || "http://localhost:5001/api/v1";
-            await axios.patch(
-              `${apiUrl}/notifications/save-fcm-token`,
-              { fcmToken: fcmToken },
-              {
-                headers: {
-                  Authorization: `Bearer ${authToken}`,
-                },
-              },
-            );
-            console.log("Token saved to backend");
-          }
-        }
-      } catch (err) {
-        console.log("Error getting token:", err);
-      }
-    };
-
-    fetchFCMToken();
-  }, []);
-
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
@@ -167,6 +129,21 @@ function AppRoutes() {
 }
 
 function App() {
+  useEffect(() => {
+    const unsubscribe = listenForForegroundMessages((payload) => {
+      const title = payload?.notification?.title || "New notification";
+      const body = payload?.notification?.body || "You received a new update.";
+
+      toast.info(`${title}: ${body}`);
+
+      if (Notification.permission === "granted") {
+        new Notification(title, { body });
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <Router>
       <AuthProvider>

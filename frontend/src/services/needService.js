@@ -1,6 +1,6 @@
 import { api } from "./authService";
 
-const baseUrl = import.meta.env.VITE_API_URL;
+const baseUrl = import.meta.env.VITE_API_URL || "https://af-sliit-project.onrender.com/api/v1";
 
 export const getAllNeeds = async (category = "all") => {
   const query = category !== "all" ? `?category=${category}` : "";

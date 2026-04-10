@@ -1,7 +1,7 @@
 import axios from "axios";
 import { api } from "./authService";
 
-const baseUrl = import.meta.env.VITE_API_URL;
+const baseUrl = import.meta.env.VITE_API_URL || "https://af-sliit-project.onrender.com/api/v1";
 // Server origin for serving uploaded static files
 const serverOrigin = baseUrl ? baseUrl.replace(/\/api\/v1$/, '') : '';
 

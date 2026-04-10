@@ -1,6 +1,6 @@
 import { api } from "./authService";
 
-const baseUrl = import.meta.env.VITE_API_URL;
+const baseUrl = import.meta.env.VITE_API_URL || "https://af-sliit-project.onrender.com/api/v1";
 
 export const submitReview = async (feedbackId, reviewData) => {
   const response = await api.post(

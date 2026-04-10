@@ -5,6 +5,8 @@ const {
   getProfile,
   updateProfile,
   deleteProfile,
+  forgotPassword,
+  resetPassword,
 } = require('../../controllers/auth/authController');
 const { protect } = require('../../middleware/authmiddleware');
 
@@ -183,5 +185,68 @@ router.put('/profile', protect, updateProfile);
  *         description: Unauthorized
  */
 router.delete('/profile', protect, deleteProfile);
+
+/**
+ * @swagger
+ * /api/v1/auth/forgot-password:
+ *   post:
+ *     summary: Forgot Password
+ *     description: Send a password reset link to the user's email
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: gaya@gmail.com
+ *     responses:
+ *       200:
+ *         description: Password reset link sent
+ *       400:
+ *         description: Email not found
+ */
+router.post('/forgot-password', forgotPassword);
+
+/**
+ * @swagger
+ * /api/v1/auth/reset-password/{token}:
+ *   post:
+ *     summary: Reset Password
+ *     description: Reset user password using the token from the email link
+ *     tags:
+ *       - Authentication
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *       400:
+ *         description: Invalid or expired token
+ */
+router.post('/reset-password/:token', resetPassword);
 
 module.exports = router;

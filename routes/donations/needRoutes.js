@@ -214,6 +214,7 @@ router.patch('/upload-verification/:needId', protect, upload.array('admin', 3), 
 router.patch('/approve/:needId', protect, authorize('Admin'), needController.verifyNeedRequest);
 
 router.get('/pending', protect, authorize('Admin'), needController.getPendingNeeds);
+router.get('/all-admin', protect, authorize('Admin'), needController.getAllNeedsAdmin);
 
 /**
  * @swagger

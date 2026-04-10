@@ -7,6 +7,8 @@ const {
   updateUserService,
   updateEmailService,
   deleteUserService,
+  forgotPasswordService,
+  resetPasswordService,
 } = require("../../services/auth/authService");
 const User = require("../../models/users/User");
 const { validateUserPresent } = require("../../utils/helperFunctions.js");
@@ -66,6 +68,21 @@ exports.updateProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     validateUserPresent(user);
+
+    // Validate username: only letters and underscores, max 8 characters
+    if (username) {
+      if (username.length > 8) {
+        return res.status(400).json({ error: "Username cannot exceed 8 characters" });
+      }
+      if (!/^[a-zA-Z_]+$/.test(username)) {
+        return res.status(400).json({ error: "Username can only contain letters and underscores" });
+      }
+    }
+
+    // Validate phone: exactly 10 digits
+    if (phone && !/^\d{10}$/.test(phone)) {
+      return res.status(400).json({ error: "Phone number must be exactly 10 digits" });
+    }
 
     updateUsername(user, username);
 
@@ -175,6 +192,29 @@ exports.updateEmail = async (req, res) => {
       message: "Email updated successfully",
       user,
     });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Forgot Password Controller
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const result = await forgotPasswordService(email);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Reset Password Controller
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+    const result = await resetPasswordService(token, password);
+    res.status(200).json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

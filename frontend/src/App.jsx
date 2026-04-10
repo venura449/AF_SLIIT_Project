@@ -6,6 +6,8 @@ import {
 } from "react-router-dom";
 import Login from "./pages/Venura/Login";
 import Register from "./pages/Venura/Register";
+import ForgotPassword from "./pages/Venura/ForgotPassword";
+import ResetPassword from "./pages/Venura/ResetPassword";
 import Dashboard from "./pages/Venura/Dashboard";
 import AdminDashboard from "./pages/Venura/AdminDashboard";
 import Profile from "./pages/Venura/Profile";
@@ -69,6 +71,8 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       {/* Recipient-only routes */}
       <Route
@@ -90,7 +94,7 @@ function AppRoutes() {
       <Route
         path="/upload-id"
         element={
-          <PrivateRoute roles={["Recipient"]}>
+          <PrivateRoute roles={["Recipient", "Donor"]}>
             <DocumentUpload />
           </PrivateRoute>
         }
@@ -149,7 +153,7 @@ function AppRoutes() {
           </PrivateRoute>
         }
       />
-       
+
       <Route
         path="/feedback"
         element={

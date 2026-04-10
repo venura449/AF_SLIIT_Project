@@ -37,6 +37,7 @@ exports.confirmDonation = async (donationId, transactionId) => {
 
   donation.status = "Confirmed";
   donation.transactionId = transactionId;
+  donation.paymentStatus = "Completed"; 
 
   return await donation.save();
 };
@@ -58,7 +59,6 @@ exports.getAllDonations = async () => {
 };
 
 //Get Donation By ID
-
 exports.getDonationById = async (id) => {
   const donation = await Donation.findById(id)
     .populate("donor", "name email")

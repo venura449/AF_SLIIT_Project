@@ -29,15 +29,14 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
-// Middleware
-// Allow local frontend origins used during development and demos.
 const defaultAllowedOrigins = [
+  'https://af-sliit-project.vercel.app',
   'http://localhost:3000',
   'http://localhost:5001',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174',
+  'http://127.0.0.1:5174'
 ];
 
 const allowedOrigins = process.env.FRONTEND_URL

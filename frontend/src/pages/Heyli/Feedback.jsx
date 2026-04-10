@@ -689,12 +689,14 @@ const FeedbackPage = () => {
                 ))}
               </div>
 
+              {(user?.role === "Donor") && (
                 <button
                   onClick={() => openCreateReviewModal(fb._id)}
                   className="mt-4 text-green-400 text-sm hover:cursor-pointer"
                 >
                   Add Review
                 </button>
+              )}
             </div>
           ))}
         </div>

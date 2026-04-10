@@ -1,5 +1,7 @@
 const Need = require("../../models/donations/Need.js");
 const needService = require("../../services/donations/needService.js");
+const User = require("../../models/users/User.js");
+const { sendNotificationToUsers } = require("../../services/notifications/notificationService");
 
 exports.createNeed = async (req, res) => {
   try {
@@ -28,7 +30,7 @@ exports.getAllNeeds = async (req, res) => {
     };
     const pagination = {
       page: parseInt(req.query.page) || 1,
-      limit: parseInt(req.query.limit) || 10,
+      limit: parseInt(req.query.limit) || 100,
     };
 
     const result = await needService.getFilteredNeeds(filters, pagination);
@@ -119,6 +121,21 @@ exports.verifyNeedRequest = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Need not found" });
+    }
+    else {
+      try {
+        const donors = await User.find({ role: "Donor", isActive: true }).distinct("_id");
+        if (donors.length > 0) {
+          const title = "Need Request Verified";
+          const body = `A new need "${verifiedNeed.title}" has been verified and is now open for donations.`;
+          await sendNotificationToUsers(donors, title, body, {
+            type: "verified_need",
+            needId: verifiedNeed._id.toString(),
+          });
+        }
+      } catch (notificationError) {
+        console.error("Verification notification failed:", notificationError.message);
+      }
     }
 
     res.status(200).json({

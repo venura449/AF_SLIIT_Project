@@ -4,6 +4,7 @@ const router = express.Router();
 
 const donationController = require("../../controllers/donations/donationController");
 const { protect, authorize } = require("../../middleware/authmiddleware");
+//console.log("createDonation:", donationController.createDonationAfterPayment);
 
 /**
  * @swagger
@@ -48,7 +49,8 @@ router.post(
   "/",
   protect,
   authorize("Donor"),
-  donationController.createDonation
+  donationController.createDonationAfterPayment
+  
 );
 
 /**

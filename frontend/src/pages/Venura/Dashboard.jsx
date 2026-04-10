@@ -5,6 +5,7 @@ import {
   logout,
   getDocumentStatus,
 } from "../../services/authService";
+import { getMyRequests } from "../../services/needService";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -13,14 +14,22 @@ const Dashboard = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [documentStatus, setDocumentStatus] = useState(null);
   const [showUploadBanner, setShowUploadBanner] = useState(false);
+  const [myNeeds, setMyNeeds] = useState([]);
+  const [stats, setStats] = useState({
+    totalRequests: 0,
+    activeRequests: 0,
+    totalRaised: 0,
+    fulfilled: 0,
+  });
   const profileMenuRef = useRef(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchAll = async () => {
       try {
-        const [profile, docStatus] = await Promise.all([
+        const [profile, docStatus, needs] = await Promise.all([
           getProfile(),
           getDocumentStatus(),
+          getMyRequests(),
         ]);
 
         // Redirect Donor users to the dedicated donor dashboard
@@ -31,7 +40,22 @@ const Dashboard = () => {
 
         setUser(profile);
         setDocumentStatus(docStatus);
-        // Show upload banner if document not uploaded or rejected
+        setMyNeeds(needs || []);
+
+        // Compute stats from real data
+        const needsList = needs || [];
+        setStats({
+          totalRequests: needsList.length,
+          activeRequests: needsList.filter(
+            (n) => n.status === "Pending" || n.status === "Partially Funded",
+          ).length,
+          totalRaised: needsList.reduce(
+            (sum, n) => sum + (n.currentAmount || 0),
+            0,
+          ),
+          fulfilled: needsList.filter((n) => n.status === "Fulfilled").length,
+        });
+
         if (
           docStatus?.documentStatus === "not_uploaded" ||
           docStatus?.documentStatus === "rejected"
@@ -44,7 +68,7 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-    fetchProfile();
+    fetchAll();
   }, [navigate]);
 
   useEffect(() => {
@@ -199,6 +223,7 @@ const Dashboard = () => {
                         <p className="text-white font-medium">
                           {user?.username}
                         </p>
+                        <p className="text-xs text-green-400">{user?.role}</p>
                         <p className="text-xs text-green-200/50">
                           {user?.email}
                         </p>
@@ -320,167 +345,238 @@ const Dashboard = () => {
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <i className="fas fa-hand-holding-heart text-xl text-green-400"></i>
+                <i className="fas fa-list-alt text-xl text-green-400"></i>
               </div>
               <span className="text-xs text-green-400 bg-green-500/20 px-2 py-1 rounded-full">
-                +12%
+                Total
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-1">1,247</h3>
-            <p className="text-sm text-green-200/50">Total Donations</p>
+            <h3 className="text-2xl font-bold text-white mb-1">
+              {stats.totalRequests}
+            </h3>
+            <p className="text-sm text-green-200/50">My Requests</p>
           </div>
 
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <i className="fas fa-users text-xl text-blue-400"></i>
+                <i className="fas fa-hourglass-half text-xl text-blue-400"></i>
               </div>
               <span className="text-xs text-blue-400 bg-blue-500/20 px-2 py-1 rounded-full">
-                +8%
+                Active
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-1">892</h3>
-            <p className="text-sm text-green-200/50">People Helped</p>
+            <h3 className="text-2xl font-bold text-white mb-1">
+              {stats.activeRequests}
+            </h3>
+            <p className="text-sm text-green-200/50">Pending / In Progress</p>
+          </div>
+
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <i className="fas fa-coins text-xl text-emerald-400"></i>
+              </div>
+              <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-1 rounded-full">
+                LKR
+              </span>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-1">
+              {stats.totalRaised.toLocaleString()}
+            </h3>
+            <p className="text-sm text-green-200/50">Total Raised</p>
           </div>
 
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <i className="fas fa-map-marker-alt text-xl text-purple-400"></i>
+                <i className="fas fa-check-circle text-xl text-purple-400"></i>
               </div>
               <span className="text-xs text-purple-400 bg-purple-500/20 px-2 py-1 rounded-full">
-                +3
+                Done
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-1">15</h3>
-            <p className="text-sm text-green-200/50">Communities</p>
-          </div>
-
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <i className="fas fa-star text-xl text-yellow-400"></i>
-              </div>
-              <span className="text-xs text-yellow-400 bg-yellow-500/20 px-2 py-1 rounded-full">
-                4.9
-              </span>
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-1">98%</h3>
-            <p className="text-sm text-green-200/50">Success Rate</p>
+            <h3 className="text-2xl font-bold text-white mb-1">
+              {stats.fulfilled}
+            </h3>
+            <p className="text-sm text-green-200/50">Fulfilled</p>
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions + Recent Requests */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+          {/* Quick Actions */}
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <i className="fas fa-bolt text-yellow-400 mr-2"></i>
               Quick Actions
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {user?.role === "Recipient" && (
-                <button
-                  onClick={() => navigate("/needs")}
-                  className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
-                >
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                    <i className="fas fa-list-check text-emerald-400"></i>
-                  </div>
-                  <span className="text-sm text-green-200/80">My Requests</span>
-                </button>
-              )}
-              {user?.role === "Recipient" && (
-                <button
-                  onClick={() => navigate("/needs", { state: { openCreateModal: true } })}
-                  className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
-                >
-                  <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                    <i className="fas fa-plus text-blue-400"></i>
-                  </div>
-                  <span className="text-sm text-green-200/80">New Request</span>
-                </button>
-              )}
-              {user?.role == "Donor" && (
-                <button className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group">
-                  <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                    <i className="fas fa-plus text-green-400"></i>
-                  </div>
-                  <span className="text-sm text-green-200/80">
-                    New Donation
-                  </span>
-                </button>
-              )}
-
-              {user?.role === "Donor" && (
-                <button className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group">
-                  <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                    <i className="fas fa-search text-blue-400"></i>
-                  </div>
-                  <span className="text-sm text-green-200/80">Find Needs</span>
-                </button>
-              )}
-
+            <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={() => navigate("/request-history")}
+                onClick={() => navigate("/needs")}
                 className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
               >
-                <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <i className="fas fa-history text-purple-400"></i>
+                <div className="w-11 h-11 rounded-full bg-emerald-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fas fa-list-check text-emerald-400"></i>
                 </div>
-                <span className="text-sm text-green-200/80">History</span>
+                <span className="text-xs text-green-200/80 text-center">
+                  My Requests
+                </span>
               </button>
 
-              {user?.role === "Admin" && (
-                <button className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group">
-                  <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                    <i className="fas fa-chart-line text-orange-400"></i>
-                  </div>
-                  <span className="text-sm text-green-200/80">Analytics</span>
-                </button>
-              )}
+              <button
+                onClick={() =>
+                  navigate("/needs", { state: { openCreateModal: true } })
+                }
+                className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+              >
+                <div className="w-11 h-11 rounded-full bg-blue-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fas fa-plus text-blue-400"></i>
+                </div>
+                <span className="text-xs text-green-200/80 text-center">
+                  New Request
+                </span>
+              </button>
+
+              <button
+                onClick={() => navigate("/browse-items")}
+                className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+              >
+                <div className="w-11 h-11 rounded-full bg-green-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fas fa-store text-green-400"></i>
+                </div>
+                <span className="text-xs text-green-200/80 text-center">
+                  Browse Items
+                </span>
+              </button>
+
+              <button
+                onClick={() => navigate("/feedback")}
+                className="flex flex-col items-center p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300 group"
+              >
+                <div className="w-11 h-11 rounded-full bg-orange-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fas fa-comment-dots text-orange-400"></i>
+                </div>
+                <span className="text-xs text-green-200/80 text-center">
+                  Feedback
+                </span>
+              </button>
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-              <i className="fas fa-clock text-green-400 mr-2"></i>
-              Recent Activity
-            </h3>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                  <i className="fas fa-gift text-green-400 text-xs"></i>
-                </div>
-                <div>
-                  <p className="text-sm text-white">Donation completed</p>
-                  <p className="text-xs text-green-200/50">2 hours ago</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                  <i className="fas fa-user-plus text-blue-400 text-xs"></i>
-                </div>
-                <div>
-                  <p className="text-sm text-white">New match found</p>
-                  <p className="text-xs text-green-200/50">5 hours ago</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                  <i className="fas fa-check-circle text-purple-400 text-xs"></i>
-                </div>
-                <div>
-                  <p className="text-sm text-white">Profile verified</p>
-                  <p className="text-xs text-green-200/50">1 day ago</p>
-                </div>
-              </div>
+          {/* Recent Requests */}
+          <div className="lg:col-span-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white flex items-center">
+                <i className="fas fa-clock text-green-400 mr-2"></i>
+                Recent Requests
+              </h3>
+              <button
+                onClick={() => navigate("/needs")}
+                className="text-xs text-green-400 hover:text-green-300 transition-colors"
+              >
+                View all <i className="fas fa-arrow-right ml-1"></i>
+              </button>
             </div>
+
+            {myNeeds.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                  <i className="fas fa-inbox text-2xl text-green-200/30"></i>
+                </div>
+                <p className="text-green-200/50 text-sm">No requests yet</p>
+                <button
+                  onClick={() =>
+                    navigate("/needs", { state: { openCreateModal: true } })
+                  }
+                  className="mt-3 px-4 py-2 bg-green-600/80 hover:bg-green-500/80 text-white text-sm rounded-xl transition-colors"
+                >
+                  <i className="fas fa-plus mr-2"></i>Create your first request
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myNeeds.slice(0, 4).map((need) => {
+                  const progress =
+                    need.goalAmount > 0
+                      ? Math.min(
+                          100,
+                          Math.round(
+                            (need.currentAmount / need.goalAmount) * 100,
+                          ),
+                        )
+                      : 0;
+                  const statusColor =
+                    {
+                      Pending: "bg-yellow-500/20 text-yellow-400",
+                      "Partially Funded": "bg-blue-500/20 text-blue-400",
+                      Fulfilled: "bg-green-500/20 text-green-400",
+                      Cancelled: "bg-red-500/20 text-red-400",
+                    }[need.status] || "bg-white/10 text-white/50";
+
+                  return (
+                    <div
+                      key={need._id}
+                      className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.08] transition-all cursor-pointer"
+                      onClick={() => navigate("/needs")}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0 mr-3">
+                          <p className="text-sm text-white font-medium truncate">
+                            {need.title}
+                          </p>
+                          <p className="text-xs text-green-200/40 mt-0.5">
+                            <i className="fas fa-tag mr-1"></i>
+                            {need.category} ·{" "}
+                            <i className="fas fa-map-marker-alt mr-1 ml-1"></i>
+                            {need.location}
+                          </p>
+                        </div>
+                        <span
+                          className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium ${statusColor}`}
+                        >
+                          {need.status}
+                        </span>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-green-200/50">
+                            LKR {(need.currentAmount || 0).toLocaleString()}{" "}
+                            raised
+                          </span>
+                          <span className="text-xs text-green-400 font-medium">
+                            {progress}%
+                          </span>
+                        </div>
+                        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all duration-500"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </main>
+
+      {/* Feedback Bubble */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => navigate("/feedback")}
+          className="w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-green-500/30"
+          aria-label="Go to feedback page"
+          title="Feedback"
+        >
+          <i className="fas fa-comment-dots text-xl"></i>
+        </button>
+      </div>
     </div>
   );
 };

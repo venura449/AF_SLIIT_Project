@@ -142,3 +142,9 @@ exports.getPendingNeeds = async () => {
     .populate('recipient', 'username email')
     .sort({ createdAt: -1 });
 };
+
+exports.getAllNeedsForAdmin = async () => {
+  return await Need.find({})
+    .populate('recipient', 'username email')
+    .sort({ createdAt: -1 });
+};

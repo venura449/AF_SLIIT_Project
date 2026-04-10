@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signup } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -45,9 +47,13 @@ const Register = () => {
         formData.password,
         role,
       );
-      localStorage.setItem("token", result.token);
+      authLogin(result.token, result.user, true);
       toast.success("Account created successfully! Welcome aboard.");
-      navigate("/dashboard");
+      if (result.user?.role === "Donor") {
+        navigate("/donor-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       toast.error(
         err.response?.data?.error || "Registration failed. Please try again.",

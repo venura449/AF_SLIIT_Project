@@ -40,7 +40,6 @@ const DonorNeeds = () => {
       setNeeds(Array.isArray(response) ? response : []);
     } catch (err) {
       console.error("Fetch error:", err);
-      setNeeds([]);
     } finally {
       setLoading(false);
     }
@@ -108,9 +107,8 @@ const DonorNeeds = () => {
   });
 
   const getProgressPercentage = (current, goal) => {
-    const total = (current || 0) + (goal || 0);
-    if (total === 0) return 0;
-    return Math.round(((current || 0) / total) * 100);
+    if (!goal || goal <= 0) return 0;
+    return Math.min(Math.round(((current || 0) / goal) * 100), 100);
   };
 
   const openDonateModal = (need) => {
@@ -142,7 +140,8 @@ const DonorNeeds = () => {
       return;
     }
 
-    const remaining = donateTarget.goalAmount;
+    const remaining =
+      (donateTarget.goalAmount || 0) - (donateTarget.currentAmount || 0);
     if (
       (donationType === "Cash" || donationType === "Card") &&
       Number(donateAmount) > remaining
@@ -472,7 +471,10 @@ const DonorNeeds = () => {
                         Remaining
                       </p>
                       <p className="text-sm font-bold text-white">
-                        LKR {need.goalAmount?.toLocaleString()}
+                        LKR{" "}
+                        {(
+                          (need.goalAmount || 0) - (need.currentAmount || 0)
+                        ).toLocaleString()}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -682,12 +684,7 @@ const DonorNeeds = () => {
                   raised
                 </span>
                 <span>
-                  LKR{" "}
-                  {(
-                    (donateTarget.currentAmount || 0) +
-                    (donateTarget.goalAmount || 0)
-                  ).toLocaleString()}{" "}
-                  total
+                  LKR {(donateTarget.goalAmount || 0).toLocaleString()} goal
                 </span>
               </div>
               <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
@@ -699,7 +696,12 @@ const DonorNeeds = () => {
                 ></div>
               </div>
               <p className="text-[11px] text-green-200/40 mt-1">
-                LKR {donateTarget.goalAmount?.toLocaleString()} remaining
+                LKR{" "}
+                {(
+                  (donateTarget.goalAmount || 0) -
+                  (donateTarget.currentAmount || 0)
+                ).toLocaleString()}{" "}
+                remaining
               </p>
             </div>
 
@@ -742,13 +744,16 @@ const DonorNeeds = () => {
                   <input
                     type="number"
                     min="1"
-                    max={donateTarget.goalAmount}
+                    max={
+                      (donateTarget.goalAmount || 0) -
+                      (donateTarget.currentAmount || 0)
+                    }
                     value={donateAmount}
                     onChange={(e) => {
                       setDonateAmount(e.target.value);
                       setDonateError("");
                     }}
-                    placeholder={`Max LKR ${donateTarget.goalAmount?.toLocaleString()}`}
+                    placeholder={`Max LKR ${((donateTarget.goalAmount || 0) - (donateTarget.currentAmount || 0)).toLocaleString()}`}
                     className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white placeholder-white/30 focus:border-green-400/40 focus:ring-1 focus:ring-green-400/20 transition-all outline-none"
                   />
                 </div>

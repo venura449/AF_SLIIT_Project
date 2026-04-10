@@ -14,6 +14,7 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [documentStatus, setDocumentStatus] = useState(null);
   const totalPages = 3;
@@ -52,7 +53,37 @@ const Profile = () => {
   }, [navigate]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Username: allow only letters and underscores, max 8
+    if (name === "username") {
+      if (value !== "" && !/^[a-zA-Z_]*$/.test(value)) return;
+      if (value.length > 8) return;
+
+      const errs = { ...fieldErrors };
+      if (value.length > 0 && value.length < 3) {
+        errs.username = "Username must be at least 3 characters.";
+      } else {
+        delete errs.username;
+      }
+      setFieldErrors(errs);
+    }
+
+    // Phone: allow only digits, max 10
+    if (name === "phone") {
+      if (value !== "" && !/^\d*$/.test(value)) return;
+      if (value.length > 10) return;
+
+      const errs = { ...fieldErrors };
+      if (value.length > 0 && value.length < 10) {
+        errs.phone = "Phone number must be exactly 10 digits.";
+      } else {
+        delete errs.phone;
+      }
+      setFieldErrors(errs);
+    }
+
+    setFormData({ ...formData, [name]: value });
     setError("");
     setSuccess("");
   };
@@ -62,6 +93,29 @@ const Profile = () => {
     setSaving(true);
     setError("");
     setSuccess("");
+
+    // Validate username
+    const errs = {};
+    if (!formData.username || formData.username.length < 3) {
+      errs.username = "Username must be at least 3 characters.";
+    } else if (!/^[a-zA-Z_]+$/.test(formData.username)) {
+      errs.username = "Username can only contain letters and underscores.";
+    }
+
+    // Validate phone number if provided
+    if (formData.phone && !/^\d{10}$/.test(formData.phone)) {
+      errs.phone = "Phone number must be exactly 10 digits.";
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      const firstMsg = Object.values(errs)[0];
+      setError(firstMsg);
+      toast.error(firstMsg);
+      setSaving(false);
+      return;
+    }
+    setFieldErrors({});
 
     try {
       const updatedUser = await updateProfile({
@@ -76,7 +130,6 @@ const Profile = () => {
       setUser(updatedUser);
       setSuccess("Profile updated successfully!");
       toast.success("Profile updated successfully!");
-      setCurrentPage(1);
     } catch (err) {
       const msg =
         err.response?.data?.error ||
@@ -308,6 +361,7 @@ const Profile = () => {
                 <div className="flex items-center space-x-2">
                   {[1, 2, 3].map((page) => (
                     <button
+                      type="button"
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       className={`w-8 h-8 rounded-full text-sm font-medium transition-all duration-300 ${
@@ -326,19 +380,22 @@ const Profile = () => {
               <div className="flex justify-center mb-6">
                 <div className="flex items-center space-x-4 text-xs">
                   <span
-                    className={`flex items-center ${currentPage === 1 ? "text-green-400" : "text-green-200/40"}`}
+                    onClick={() => setCurrentPage(1)}
+                    className={`flex items-center cursor-pointer ${currentPage === 1 ? "text-green-400" : "text-green-200/40 hover:text-green-200/70"}`}
                   >
                     <i className="fas fa-user mr-1"></i> Account
                   </span>
                   <i className="fas fa-chevron-right text-green-200/20"></i>
                   <span
-                    className={`flex items-center ${currentPage === 2 ? "text-green-400" : "text-green-200/40"}`}
+                    onClick={() => setCurrentPage(2)}
+                    className={`flex items-center cursor-pointer ${currentPage === 2 ? "text-green-400" : "text-green-200/40 hover:text-green-200/70"}`}
                   >
                     <i className="fas fa-id-card mr-1"></i> Personal
                   </span>
                   <i className="fas fa-chevron-right text-green-200/20"></i>
                   <span
-                    className={`flex items-center ${currentPage === 3 ? "text-green-400" : "text-green-200/40"}`}
+                    onClick={() => setCurrentPage(3)}
+                    className={`flex items-center cursor-pointer ${currentPage === 3 ? "text-green-400" : "text-green-200/40 hover:text-green-200/70"}`}
                   >
                     <i className="fas fa-info-circle mr-1"></i> About
                   </span>
@@ -361,7 +418,14 @@ const Profile = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit}>
+              <form
+                onSubmit={handleSubmit}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && currentPage < totalPages) {
+                    e.preventDefault();
+                  }
+                }}
+              >
                 {/* Page 1: Account Info */}
                 {currentPage === 1 && (
                   <div className="space-y-4 animate-fadeIn">
@@ -419,10 +483,27 @@ const Profile = () => {
                           onChange={handleChange}
                           required
                           minLength={3}
-                          className="w-full bg-white/5 border border-white/10 py-2.5 pl-10 pr-4 text-white placeholder-white/30 focus:border-green-400 focus:ring-1 focus:ring-green-400/30 transition-all duration-300 rounded-xl outline-none"
+                          maxLength={8}
+                          pattern="^[a-zA-Z_]+$"
+                          title="Only letters and underscores allowed, max 8 characters"
+                          className={`w-full bg-white/5 border py-2.5 pl-10 pr-4 text-white placeholder-white/30 transition-all duration-300 rounded-xl outline-none ${
+                            fieldErrors.username
+                              ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/30"
+                              : "border-white/10 focus:border-green-400 focus:ring-1 focus:ring-green-400/30"
+                          }`}
                           placeholder="Your username"
                         />
                       </div>
+                      {fieldErrors.username ? (
+                        <p className="text-xs text-red-400 mt-1">
+                          <i className="fas fa-exclamation-circle mr-1"></i>
+                          {fieldErrors.username}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-green-200/40 mt-1">
+                          Letters and underscores only, 3–8 characters
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -486,10 +567,27 @@ const Profile = () => {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          className="w-full bg-white/5 border border-white/10 py-2.5 pl-10 pr-4 text-white placeholder-white/30 focus:border-green-400 focus:ring-1 focus:ring-green-400/30 transition-all duration-300 rounded-xl outline-none"
-                          placeholder="+1 (555) 000-0000"
+                          maxLength={10}
+                          pattern="^\d{10}$"
+                          title="Phone number must be exactly 10 digits"
+                          className={`w-full bg-white/5 border py-2.5 pl-10 pr-4 text-white placeholder-white/30 transition-all duration-300 rounded-xl outline-none ${
+                            fieldErrors.phone
+                              ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/30"
+                              : "border-white/10 focus:border-green-400 focus:ring-1 focus:ring-green-400/30"
+                          }`}
+                          placeholder="0771234567"
                         />
                       </div>
+                      {fieldErrors.phone ? (
+                        <p className="text-xs text-red-400 mt-1">
+                          <i className="fas fa-exclamation-circle mr-1"></i>
+                          {fieldErrors.phone}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-green-200/40 mt-1">
+                          Exactly 10 digits, numbers only
+                        </p>
+                      )}
                     </div>
 
                     {/* Address */}

@@ -183,3 +183,13 @@ exports.getPendingNeeds = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+//get all needs for admin dashboard stats
+exports.getAllNeedsAdmin = async (req, res) => {
+  try {
+    const needs = await needService.getAllNeedsForAdmin();
+    res.status(200).json({ success: true, data: needs });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

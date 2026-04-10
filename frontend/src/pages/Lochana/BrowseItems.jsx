@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getProfile, logout } from "../../services/authService";
 import * as itemService from "../../services/itemService";
 import { getImageUrl } from "../../services/itemService";
+import ChatBubble from "./ChatBubble";
 
 const BrowseItems = () => {
   const navigate = useNavigate();
@@ -788,6 +789,8 @@ const BrowseItems = () => {
           <i className="fas fa-comment-dots text-xl"></i>
         </button>
       </div>
+
+      <ChatBubble user={user} />
     </div>
   );
 };

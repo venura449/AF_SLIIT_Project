@@ -86,6 +86,9 @@ const AdminDashboard = () => {
   const [fulfilledNeeds, setFulfilledNeeds] = useState([]);
   const [fulfilledNeedsLoading, setFulfilledNeedsLoading] = useState(false);
 
+  // All needs (for stats)
+  const [allNeedsData, setAllNeedsData] = useState([]);
+
   // Platform reviews state
   const [platformReviews, setPlatformReviews] = useState([]);
   const [platformReviewsLoading, setPlatformReviewsLoading] = useState(false);
@@ -179,6 +182,7 @@ const AdminDashboard = () => {
         fetchUnverifiedUsers();
         fetchPendingNeeds();
         fetchFulfilledNeeds();
+        fetchAllNeedsData();
         fetchPlatformReviews();
         fetchDashStats();
         fetchAllItems();
@@ -236,6 +240,7 @@ const AdminDashboard = () => {
     try {
       await needService.approveNeed(needId);
       await fetchPendingNeeds();
+      await fetchAllNeedsData();
     } catch (err) {
       console.error("Error approving need:", err);
     } finally {
@@ -252,6 +257,15 @@ const AdminDashboard = () => {
       console.error("Error fetching fulfilled needs:", err);
     } finally {
       setFulfilledNeedsLoading(false);
+    }
+  };
+
+  const fetchAllNeedsData = async () => {
+    try {
+      const needs = await needService.getAllNeedsAdmin();
+      setAllNeedsData(Array.isArray(needs) ? needs : []);
+    } catch (err) {
+      console.error("Error fetching all needs:", err);
     }
   };
 
@@ -2358,7 +2372,7 @@ const AdminDashboard = () => {
                   };
 
                   // ── derived data ──────────────────────────────────────
-                  const allNeeds = [...pendingNeeds, ...fulfilledNeeds];
+                  const allNeeds = allNeedsData;
                   const reviews = platformReviews;
 
                   const fUsers = filterByDate(users);
@@ -2525,27 +2539,27 @@ const AdminDashboard = () => {
                   const needStatuses = [
                     {
                       label: "Pending",
-                      count: pendingNeeds.filter((n) => n.status === "Pending")
+                      count: allNeeds.filter((n) => n.status === "Pending")
                         .length,
                       cls: "text-yellow-400 bg-yellow-500/15",
                     },
                     {
                       label: "Partially Funded",
-                      count: pendingNeeds.filter(
+                      count: allNeeds.filter(
                         (n) => n.status === "Partially Funded",
                       ).length,
                       cls: "text-blue-400 bg-blue-500/15",
                     },
                     {
                       label: "Fulfilled",
-                      count: fulfilledNeeds.length,
+                      count: allNeeds.filter((n) => n.status === "Fulfilled")
+                        .length,
                       cls: "text-green-400 bg-green-500/15",
                     },
                     {
                       label: "Cancelled",
-                      count: pendingNeeds.filter(
-                        (n) => n.status === "Cancelled",
-                      ).length,
+                      count: allNeeds.filter((n) => n.status === "Cancelled")
+                        .length,
                       cls: "text-red-400 bg-red-500/15",
                     },
                   ];

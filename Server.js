@@ -30,9 +30,28 @@ dotenv.config();
 const app = express();
 
 // Middleware
-// Configure CORS to allow credentials and set proper origin
+// Allow local frontend origins used during development and demos.
+const defaultAllowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5001',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+];
+
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map((origin) => origin.trim())
+  : defaultAllowedOrigins;
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5001', 'http://127.0.0.1:5173'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],

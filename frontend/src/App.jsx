@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { useEffect } from "react";
 import Login from "./pages/Venura/Login";
 import Register from "./pages/Venura/Register";
 import ForgotPassword from "./pages/Venura/ForgotPassword";
@@ -22,8 +23,9 @@ import FeedbackPage from "./pages/Heyli/Feedback";
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { listenForForegroundMessages } from "../firebase";
 
 function AppRoutes() {
   return (
@@ -127,6 +129,21 @@ function AppRoutes() {
 }
 
 function App() {
+  useEffect(() => {
+    const unsubscribe = listenForForegroundMessages((payload) => {
+      const title = payload?.notification?.title || "New notification";
+      const body = payload?.notification?.body || "You received a new update.";
+
+      toast.info(`${title}: ${body}`);
+
+      if (Notification.permission === "granted") {
+        new Notification(title, { body });
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <Router>
       <AuthProvider>

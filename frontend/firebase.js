@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getMessaging, getToken } from "firebase/messaging";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAAJvSp2_JJ2KXJYgg5oEP0o0cNTiZ3NWg",
@@ -41,4 +41,11 @@ export const requestForToken = async () => {
     console.error("Error getting token:", error);
     return null;
   }
+};
+
+export const listenForForegroundMessages = (onPayload) => {
+  return onMessage(messaging, (payload) => {
+    console.log("Foreground FCM message received:", payload);
+    onPayload?.(payload);
+  });
 };

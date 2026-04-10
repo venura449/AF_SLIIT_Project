@@ -8,7 +8,7 @@ export const submitFeedback = async (feedbackData) => {
     `${baseUrl}/feedbacks/createFeedback`,
     feedbackData,
     {
-      headers: {"Content-Type" : "multipart/form-data"},
+      headers: { "Content-Type": "multipart/form-data" },
       withCredentials: true,
     },
   );
@@ -31,7 +31,7 @@ export const editFeedback = async (feedbackId, updatedData) => {
     `${baseUrl}/feedbacks/updateFeedback/${feedbackId}`,
     updatedData,
     {
-      headers: {"Content-Type" : "multipart/form-data"},
+      headers: { "Content-Type": "multipart/form-data" },
       withCredentials: true,
     },
   );

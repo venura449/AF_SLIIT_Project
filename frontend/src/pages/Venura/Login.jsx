@@ -55,7 +55,8 @@ const Login = () => {
             localStorage.getItem("token") || sessionStorage.getItem("token");
           if (authToken) {
             const apiUrl =
-              import.meta.env.VITE_API_URL || "https://af-sliit-project.onrender.com/api/v1";
+              import.meta.env.VITE_API_URL ||
+              "https://af-sliit-project.onrender.com/api/v1";
             await axios.patch(
               `${apiUrl}/notifications/save-fcm-token`,
               { fcmToken: token },

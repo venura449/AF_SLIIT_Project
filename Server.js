@@ -1,10 +1,13 @@
+// Load environment variables FIRST, before any other imports that read process.
+require("dotenv").config();
+console.log("Server ENV:", process.env.STRIPE_SECRET);
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 
-// Load environment variables FIRST, before any other imports that read process.env
-dotenv.config();
+
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swaggerConfig.js');
@@ -28,6 +31,10 @@ dotenv.config();
 
 // Initialize Express app
 const app = express();
+app.use(express.urlencoded({ extended: true }))
+
+const bodyParser = require("body-parser");
+const stripeWebhookController = require("./controllers/donations/stripeWebhookController");
 
 const defaultAllowedOrigins = [
   'https://af-sliit-project.vercel.app',
@@ -41,9 +48,9 @@ const defaultAllowedOrigins = [
 
 const allowedOrigins = process.env.FRONTEND_URL
   ? [
-      ...defaultAllowedOrigins,
-      ...process.env.FRONTEND_URL.split(',').map((origin) => origin.trim()),
-    ]
+    ...defaultAllowedOrigins,
+    ...process.env.FRONTEND_URL.split(',').map((origin) => origin.trim()),
+  ]
   : defaultAllowedOrigins;
 
 const corsOptions = {
@@ -61,6 +68,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.post(
+  "/webhook/stripe",
+  bodyParser.raw({ type: "application/json" }),
+  stripeWebhookController.stripeWebhook
+);
 
 // Connect to MongoDB (skip in test environment)
 if (process.env.NODE_ENV !== 'test') {

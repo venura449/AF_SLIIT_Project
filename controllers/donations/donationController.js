@@ -1,12 +1,13 @@
 
 const donationService = require('../../services/donations/donationService');
 const Need = require('../../models/donations/Need');
+const { sendNotificationSingleUser } = require("../../services/notifications/notificationService");
 
 
 // Create Donation
-exports.createDonationAfterPayment  = async (req, res, next) => {
+exports.createDonationAfterPayment = async (req, res, next) => {
   try {
-    const { need, amount, isAnonymous, donationType, goodsDescription, phoneNumber, message,paymentIntentId } = req.body;
+    const { need, amount, isAnonymous, donationType, goodsDescription, phoneNumber, message, paymentIntentId } = req.body;
 
     if (!need || !donationType) {
       return res.status(400).json({
@@ -22,7 +23,7 @@ exports.createDonationAfterPayment  = async (req, res, next) => {
       });
 
     }
-     if (donationType === 'Card' && !paymentIntentId) {
+    if (donationType === 'Card' && !paymentIntentId) {
       return res.status(400).json({
         success: false,
         message: "Payment ID is required for card donations",
@@ -60,10 +61,11 @@ exports.createDonationAfterPayment  = async (req, res, next) => {
 
     // For Cash/Card, check remaining amount
     if (donationType === 'Cash' || donationType === 'Card') {
-      if (Number(amount) > existingNeed.goalAmount) {
+      const remaining = Number(existingNeed.goalAmount) - Number(existingNeed.currentAmount);
+      if (Number(amount) > remaining) {
         return res.status(400).json({
           success: false,
-          message: `Only LKR ${existingNeed.goalAmount} remaining`,
+          message: `Only LKR ${remaining} remaining`,
         });
       }
     }
@@ -80,9 +82,9 @@ exports.createDonationAfterPayment  = async (req, res, next) => {
       isAnonymous,
     });
 
-     let finalDonation = donation;
+    let finalDonation = donation;
 
-     if (donationType === "Card") {
+    if (donationType === "Card") {
       finalDonation = await donationService.confirmDonation(
         donation._id,
         paymentIntentId // Stripe ID
@@ -93,17 +95,32 @@ exports.createDonationAfterPayment  = async (req, res, next) => {
     if (donationType === 'Cash' || donationType === 'Card') {
       existingNeed.currentAmount =
         Number(existingNeed.currentAmount) + Number(amount);
-      existingNeed.goalAmount =
-        Number(existingNeed.goalAmount) - Number(amount);
 
-      if (existingNeed.goalAmount <= 0) {
-        existingNeed.goalAmount = 0;
+      if (existingNeed.currentAmount >= existingNeed.goalAmount) {
+        existingNeed.currentAmount = existingNeed.goalAmount;
         existingNeed.status = "Fulfilled";
       } else {
         existingNeed.status = "Partially Funded";
       }
 
       await existingNeed.save();
+    }
+
+    try {
+      // Send notification to recipient
+      if (existingNeed.recipient && String(existingNeed.recipient) !== String(req.user._id)) {
+        const recipientId = existingNeed.recipient;
+        const donorName = req.user?.username || "A donor";
+        const title = "New Donation Received";
+        const body = `${donorName} donated to your need "${existingNeed.title}".`;
+        await sendNotificationSingleUser(recipientId, title, body, {
+          type: "need_donation",
+          needId: existingNeed._id.toString(),
+          donationId: donation._id.toString(),
+        });
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
     }
 
     res.status(201).json({

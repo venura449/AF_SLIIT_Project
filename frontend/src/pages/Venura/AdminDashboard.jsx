@@ -16,7 +16,9 @@ import * as itemService from "../../services/itemService";
 import { getImageUrl } from "../../services/itemService";
 import { toast } from "react-toastify";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://af-sliit-project.onrender.com/api/v1";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://af-sliit-project.onrender.com/api/v1";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();

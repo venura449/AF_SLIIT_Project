@@ -193,24 +193,45 @@ const BrowseItems = () => {
             </div>
 
             <div className="hidden md:flex items-center space-x-1">
-              <button
-                onClick={() => navigate("/donor-dashboard")}
-                className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
-              >
-                <i className="fas fa-home mr-2"></i>Dashboard
-              </button>
-              <button
-                onClick={() => navigate("/donor-needs")}
-                className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
-              >
-                <i className="fas fa-search-dollar mr-2"></i>Find Needs
-              </button>
-              <button
-                onClick={() => navigate("/donor-items")}
-                className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
-              >
-                <i className="fas fa-gift mr-2"></i>My Items
-              </button>
+              {user?.role === "Recipient" && (
+                <>
+                  <button
+                    onClick={() => navigate("/dashboard")}
+                    className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                  >
+                    <i className="fas fa-home mr-2"></i>Dashboard
+                  </button>
+                  <button
+                    onClick={() => navigate("/needs")}
+                    className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                  >
+                    <i className="fas fa-hand-holding-heart mr-2"></i>My
+                    Requests
+                  </button>
+                </>
+              )}
+              {user?.role === "Donor" && (
+                <>
+                  <button
+                    onClick={() => navigate("/donor-dashboard")}
+                    className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                  >
+                    <i className="fas fa-home mr-2"></i>Dashboard
+                  </button>
+                  <button
+                    onClick={() => navigate("/donor-needs")}
+                    className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                  >
+                    <i className="fas fa-search-dollar mr-2"></i>Find Needs
+                  </button>
+                  <button
+                    onClick={() => navigate("/donor-items")}
+                    className="px-4 py-2 text-sm text-green-200/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                  >
+                    <i className="fas fa-gift mr-2"></i>My Items
+                  </button>
+                </>
+              )}
               <button className="px-4 py-2 text-sm bg-gradient-to-r from-green-600/80 to-emerald-500/80 text-white rounded-xl shadow-lg shadow-green-500/20">
                 <i className="fas fa-store mr-2"></i>Browse Items
               </button>
@@ -249,7 +270,13 @@ const BrowseItems = () => {
                   </div>
                   <div className="p-2">
                     <button
-                      onClick={() => navigate("/donor-dashboard")}
+                      onClick={() =>
+                        navigate(
+                          user?.role === "Recipient"
+                            ? "/dashboard"
+                            : "/donor-dashboard",
+                        )
+                      }
                       className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-green-200/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
                     >
                       <i className="fas fa-home w-5"></i>

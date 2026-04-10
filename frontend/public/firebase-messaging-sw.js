@@ -14,12 +14,29 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
-  console.log(' Received background message ', payload); 
-  const notificationTitle = payload.notification.title;
+
+  const title =
+    payload?.notification?.title ||
+    payload?.data?.title ||
+    "New notification";
+
+  const body =
+    payload?.notification?.body ||
+    payload?.data?.body ||
+    "You have a new update.";
+
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/firebase-logo.png'
-  };  
-  self.registration.showNotification(notificationTitle, notificationOptions);
+    body,
+    icon: "/firebase-logo.png",
+    data: payload?.data || {},
+  };
+
+  self.registration.showNotification(title, notificationOptions);
 });
 
+self.addEventListener("notificationclick", function(event) {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow("/")
+  );
+});

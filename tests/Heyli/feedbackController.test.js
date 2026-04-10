@@ -13,8 +13,8 @@ describe('Feedback Endpoints Testing Started ! ', () => {
 
     beforeAll(async () => {
         // 1. Create and Login a Regular User (Recipient)
-        const timestamp = Date.now();
-        username = `recipient_test_${timestamp}`;
+        const timestamp = String(Date.now()).slice(-6);
+        username = `rec_${timestamp}`;
         userEmail = `rec_${timestamp}@test.com`;
         const userCreds = { username, email: userEmail, password: 'password123', role: 'Recipient' };
         const signupRes = await supertest(app).post('/api/v1/auth/signup').send(userCreds);

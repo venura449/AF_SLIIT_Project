@@ -9,8 +9,8 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     minlength: 3,
-    maxlength: [8, 'Username cannot exceed 8 characters'],
-    match: [/^[a-zA-Z_]+$/, 'Username can only contain letters and underscores'],
+    maxlength: [20, 'Username cannot exceed 20 characters'],
+    match: [/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers and underscores'],
   },
   email: {
     type: String,

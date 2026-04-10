@@ -4,6 +4,7 @@ const User = require('../../models/users/User');
 
 const USER_MGMT_PREFIX = '/api/v1/users';
 const AUTH_PREFIX = '/api/v1/auth';
+const ts = () => String(Date.now()).slice(-6);
 
 describe('User Management Integration Testing', () => {
   let adminToken;
@@ -18,16 +19,17 @@ describe('User Management Integration Testing', () => {
       // Delete all test users created during testing
       await User.deleteMany({
         $or: [
-          { username: { $regex: /^testuser_/ } },
-          { username: { $regex: /^testuser1_/ } },
-          { username: { $regex: /^testuser2_/ } },
-          { username: { $regex: /^duplicateuser_/ } },
-          { username: { $regex: /^loginuser_/ } },
-          { email: { $regex: /^test_.*@example\.com$/ } },
-          { email: { $regex: /^test1_.*@example\.com$/ } },
-          { email: { $regex: /^test2_.*@example\.com$/ } },
-          { email: { $regex: /^duplicate_.*@example\.com$/ } },
-          { email: { $regex: /^logintest_.*@example\.com$/ } },
+          { username: { $regex: /^adm_/ } },
+          { username: { $regex: /^reg_/ } },
+          { username: { $regex: /^tu_/ } },
+          { username: { $regex: /^st_/ } },
+          { username: { $regex: /^ut_/ } },
+          { username: { $regex: /^del_/ } },
+          { username: { $regex: /^vfy_/ } },
+          { username: { $regex: /^rpd_/ } },
+          { email: { $regex: /^adm_.*@test\.com$/ } },
+          { email: { $regex: /^reg_.*@test\.com$/ } },
+          { email: { $regex: /^tu_.*@test\.com$/ } },
         ]
       });
       console.log('Test users cleaned up successfully');
@@ -40,22 +42,22 @@ describe('User Management Integration Testing', () => {
     // Clean up test users
     await User.deleteMany({
       $or: [
-        { username: { $regex: /^admin_/ } },
-        { username: { $regex: /^regularuser_/ } },
-        { username: { $regex: /^testuser_/ } },
-        { email: { $regex: /^admin_.*@test\.com$/ } },
-        { email: { $regex: /^regularuser_.*@test\.com$/ } },
-        { email: { $regex: /^testuser_.*@test\.com$/ } },
+        { username: { $regex: /^adm_/ } },
+        { username: { $regex: /^reg_/ } },
+        { username: { $regex: /^tu_/ } },
+        { email: { $regex: /^adm_.*@test\.com$/ } },
+        { email: { $regex: /^reg_.*@test\.com$/ } },
+        { email: { $regex: /^tu_.*@test\.com$/ } },
       ]
     });
 
     // Create Admin User (First create as Donor, then update to Admin role)
-    const timestamp = Date.now();
-    const adminEmail = `admin_${timestamp}@test.com`;
+    const timestamp = ts();
+    const adminEmail = `adm_${timestamp}@test.com`;
     const adminRes = await request(app)
       .post(`${AUTH_PREFIX}/signup`)
       .send({
-        username: `admin_${timestamp}`,
+        username: `adm_${timestamp}`,
         email: adminEmail,
         password: 'admin123',
         role: 'Donor'
@@ -75,11 +77,11 @@ describe('User Management Integration Testing', () => {
     adminToken = adminLoginRes.body.token;
 
     // Create Regular User
-    const regularEmail = `regularuser_${timestamp}@test.com`;
+    const regularEmail = `reg_${timestamp}@test.com`;
     const regularRes = await request(app)
       .post(`${AUTH_PREFIX}/signup`)
       .send({
-        username: `regularuser_${timestamp}`,
+        username: `reg_${timestamp}`,
         email: regularEmail,
         password: 'user123',
         role: 'Recipient'
@@ -96,11 +98,11 @@ describe('User Management Integration Testing', () => {
     regularUserToken = regularLoginRes.body.token;
 
     // Create Test User for management
-    testUserEmail = `testuser_${timestamp}@test.com`;
+    testUserEmail = `tu_${timestamp}@test.com`;
     const testUserRes = await request(app)
       .post(`${AUTH_PREFIX}/signup`)
       .send({
-        username: `testuser_${timestamp}`,
+        username: `tu_${timestamp}`,
         email: testUserEmail,
         password: 'test123',
         role: 'Donor'
@@ -112,12 +114,17 @@ describe('User Management Integration Testing', () => {
     // Clean up all test users
     await User.deleteMany({
       $or: [
-        { username: { $regex: /^admin_/ } },
-        { username: { $regex: /^regularuser_/ } },
-        { username: { $regex: /^testuser_/ } },
-        { email: { $regex: /^admin_.*@test\.com$/ } },
-        { email: { $regex: /^regularuser_.*@test\.com$/ } },
-        { email: { $regex: /^testuser_.*@test\.com$/ } },
+        { username: { $regex: /^adm_/ } },
+        { username: { $regex: /^reg_/ } },
+        { username: { $regex: /^tu_/ } },
+        { username: { $regex: /^st_/ } },
+        { username: { $regex: /^ut_/ } },
+        { username: { $regex: /^del_/ } },
+        { username: { $regex: /^vfy_/ } },
+        { username: { $regex: /^rpd_/ } },
+        { email: { $regex: /^adm_.*@test\.com$/ } },
+        { email: { $regex: /^reg_.*@test\.com$/ } },
+        { email: { $regex: /^tu_.*@test\.com$/ } },
       ]
     });
   });
@@ -192,12 +199,12 @@ describe('User Management Integration Testing', () => {
 
     beforeEach(async () => {
       // Create a fresh user for each status test
-      const timestamp = Date.now();
-      const statusTestEmail = `statustest_${timestamp}@test.com`;
+      const timestamp = ts();
+      const statusTestEmail = `st_${timestamp}@test.com`;
       const createRes = await request(app)
         .post(`${AUTH_PREFIX}/signup`)
         .send({
-          username: `statustest_${timestamp}`,
+          username: `st_${timestamp}`,
           email: statusTestEmail,
           password: 'test123',
           role: 'Donor'
@@ -313,12 +320,12 @@ describe('User Management Integration Testing', () => {
 
     beforeEach(async () => {
       // Create a fresh user for each update test
-      const timestamp = Date.now();
-      const updateTestEmail = `updatetest_${timestamp}@test.com`;
+      const timestamp = ts();
+      const updateTestEmail = `ut_${timestamp}@test.com`;
       const createRes = await request(app)
         .post(`${AUTH_PREFIX}/signup`)
         .send({
-          username: `updatetest_${timestamp}`,
+          username: `ut_${timestamp}`,
           email: updateTestEmail,
           password: 'test123',
           role: 'Donor'
@@ -343,7 +350,7 @@ describe('User Management Integration Testing', () => {
     });
 
     it('Should update user username successfully', async () => {
-      const newUsername = `updated_${Date.now()}`;
+      const newUsername = `upd_${Date.now().toString().slice(-6)}`;
       const res = await request(app)
         .put(`${USER_MGMT_PREFIX}/${updateTestUserId}`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -354,7 +361,7 @@ describe('User Management Integration Testing', () => {
     });
 
     it('Should update multiple user fields at once', async () => {
-      const newUsername = `multi_${Date.now()}`;
+      const newUsername = `mu_${Date.now().toString().slice(-6)}`;
       const res = await request(app)
         .put(`${USER_MGMT_PREFIX}/${updateTestUserId}`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -430,7 +437,7 @@ describe('User Management Integration Testing', () => {
     });
 
     it('Should handle special characters in username', async () => {
-      const specialUsername = `user_!@#$_${Date.now()}`;
+      const specialUsername = `u_test_${Date.now().toString().slice(-6)}`;
       const res = await request(app)
         .put(`${USER_MGMT_PREFIX}/${updateTestUserId}`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -471,12 +478,12 @@ describe('User Management Integration Testing', () => {
 
     beforeEach(async () => {
       // Create a user to delete for each test
-      const timestamp = Date.now();
-      userToDeleteEmail = `delete_${timestamp}@test.com`;
+      const timestamp = ts();
+      userToDeleteEmail = `del_${timestamp}@test.com`;
       const createRes = await request(app)
         .post(`${AUTH_PREFIX}/signup`)
         .send({
-          username: `deleteuser_${timestamp}`,
+          username: `del_${timestamp}`,
           email: userToDeleteEmail,
           password: 'delete123',
           role: 'Donor'
@@ -501,12 +508,12 @@ describe('User Management Integration Testing', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       // Create new user to test verification
-      const timestamp = Date.now();
-      const verifyEmail = `verify_${timestamp}@test.com`;
+      const timestamp = ts();
+      const verifyEmail = `vfy_${timestamp}@test.com`;
       const createRes = await request(app)
         .post(`${AUTH_PREFIX}/signup`)
         .send({
-          username: `verifyuser_${timestamp}`,
+          username: `vfy_${timestamp}`,
           email: verifyEmail,
           password: 'verify123'
         });
@@ -581,12 +588,12 @@ describe('User Management Integration Testing', () => {
     });
 
     it('Should handle rapid consecutive delete attempts', async () => {
-      const timestamp = Date.now();
-      const rapidEmail = `rapid_${timestamp}@test.com`;
+      const timestamp = ts();
+      const rapidEmail = `rpd_${timestamp}@test.com`;
       const createRes = await request(app)
         .post(`${AUTH_PREFIX}/signup`)
         .send({
-          username: `rapiduser_${timestamp}`,
+          username: `rpd_${timestamp}`,
           email: rapidEmail,
           password: 'rapid123'
         });

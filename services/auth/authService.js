@@ -16,11 +16,11 @@ exports.signupService = async (username, email, password, role = 'Donor') => {
   }
 
   // Validate username
-  if (username.length > 8) {
-    throw new Error('Username cannot exceed 8 characters');
+  if (username.length > 20) {
+    throw new Error('Username cannot exceed 20 characters');
   }
-  if (!/^[a-zA-Z_]+$/.test(username)) {
-    throw new Error('Username can only contain letters and underscores');
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    throw new Error('Username can only contain letters, numbers and underscores');
   }
 
   // Validate role

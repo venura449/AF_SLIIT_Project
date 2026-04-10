@@ -69,13 +69,13 @@ exports.updateProfile = async (req, res) => {
 
     validateUserPresent(user);
 
-    // Validate username: only letters and underscores, max 8 characters
+    // Validate username: letters, numbers and underscores, max 20 characters
     if (username) {
-      if (username.length > 8) {
-        return res.status(400).json({ error: "Username cannot exceed 8 characters" });
+      if (username.length > 20) {
+        return res.status(400).json({ error: "Username cannot exceed 20 characters" });
       }
-      if (!/^[a-zA-Z_]+$/.test(username)) {
-        return res.status(400).json({ error: "Username can only contain letters and underscores" });
+      if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        return res.status(400).json({ error: "Username can only contain letters, numbers and underscores" });
       }
     }
 

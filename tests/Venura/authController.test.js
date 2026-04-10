@@ -1,28 +1,28 @@
-const request = require("supertest");
+﻿const request = require("supertest");
 const app = require("../../Server");
 const User = require("../../models/users/User");
 
 const API_PREFIX = "/api/v1/auth";
+const ts = () => String(Date.now()).slice(-6);
 
 describe("Auth Endpoints Testing Started ! ", () => {
   // Clean up test users after all tests complete
   afterAll(async () => {
     try {
-      // Delete all test users created during testing
       await User.deleteMany({
         $or: [
-          { username: { $regex: /^testuser_/ } },
-          { username: { $regex: /^testuser1_/ } },
-          { username: { $regex: /^testuser2_/ } },
-          { username: { $regex: /^duplicateuser_/ } },
-          { username: { $regex: /^deleteuser_/ } },
-          { username: { $regex: /^loginuser_/ } },
+          { username: { $regex: /^tu_/ } },
+          { username: { $regex: /^tu1_/ } },
+          { username: { $regex: /^tu2_/ } },
+          { username: { $regex: /^dup_/ } },
+          { username: { $regex: /^delu_/ } },
+          { username: { $regex: /^lu_/ } },
           { email: { $regex: /^test_.*@example\.com$/ } },
-          { email: { $regex: /^test1_.*@example\.com$/ } },
-          { email: { $regex: /^test2_.*@example\.com$/ } },
-          { email: { $regex: /^duplicate_.*@example\.com$/ } },
-          { email: { $regex: /^logintest_.*@example\.com$/ } },
-          { email: { $regex: /^deleteuser_.*@example\.com$/ } },
+          { email: { $regex: /^t1_.*@example\.com$/ } },
+          { email: { $regex: /^t2_.*@example\.com$/ } },
+          { email: { $regex: /^dup_.*@example\.com$/ } },
+          { email: { $regex: /^lt_.*@example\.com$/ } },
+          { email: { $regex: /^delu_.*@example\.com$/ } },
         ],
       });
       console.log("Test users cleaned up successfully");
@@ -33,11 +33,11 @@ describe("Auth Endpoints Testing Started ! ", () => {
 
   describe(`POST ${API_PREFIX}/signup`, () => {
     it("Should successfully register a new user", async () => {
-      const timestamp = Date.now();
+      const timestamp = ts();
       const res = await request(app)
         .post(`${API_PREFIX}/signup`)
         .send({
-          username: `testuser_${timestamp}`,
+          username: `tu_${timestamp}`,
           email: `test_${timestamp}@example.com`,
           password: "password123",
         });
@@ -46,12 +46,12 @@ describe("Auth Endpoints Testing Started ! ", () => {
       expect(res.body.message).toBe("User registered successfully");
       expect(res.body.token).toBeDefined();
       expect(res.body.user).toBeDefined();
-      expect(res.body.user.username).toBe(`testuser_${timestamp}`);
+      expect(res.body.user.username).toBe(`tu_${timestamp}`);
       expect(res.body.user.email).toBe(`test_${timestamp}@example.com`);
     });
 
     it("Should fail when username is missing", async () => {
-      const timestamp = Date.now();
+      const timestamp = ts();
       const res = await request(app)
         .post(`${API_PREFIX}/signup`)
         .send({
@@ -64,11 +64,11 @@ describe("Auth Endpoints Testing Started ! ", () => {
     });
 
     it("Should fail when email is missing", async () => {
-      const timestamp = Date.now();
+      const timestamp = ts();
       const res = await request(app)
         .post(`${API_PREFIX}/signup`)
         .send({
-          username: `testuser_${timestamp}`,
+          username: `tu_${timestamp}`,
           password: "password123",
         });
 
@@ -77,11 +77,11 @@ describe("Auth Endpoints Testing Started ! ", () => {
     });
 
     it("Should fail when password is missing", async () => {
-      const timestamp = Date.now();
+      const timestamp = ts();
       const res = await request(app)
         .post(`${API_PREFIX}/signup`)
         .send({
-          username: `testuser_${timestamp}`,
+          username: `tu_${timestamp}`,
           email: `test_${timestamp}@example.com`,
         });
 
@@ -90,13 +90,13 @@ describe("Auth Endpoints Testing Started ! ", () => {
     });
 
     it("Should fail when user with same email already exists", async () => {
-      const timestamp = Date.now();
-      const sameEmail = `duplicate_${timestamp}@example.com`;
+      const timestamp = ts();
+      const sameEmail = `dup_${timestamp}@example.com`;
 
       await request(app)
         .post(`${API_PREFIX}/signup`)
         .send({
-          username: `testuser1_${timestamp}`,
+          username: `tu1_${timestamp}`,
           email: sameEmail,
           password: "password123",
         });
@@ -104,7 +104,7 @@ describe("Auth Endpoints Testing Started ! ", () => {
       const res = await request(app)
         .post(`${API_PREFIX}/signup`)
         .send({
-          username: `testuser2_${timestamp}`,
+          username: `tu2_${timestamp}`,
           email: sameEmail,
           password: "password456",
         });
@@ -114,14 +114,14 @@ describe("Auth Endpoints Testing Started ! ", () => {
     });
 
     it("Should fail when user with same username already exists", async () => {
-      const timestamp = Date.now();
-      const sameUsername = `duplicateuser_${timestamp}`;
+      const timestamp = ts();
+      const sameUsername = `dup_${timestamp}`;
 
       await request(app)
         .post(`${API_PREFIX}/signup`)
         .send({
           username: sameUsername,
-          email: `test1_${timestamp}@example.com`,
+          email: `t1_${timestamp}@example.com`,
           password: "password123",
         });
 
@@ -129,7 +129,7 @@ describe("Auth Endpoints Testing Started ! ", () => {
         .post(`${API_PREFIX}/signup`)
         .send({
           username: sameUsername,
-          email: `test2_${timestamp}@example.com`,
+          email: `t2_${timestamp}@example.com`,
           password: "password456",
         });
 
@@ -143,14 +143,13 @@ describe("Auth Endpoints Testing Started ! ", () => {
     let testUserPassword = "password123";
 
     beforeEach(async () => {
-      // Create a unique test user before login tests
-      const timestamp = Date.now();
-      testUserEmail = `logintest_${timestamp}@example.com`;
+      const timestamp = ts();
+      testUserEmail = `lt_${timestamp}@example.com`;
 
       await request(app)
         .post(`${API_PREFIX}/signup`)
         .send({
-          username: `loginuser_${timestamp}`,
+          username: `lu_${timestamp}`,
           email: testUserEmail,
           password: testUserPassword,
         });

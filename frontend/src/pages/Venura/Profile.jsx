@@ -55,10 +55,10 @@ const Profile = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Username: allow only letters and underscores, max 8
+    // Username: allow letters, numbers and underscores, max 20
     if (name === "username") {
-      if (value !== "" && !/^[a-zA-Z_]*$/.test(value)) return;
-      if (value.length > 8) return;
+      if (value !== "" && !/^[a-zA-Z0-9_]*$/.test(value)) return;
+      if (value.length > 20) return;
 
       const errs = { ...fieldErrors };
       if (value.length > 0 && value.length < 3) {
@@ -483,9 +483,9 @@ const Profile = () => {
                           onChange={handleChange}
                           required
                           minLength={3}
-                          maxLength={8}
-                          pattern="^[a-zA-Z_]+$"
-                          title="Only letters and underscores allowed, max 8 characters"
+                          maxLength={20}
+                          pattern="^[a-zA-Z0-9_]+$"
+                          title="Only letters, numbers and underscores allowed, max 20 characters"
                           className={`w-full bg-white/5 border py-2.5 pl-10 pr-4 text-white placeholder-white/30 transition-all duration-300 rounded-xl outline-none ${
                             fieldErrors.username
                               ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/30"

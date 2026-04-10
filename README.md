@@ -542,7 +542,7 @@ curl https://af-sliit-project.onrender.com/health
 ### Backend Deployment Setup (Render)
 
 #### Prerequisites
-- Free or paid Render account
+- paid Render account
 - GitHub repository with code
 - All environment variables configured
 
@@ -608,7 +608,7 @@ curl https://af-sliit-project.onrender.com/health
 ### Frontend Deployment Setup (Vercel)
 
 #### Prerequisites
-- Free or pro Vercel account
+- Free  Vercel account
 - GitHub repository connected to Vercel
 - All VITE_* environment variables ready
 
@@ -678,8 +678,6 @@ This ensures all client-side routes redirect to `index.html` for single-page app
 ---
 
 ### Production Environment Variables
-
-> ⚠️ **SECURITY WARNING:** Never commit `.env` files or secrets to version control.
 
 #### Backend Environment Variables
 

@@ -705,10 +705,6 @@ This ensures all client-side routes redirect to `index.html` for single-page app
 
 ---
 
-### Production Environment Variables
-
-> ⚠️ **SECURITY WARNING:** Never commit `.env` files or secrets to version control.
-
 #### Backend Environment Variables
 
 All variables should be set in **Render Dashboard → Environment** tab:

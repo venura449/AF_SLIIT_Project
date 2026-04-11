@@ -13,6 +13,8 @@ import {
 } from "../../services/authService";
 import * as needService from "../../services/needService";
 import * as itemService from "../../services/itemService";
+import * as feedbackService from "../../services/feedbackService";
+import * as reviewService from "../../services/reviewService";
 import { getImageUrl } from "../../services/itemService";
 import { toast } from "react-toastify";
 
@@ -92,8 +94,15 @@ const AdminDashboard = () => {
   const [allNeedsData, setAllNeedsData] = useState([]);
 
   // Platform reviews state
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [feedbacksLoading, setFeedbacksLoading] = useState(false);
+  const [feedbackReviews, setFeedbackReviews] = useState([]);
+  const [feedbackReviewsLoading, setFeedbackReviewsLoading] = useState(false);
   const [platformReviews, setPlatformReviews] = useState([]);
   const [platformReviewsLoading, setPlatformReviewsLoading] = useState(false);
+  const [reviewUserFilter, setReviewUserFilter] = useState("all");
+  const [reviewFromDate, setReviewFromDate] = useState("");
+  const [reviewToDate, setReviewToDate] = useState("");
 
   // Dashboard stats from backend
   const [dashStats, setDashStats] = useState(null);
@@ -185,6 +194,8 @@ const AdminDashboard = () => {
         fetchPendingNeeds();
         fetchFulfilledNeeds();
         fetchAllNeedsData();
+        fetchFeedbacks();
+        fetchFeedbackReviews();
         fetchPlatformReviews();
         fetchDashStats();
         fetchAllItems();
@@ -280,6 +291,30 @@ const AdminDashboard = () => {
       console.error("Error fetching platform reviews:", err);
     } finally {
       setPlatformReviewsLoading(false);
+    }
+  };
+
+  const fetchFeedbackReviews = async () => {
+    setFeedbackReviewsLoading(true);
+    try {
+      const reviews = await reviewService.getReviews();
+      setFeedbackReviews(Array.isArray(reviews) ? reviews : []);
+    } catch (err) {
+      console.error("Error fetching feedback reviews:", err);
+    } finally {
+      setFeedbackReviewsLoading(false);
+    }
+  };
+
+  const fetchFeedbacks = async () => {
+    setFeedbacksLoading(true);
+    try {
+      const feedbackList = await feedbackService.getFeedbacks();
+      setFeedbacks(Array.isArray(feedbackList) ? feedbackList : []);
+    } catch (err) {
+      console.error("Error fetching feedbacks:", err);
+    } finally {
+      setFeedbacksLoading(false);
     }
   };
 
@@ -461,6 +496,122 @@ const AdminDashboard = () => {
       .toUpperCase()
       .slice(0, 2);
   };
+
+  const formatShortDate = (date) => {
+    if (!date) return "No date";
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const averageRatingLabel = (items, field = "rating") => {
+    const ratedItems = items.filter((item) => Number.isFinite(Number(item[field])));
+    if (ratedItems.length === 0) return "N/A";
+    return (
+      ratedItems.reduce((sum, item) => sum + Number(item[field] || 0), 0) /
+      ratedItems.length
+    ).toFixed(1);
+  };
+
+  const reviewUserOptions = Array.from(
+    new Map(
+      [...feedbacks, ...platformReviews, ...feedbackReviews]
+        .filter((entry) => entry.user?._id || entry.user?.username)
+        .map((entry) => [
+          String(entry.user?._id || entry.user?.username),
+          {
+            id: String(entry.user?._id || entry.user?.username),
+            username: entry.user?.username || "Unknown",
+            role: entry.user?.role || "User",
+          },
+        ]),
+    ).values(),
+  ).sort((a, b) => a.username.localeCompare(b.username));
+
+  const matchesReviewFilters = (entry) => {
+    const entryDate = entry?.createdAt ? new Date(entry.createdAt) : null;
+    const matchesUser =
+      reviewUserFilter === "all" ||
+      String(entry.user?._id || entry.user?.username) === reviewUserFilter;
+
+    const matchesFrom =
+      !reviewFromDate ||
+      (entryDate && entryDate >= new Date(`${reviewFromDate}T00:00:00`));
+
+    const matchesTo =
+      !reviewToDate ||
+      (entryDate && entryDate <= new Date(`${reviewToDate}T23:59:59`));
+
+    return matchesUser && matchesFrom && matchesTo;
+  };
+
+  const filteredFeedbacks = feedbacks.filter(matchesReviewFilters);
+  const filteredPlatformReviews = platformReviews.filter(matchesReviewFilters);
+  const filteredFeedbackIds = new Set(
+    filteredFeedbacks.map((feedback) => String(feedback._id)),
+  );
+  const feedbackById = new Map(
+    feedbacks.map((feedback) => [String(feedback._id), feedback]),
+  );
+  const relatedFeedbackReviews = feedbackReviews.filter((review) =>
+    filteredFeedbackIds.has(String(review.feedback)),
+  );
+  const displayedReviews = [...relatedFeedbackReviews, ...filteredPlatformReviews].sort(
+    (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
+  );
+  const reviewsSectionLoading =
+    feedbacksLoading || feedbackReviewsLoading || platformReviewsLoading;
+  const hasActiveReviewFilters =
+    reviewUserFilter !== "all" || Boolean(reviewFromDate) || Boolean(reviewToDate);
+  const filteredReviewContentExists =
+    filteredFeedbacks.length > 0 || displayedReviews.length > 0;
+
+  const analysisFeedbacks = feedbacks;
+  const analysisReviews = platformReviews;
+
+  const monthlyAnalysis = Array.from({ length: 6 }, (_, index) => {
+    const monthDate = new Date();
+    monthDate.setDate(1);
+    monthDate.setMonth(monthDate.getMonth() - (5 - index));
+
+    const month = monthDate.getMonth();
+    const year = monthDate.getFullYear();
+
+    const monthFeedbacks = analysisFeedbacks.filter((item) => {
+      const itemDate = new Date(item.createdAt);
+      return itemDate.getMonth() === month && itemDate.getFullYear() === year;
+    });
+
+    const monthReviews = analysisReviews.filter((item) => {
+      const itemDate = new Date(item.createdAt);
+      return itemDate.getMonth() === month && itemDate.getFullYear() === year;
+    });
+
+    return {
+      key: `${year}-${month}`,
+      label: monthDate.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      }),
+      feedbackCount: monthFeedbacks.length,
+      reviewCount: monthReviews.length,
+      feedbackAvg: averageRatingLabel(monthFeedbacks),
+      reviewAvg: averageRatingLabel(monthReviews),
+    };
+  });
+
+  const maxMonthlyVolume =
+    Math.max(
+      ...monthlyAnalysis.map((month) =>
+        Math.max(month.feedbackCount, month.reviewCount),
+      ),
+      1,
+    ) || 1;
+
+  const currentMonthAnalysis =
+    monthlyAnalysis[monthlyAnalysis.length - 1] || monthlyAnalysis[0];
 
   if (loading) {
     return (
@@ -2235,106 +2386,460 @@ const AdminDashboard = () => {
 
               {activeTab === "reviews" && (
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-white flex items-center">
-                      <i className="fas fa-comment-dots text-green-400 mr-2"></i>
-                      Platform Reviews
-                      {platformReviews.length > 0 && (
-                        <span className="ml-2 px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded-full">
-                          {platformReviews.length}
-                        </span>
-                      )}
-                    </h3>
-                    <button
-                      onClick={fetchPlatformReviews}
-                      className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-green-200/60 hover:text-white transition-all"
-                    >
-                      <i className="fas fa-sync-alt mr-1"></i>Refresh
-                    </button>
+                  <div className="flex flex-col gap-4 mb-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                      <div>
+                        <h3 className="text-lg font-semibold text-white flex items-center">
+                          <i className="fas fa-comment-dots text-green-400 mr-2"></i>
+                          Feedback & Reviews
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => {
+                          fetchFeedbacks();
+                          fetchFeedbackReviews();
+                          fetchPlatformReviews();
+                        }}
+                        className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-green-200/60 hover:text-white transition-all self-start lg:self-auto"
+                      >
+                        <i className="fas fa-sync-alt mr-1"></i>Refresh
+                      </button>
+                    </div>
                   </div>
-                  {platformReviewsLoading ? (
+
+                  {reviewsSectionLoading ? (
                     <div className="text-center py-10">
                       <i className="fas fa-spinner fa-spin text-2xl text-green-400"></i>
                       <p className="text-sm text-green-200/50 mt-2">
-                        Loading reviews...
-                      </p>
-                    </div>
-                  ) : platformReviews.length === 0 ? (
-                    <div className="text-center py-10">
-                      <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
-                        <i className="fas fa-comment-slash text-xl text-green-200/30"></i>
-                      </div>
-                      <p className="text-white font-medium">No reviews yet</p>
-                      <p className="text-xs text-green-200/40 mt-1">
-                        Reviews from donors and recipients will appear here
+                        Loading feedback analysis...
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      {platformReviews.map((review) => (
-                        <div
-                          key={review._id}
-                          className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.07] transition-all"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-400 flex items-center justify-center text-white text-sm font-bold shadow-md">
-                                {review.user?.username
-                                  ?.charAt(0)
-                                  ?.toUpperCase() || "U"}
-                              </div>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center mb-3">
+                            <i className="fas fa-message text-emerald-300"></i>
+                          </div>
+                          <p className="text-2xl font-bold text-white">
+                            {analysisFeedbacks.length}
+                          </p>
+                          <p className="text-xs text-green-200/50 mt-1">
+                            Feedbacks
+                          </p>
+                          <p className="text-[11px] text-green-200/35 mt-1">
+                            {currentMonthAnalysis.feedbackCount} this month
+                          </p>
+                        </div>
+
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                          <div className="w-10 h-10 rounded-xl bg-yellow-500/15 flex items-center justify-center mb-3">
+                            <i className="fas fa-star text-yellow-300"></i>
+                          </div>
+                          <p className="text-2xl font-bold text-white">
+                            {analysisReviews.length}
+                          </p>
+                          <p className="text-xs text-green-200/50 mt-1">
+                            Reviews
+                          </p>
+                          <p className="text-[11px] text-green-200/35 mt-1">
+                            {currentMonthAnalysis.reviewCount} this month
+                          </p>
+                        </div>
+
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                          <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center mb-3">
+                            <i className="fas fa-chart-line text-blue-300"></i>
+                          </div>
+                          <p className="text-2xl font-bold text-white">
+                            {averageRatingLabel(analysisFeedbacks)}
+                          </p>
+                          <p className="text-xs text-green-200/50 mt-1">
+                            Avg Feedback Rating
+                          </p>
+                          <p className="text-[11px] text-green-200/35 mt-1">
+                            Current month: {currentMonthAnalysis.feedbackAvg}
+                          </p>
+                        </div>
+
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                          <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center mb-3">
+                            <i className="fas fa-chart-area text-purple-300"></i>
+                          </div>
+                          <p className="text-2xl font-bold text-white">
+                            {averageRatingLabel(analysisReviews)}
+                          </p>
+                          <p className="text-xs text-green-200/50 mt-1">
+                            Avg Review Rating
+                          </p>
+                          <p className="text-[11px] text-green-200/35 mt-1">
+                            Current month: {currentMonthAnalysis.reviewAvg}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-5">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h4 className="text-sm font-semibold text-white">
+                              Monthly Analysis
+                            </h4>
+                            <p className="text-xs text-green-200/45 mt-1">
+                              Last 6 months of feedback and review activities.                            </p>
+                          </div>
+                          <span className="text-[11px] text-green-200/35">
+                            Max monthly volume: {maxMonthlyVolume}
+                          </span>
+                        </div>
+
+                        <div className="space-y-4">
+                          {monthlyAnalysis.map((month) => (
+                            <div
+                              key={month.key}
+                              className="grid grid-cols-1 lg:grid-cols-[110px_minmax(0,1fr)_160px] gap-3 items-center"
+                            >
                               <div>
-                                <p className="text-sm text-white font-medium">
-                                  {review.user?.username || "Unknown"}
+                                <p className="text-sm font-medium text-white">
+                                  {month.label}
                                 </p>
-                                <div className="flex items-center space-x-2">
-                                  <span className="text-[11px] text-green-200/40">
-                                    {review.user?.email}
-                                  </span>
-                                  <span
-                                    className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
-                                      review.user?.role === "Donor"
-                                        ? "bg-blue-500/15 text-blue-400"
-                                        : "bg-purple-500/15 text-purple-400"
-                                    }`}
-                                  >
-                                    {review.user?.role}
-                                  </span>
+                                <p className="text-[11px] text-green-200/35">
+                                  {month.feedbackCount + month.reviewCount} total
+                                </p>
+                              </div>
+
+                              <div className="space-y-2">
+                                <div>
+                                  <div className="flex items-center justify-between text-[11px] text-green-200/50 mb-1">
+                                    <span>Feedbacks</span>
+                                    <span>{month.feedbackCount}</span>
+                                  </div>
+                                  <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-green-300"
+                                      style={{
+                                        width: `${(month.feedbackCount / maxMonthlyVolume) * 100}%`,
+                                      }}
+                                    ></div>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <div className="flex items-center justify-between text-[11px] text-green-200/50 mb-1">
+                                    <span>Reviews</span>
+                                    <span>{month.reviewCount}</span>
+                                  </div>
+                                  <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full bg-gradient-to-r from-yellow-500 to-amber-300"
+                                      style={{
+                                        width: `${(month.reviewCount / maxMonthlyVolume) * 100}%`,
+                                      }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="bg-white/5 rounded-xl px-3 py-2 border border-white/5">
+                                  <p className="text-[10px] uppercase tracking-[0.18em] text-green-200/30">
+                                    Fb Avg
+                                  </p>
+                                  <p className="text-sm font-semibold text-white mt-1">
+                                    {month.feedbackAvg}
+                                  </p>
+                                </div>
+                                <div className="bg-white/5 rounded-xl px-3 py-2 border border-white/5">
+                                  <p className="text-[10px] uppercase tracking-[0.18em] text-green-200/30">
+                                    Rv Avg
+                                  </p>
+                                  <p className="text-sm font-semibold text-white mt-1">
+                                    {month.reviewAvg}
+                                  </p>
                                 </div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div className="flex items-center space-x-0.5">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <i
-                                    key={star}
-                                    className={`fas fa-star text-xs ${
-                                      star <= review.rating
-                                        ? "text-yellow-400"
-                                        : "text-white/10"
-                                    }`}
-                                  ></i>
-                                ))}
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                      <div className="md:col-span-2 bg-white/5 border border-white/10 rounded-xl p-4">
+                        <label className="text-[11px] uppercase tracking-[0.18em] text-green-200/40 block mb-2">
+                          Filter By User
+                        </label>
+                        <select
+                          value={reviewUserFilter}
+                          onChange={(e) => setReviewUserFilter(e.target.value)}
+                          className="w-full bg-[#10263a] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none"
+                        >
+                          <option value="all">All users</option>
+                          {reviewUserOptions.map((option) => (
+                            <option key={option.id} value={option.id}>
+                              {option.username} ({option.role})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                        <label className="text-[11px] uppercase tracking-[0.18em] text-green-200/40 block mb-2">
+                          From Date
+                        </label>
+                        <input
+                          type="date"
+                          value={reviewFromDate}
+                          max={reviewToDate || undefined}
+                          onChange={(e) => {
+                            const nextFromDate = e.target.value;
+                            setReviewFromDate(nextFromDate);
+                            if (
+                              reviewToDate &&
+                              nextFromDate &&
+                              reviewToDate < nextFromDate
+                            ) {
+                              setReviewToDate("");
+                            }
+                          }}
+                          className="w-full bg-[#10263a] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none"
+                        />
+                      </div>
+
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-[11px] uppercase tracking-[0.18em] text-green-200/40 block">
+                            To Date
+                          </label>
+                          {(reviewUserFilter !== "all" ||
+                            reviewFromDate ||
+                            reviewToDate) && (
+                            <button
+                              onClick={() => {
+                                setReviewUserFilter("all");
+                                setReviewFromDate("");
+                                setReviewToDate("");
+                              }}
+                              className="text-[11px] text-red-300 hover:text-red-200 transition-colors"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                        <input
+                          type="date"
+                          value={reviewToDate}
+                          min={reviewFromDate || undefined}
+                          onChange={(e) => setReviewToDate(e.target.value)}
+                          className="w-full bg-[#10263a] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none"
+                        />
+                      </div>
+                    </div>
+
+                      {!hasActiveReviewFilters ? (
+                        <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-8 text-center">
+                          <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
+                            <i className="fas fa-filter text-xl text-green-200/30"></i>
+                          </div>
+                          <p className="text-white font-medium">
+                            Select at least one filter to view feedback and reviews
+                          </p>
+                          <p className="text-xs text-green-200/40 mt-1">
+                            Choose a user, start date, or end date to load filtered results
+                          </p>
+                        </div>
+                      ) : !filteredReviewContentExists ? (
+                        <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-8 text-center">
+                          <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
+                            <i className="fas fa-comment-slash text-xl text-green-200/30"></i>
+                          </div>
+                          <p className="text-white font-medium">
+                            No feedbacks or reviews found
+                          </p>
+                          <p className="text-xs text-green-200/40 mt-1">
+                            Try changing the user or date filter to see more data
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-5">
+                            <div className="flex items-center justify-between mb-4">
+                              <div>
+                                <h4 className="text-sm font-semibold text-white">
+                                  Feedbacks
+                                </h4>
                               </div>
-                              <p className="text-[10px] text-green-200/30 mt-1">
-                                {new Date(review.createdAt).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  },
-                                )}
-                              </p>
+                              <span className="px-2 py-0.5 text-xs bg-emerald-500/15 text-emerald-300 rounded-full">
+                                {filteredFeedbacks.length}
+                              </span>
+                            </div>
+
+                            <div className="space-y-3 max-h-[680px] overflow-y-auto pr-1">
+                              {filteredFeedbacks.length === 0 ? (
+                                <div className="text-center py-8 text-sm text-green-200/40">
+                                  No feedbacks match the current filters.
+                                </div>
+                              ) : (
+                                filteredFeedbacks.map((feedback) => (
+                                  <div
+                                    key={feedback._id}
+                                    className="bg-white/5 border border-white/10 rounded-xl p-4"
+                                  >
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-green-400 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                                          {getInitials(feedback.user?.username)}
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-medium text-white">
+                                            {feedback.user?.username || "Unknown"}
+                                          </p>
+                                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                                            <span className="text-[11px] text-green-200/40">
+                                              {feedback.user?.email || "No email"}
+                                            </span>
+                                            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-500/15 text-emerald-300">
+                                              {feedback.user?.role || "User"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <div className="flex items-center justify-end gap-0.5">
+                                          {[1, 2, 3, 4, 5].map((star) => (
+                                            <i
+                                              key={star}
+                                              className={`fas fa-star text-xs ${
+                                                star <= Number(feedback.rating || 0)
+                                                  ? "text-yellow-400"
+                                                  : "text-white/10"
+                                              }`}
+                                            ></i>
+                                          ))}
+                                        </div>
+                                        <p className="text-[10px] text-green-200/30 mt-1">
+                                          {formatShortDate(feedback.createdAt)}
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                      {feedback.need?.title && (
+                                        <span className="px-2.5 py-1 rounded-full text-[11px] bg-blue-500/15 text-blue-300">
+                                          Need: {feedback.need.title}
+                                        </span>
+                                      )}
+                                      {feedback.need?.category && (
+                                        <span className="px-2.5 py-1 rounded-full text-[11px] bg-white/5 text-green-200/55">
+                                          {feedback.need.category}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="mt-3 bg-white/5 rounded-lg px-3 py-2 border-l-2 border-emerald-400/30">
+                                      <p className="text-sm text-green-200/70">
+                                        {feedback.content}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
                             </div>
                           </div>
-                          <div className="mt-3 bg-white/5 rounded-lg px-3 py-2 border-l-2 border-green-400/30">
-                            <p className="text-sm text-green-200/70">
-                              {review.content}
-                            </p>
+
+                          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-5">
+                            <div className="flex items-center justify-between mb-4">
+                              <div>
+                                <h4 className="text-sm font-semibold text-white">
+                                  Reviews
+                                </h4>
+                              </div>
+                              <span className="px-2 py-0.5 text-xs bg-yellow-500/15 text-yellow-300 rounded-full">
+                                {displayedReviews.length}
+                              </span>
+                            </div>
+
+                            <div className="space-y-3 max-h-[680px] overflow-y-auto pr-1">
+                              {displayedReviews.length === 0 ? (
+                                <div className="text-center py-8 text-sm text-green-200/40">
+                                  No reviews match the current filters.
+                                </div>
+                              ) : (
+                                displayedReviews.map((review) => (
+                                  <div
+                                    key={`${review.feedback ? "feedback" : "platform"}-${review._id}`}
+                                    className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.07] transition-all"
+                                  >
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex items-center space-x-3">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-400 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                                          {review.user?.username
+                                            ?.charAt(0)
+                                            ?.toUpperCase() || "U"}
+                                        </div>
+                                        <div>
+                                          <p className="text-sm text-white font-medium">
+                                            {review.user?.username || "Unknown"}
+                                          </p>
+                                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                                            <span className="text-[11px] text-green-200/40">
+                                              {review.user?.email || "No email"}
+                                            </span>
+                                            <span
+                                              className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                                                review.user?.role === "Donor"
+                                                  ? "bg-blue-500/15 text-blue-400"
+                                                  : "bg-purple-500/15 text-purple-400"
+                                              }`}
+                                            >
+                                              {review.user?.role || "User"}
+                                            </span>
+                                            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-white/5 text-green-200/55">
+                                              {review.feedback ? "Feedback Review" : "Platform Review"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <div className="flex items-center justify-end space-x-0.5">
+                                          {[1, 2, 3, 4, 5].map((star) => (
+                                            <i
+                                              key={star}
+                                              className={`fas fa-star text-xs ${
+                                                star <= Number(review.rating || 0)
+                                                  ? "text-yellow-400"
+                                                  : "text-white/10"
+                                              }`}
+                                            ></i>
+                                          ))}
+                                        </div>
+                                        <p className="text-[10px] text-green-200/30 mt-1">
+                                          {formatShortDate(review.createdAt)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    {review.feedback && (
+                                      <div className="mt-3 flex flex-wrap gap-2">
+                                        {feedbackById.get(String(review.feedback))?.need?.title && (
+                                          <span className="px-2.5 py-1 rounded-full text-[11px] bg-blue-500/15 text-blue-300">
+                                            Need: {feedbackById.get(String(review.feedback)).need.title}
+                                          </span>
+                                        )}
+                                        <span className="px-2.5 py-1 rounded-full text-[11px] bg-emerald-500/15 text-emerald-300">
+                                          Linked to feedback
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div className="mt-3 bg-white/5 rounded-lg px-3 py-2 border-l-2 border-green-400/30">
+                                      <p className="text-sm text-green-200/70">
+                                        {review.description || review.content}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
                           </div>
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
                 </div>

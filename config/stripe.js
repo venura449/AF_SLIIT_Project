@@ -1,11 +1,13 @@
-const Stripe = require("stripe")
-const key = process.env.STRIPE_SECRET;
+const Stripe = require('stripe');
 
-if (!key && process.env.NODE_ENV !== "test") {
-  throw new Error("STRIPE_SECRET_KEY is missing in environment variables");
-}
+const isTest = process.env.NODE_ENV === "test";
 
-
-const stripe = new Stripe(key);
+const stripe = isTest
+  ? {
+      paymentIntents: {
+        create: async () => ({ id: "dummy_pi" })
+      }
+    }
+  : new Stripe(process.env.STRIPE_SECRET);
 
 module.exports = stripe;

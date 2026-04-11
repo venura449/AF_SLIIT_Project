@@ -53,6 +53,9 @@ export const getAllNeedsAdmin = async () => {
   const response = await api.get(`${baseUrl}/needs/all-admin`);
   return response.data.data || response.data;
 };
+export const createPaymentIntent = (amount) => {
+  return axios.post("/api/payment/create-payment-intent", { amount });
+};
 
 export const createDonation = async (donationData) => {
   const response = await api.post(`${baseUrl}/donation`, donationData);

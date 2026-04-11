@@ -4,6 +4,8 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { Elements } from "@stripe/react-stripe-js";
+import { stripePromise } from "./services/stripe";
 import { useEffect } from "react";
 import Login from "./pages/Venura/Login";
 import Register from "./pages/Venura/Register";
@@ -29,6 +31,7 @@ import { listenForForegroundMessages } from "../firebase";
 
 function AppRoutes() {
   return (
+    
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
@@ -71,14 +74,16 @@ function AppRoutes() {
           </PrivateRoute>
         }
       />
-      <Route
-        path="/donor-needs"
-        element={
-          <PrivateRoute roles={["Donor"]}>
-            <DonorNeeds />
-          </PrivateRoute>
-        }
-      />
+    <Route
+  path="/donor-needs"
+  element={
+    <PrivateRoute roles={["Donor"]}>
+      <Elements stripe={stripePromise}>
+        <DonorNeeds />
+      </Elements>
+    </PrivateRoute>
+  }
+/>
       <Route
         path="/donor-items"
         element={

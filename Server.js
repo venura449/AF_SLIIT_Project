@@ -94,7 +94,7 @@ app.use('/api/v1/donation', donationRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/items', itemListingRoutes);
 app.use('/api/v1/messages', messageRoutes);
-app.use('/api/payment', paymentRoutes);
+app.use('/api/v1/payment', paymentRoutes);
 
 // Serve uploaded files (protected - only admin can access via API)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

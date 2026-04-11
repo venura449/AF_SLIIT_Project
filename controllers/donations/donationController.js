@@ -29,9 +29,7 @@ exports.createDonationAfterPayment = async (req, res, next) => {
         message: "Payment ID is required for card donations",
       });
     }
-
-
-    // Check if Need exists
+   // Check Need
     const existingNeed = await Need.findById(need);
 
     if (!existingNeed) {
@@ -40,7 +38,7 @@ exports.createDonationAfterPayment = async (req, res, next) => {
         message: "Need not found",
       });
     }
-    // Must be verified
+
     if (!existingNeed.isVerified) {
       return res.status(400).json({
         success: false,
@@ -48,7 +46,6 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       });
     }
 
-    // Cannot donate if cancelled or fulfilled
     if (
       existingNeed.status === "Cancelled" ||
       existingNeed.status === "Fulfilled"
@@ -59,9 +56,12 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       });
     }
 
-    // For Cash/Card, check remaining amount
-    if (donationType === 'Cash' || donationType === 'Card') {
-      const remaining = Number(existingNeed.goalAmount) - Number(existingNeed.currentAmount);
+    // Check remaining amount
+    if (donationType === "Cash" || donationType === "Card") {
+      const remaining =
+        Number(existingNeed.goalAmount) -
+        Number(existingNeed.currentAmount);
+
       if (Number(amount) > remaining) {
         return res.status(400).json({
           success: false,
@@ -70,7 +70,7 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       }
     }
 
-    // Create Donation
+    // Create Donation - PENDING
     const donation = await donationService.createDonation({
       donor: req.user._id,
       need: existingNeed._id,
@@ -80,6 +80,8 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       phoneNumber: (donationType === 'Cash' || donationType === 'Card') ? phoneNumber : undefined,
       message: (donationType === 'Cash' || donationType === 'Card') ? message : undefined,
       isAnonymous,
+      status: "Pending",
+      paymentIntentId: donationType === "Card" ? paymentIntentId : undefined,
     });
 
     let finalDonation = donation;
@@ -87,24 +89,35 @@ exports.createDonationAfterPayment = async (req, res, next) => {
     if (donationType === "Card") {
       finalDonation = await donationService.confirmDonation(
         donation._id,
-        paymentIntentId // Stripe ID
+        paymentIntentId
       );
     }
 
     // Update Need progress only for Cash/Card
-    if (donationType === 'Cash' || donationType === 'Card') {
-      existingNeed.currentAmount =
-        Number(existingNeed.currentAmount) + Number(amount);
+    
+if (donationType === 'Cash' || donationType === 'Card') {
 
-      if (existingNeed.currentAmount >= existingNeed.goalAmount) {
-        existingNeed.currentAmount = existingNeed.goalAmount;
-        existingNeed.status = "Fulfilled";
-      } else {
-        existingNeed.status = "Partially Funded";
+  const updatedNeed = await Need.findByIdAndUpdate(
+    existingNeed._id,
+    {
+      $inc: {
+        currentAmount: Number(amount),
+        goalAmount: -Number(amount)   // 👈 reduce goal
       }
+    },
+    { new: true }
+  );
 
-      await existingNeed.save();
-    }
+  // Fix negative values
+  if (updatedNeed.goalAmount < 0) {
+    updatedNeed.goalAmount = 0;
+  }
+
+  updatedNeed.status =
+    updatedNeed.goalAmount === 0 ? "Fulfilled" : "Partially Funded";
+
+  await updatedNeed.save();
+}
 
     try {
       // Send notification to recipient
@@ -134,7 +147,7 @@ exports.createDonationAfterPayment = async (req, res, next) => {
   }
 };
 
-// Confirm Donation
+// Confirm Donation (Admin)
 exports.confirmDonation = async (req, res, next) => {
   try {
     const donationId = req.params.id;

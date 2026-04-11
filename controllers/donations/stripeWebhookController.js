@@ -1,4 +1,15 @@
-const stripe = require("stripe")(process.env.STRIPE_SECRET);
+require("dotenv").config();
+const Stripe = require("stripe");
+
+if (!process.env.STRIPE_SECRET && process.env.NODE_ENV !== "test") {
+  throw new Error("STRIPE_SECRET missing");
+}
+
+const stripe =
+  process.env.NODE_ENV === "test"
+    ? null
+    : new Stripe(process.env.STRIPE_SECRET);
+
 const Donation = require("../../models/donations/Donation");
 const Need = require("../../models/donations/Need");
 

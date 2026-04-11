@@ -4,7 +4,6 @@ const Need = require('../../models/donations/Need');
 const { sendNotificationSingleUser } = require("../../services/notifications/notificationService");
 const stripe = require("../../config/stripe");
 
-console.log("Controller Key:", process.env.STRIPE_SECRET);
 
 // Create Donation
 exports.createDonationAfterPayment = async (req, res, next) => {
@@ -61,7 +60,7 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       });
     }
 
-    // ✅ UPDATED: Check using remaining goalAmount
+
     if (donationType === 'Cash' || donationType === 'Card') {
       if (Number(amount) > existingNeed.goalAmount) {
         return res.status(400).json({

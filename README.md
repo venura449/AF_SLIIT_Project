@@ -193,6 +193,7 @@ Interactive documentation is available at `/api-docs` (Swagger UI) when the serv
 #### Example Requests & Responses
 
 **Signup Request:**
+
 ```bash
 curl -X POST http://localhost:5001/api/v1/auth/signup \
   -H "Content-Type: application/json" \
@@ -205,6 +206,7 @@ curl -X POST http://localhost:5001/api/v1/auth/signup \
 ```
 
 **Signup Response (201 Created):**
+
 ```json
 {
   "message": "Signup successful",
@@ -220,6 +222,7 @@ curl -X POST http://localhost:5001/api/v1/auth/signup \
 ```
 
 **Login Request:**
+
 ```bash
 curl -X POST http://localhost:5001/api/v1/auth/login \
   -H "Content-Type: application/json" \
@@ -230,12 +233,14 @@ curl -X POST http://localhost:5001/api/v1/auth/login \
 ```
 
 **Get Profile (Protected Route):**
+
 ```bash
 curl -X GET http://localhost:5001/api/v1/auth/profile \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
 **Profile Response (200 OK):**
+
 ```json
 {
   "user": {
@@ -352,9 +357,9 @@ curl -X GET http://localhost:5001/api/v1/auth/profile \
 **Testing Framework:** Jest 30.2.0  
 **HTTP Client:** Supertest 7.2.2  
 **Load Testing:** Artillery.io 2.0.30  
-**Node.js Version:** ≥ 18  
+**Node.js Version:** ≥ 18
 
-**Test Database:** MongoDB (separate test instance recommended)  
+**Test Database:** MongoDB  
 **Timeout:** 60 seconds (standard) / 120 seconds (CI environments)
 
 ### Unit & Integration Tests
@@ -364,20 +369,23 @@ Tests use **Jest** + **Supertest** to verify API endpoints, business logic, and 
 #### Setup
 
 1. **Configure test environment:**
+
    ```bash
    # Windows
    set NODE_ENV=test
    set MONGO_URI=mongodb://localhost:27017/af_sliit_test
-   
+
    # Mac/Linux
    export NODE_ENV=test
    export MONGO_URI=mongodb://localhost:27017/af_sliit_test
    ```
 
 2. **Run all tests:**
+
    ```bash
    npm test
    ```
+
    This command:
    - Sets `NODE_ENV=test` automatically
    - Skips MongoDB connection in `Server.js`
@@ -391,19 +399,20 @@ Tests use **Jest** + **Supertest** to verify API endpoints, business logic, and 
 
 #### Test Coverage
 
-| Test File                                    | Type          | Component       | Test Cases                                          |
-| -------------------------------------------- | ------------- | --------------- | --------------------------------------------------- |
-| `tests/Venura/server.test.js`                | Integration   | Server/Health   | Health check, root endpoint, API structure          |
-| `tests/Venura/authController.test.js`        | Integration   | Auth            | Signup validation, login flow, JWT token handling  |
-| `tests/Venura/usermanagement.test.js`        | Integration   | User Mgmt       | Admin controls, user deactivation, RBAC            |
-| `tests/Heyli/adminDash.test.js`              | Unit (mocked) | Admin Dashboard | Dashboard stats aggregation, weather API calls      |
-| `tests/Heyli/feedbackController.test.js`     | Integration   | Feedback        | Feedback CRUD, review submission, rating logic     |
-| `tests/Lochana/needController.test.js`       | Integration   | Needs           | Need creation, filtering, approval workflow        |
-| `tests/Risini/itemListingController.test.js` | Integration   | Item Listings   | Item CRUD, image upload, browse with filters       |
+| Test File                                    | Type          | Component       | Test Cases                                        |
+| -------------------------------------------- | ------------- | --------------- | ------------------------------------------------- |
+| `tests/Venura/server.test.js`                | Integration   | Server/Health   | Health check, root endpoint, API structure        |
+| `tests/Venura/authController.test.js`        | Integration   | Auth            | Signup validation, login flow, JWT token handling |
+| `tests/Venura/usermanagement.test.js`        | Integration   | User Mgmt       | Admin controls, user deactivation, RBAC           |
+| `tests/Heyli/adminDash.test.js`              | Unit (mocked) | Admin Dashboard | Dashboard stats aggregation, weather API calls    |
+| `tests/Heyli/feedbackController.test.js`     | Integration   | Feedback        | Feedback CRUD, review submission, rating logic    |
+| `tests/Lochana/needController.test.js`       | Integration   | Needs           | Need creation, filtering, approval workflow       |
+| `tests/Risini/itemListingController.test.js` | Integration   | Item Listings   | Item CRUD, image upload, browse with filters      |
 
 #### Expected Test Output
 
 Successful test run example:
+
 ```
  PASS  tests/Venura/server.test.js
  PASS  tests/Venura/authController.test.js
@@ -424,12 +433,15 @@ Time:        XX.XXXs
 #### Setup
 
 1. **Start the backend server:**
+
    ```bash
    npm run dev      # Terminal 1
    ```
+
    Verify it's running: `curl http://localhost:5001/health`
 
 2. **Run load test:**
+
    ```bash
    npm run test:perf    # Terminal 2
    ```
@@ -446,19 +458,21 @@ Time:        XX.XXXs
 
 The test runs 3 phases to simulate realistic traffic patterns:
 
-| Phase          | Duration | VU Range   | Purpose                                    |
-| -------------- | -------- | ---------- | ------------------------------------------ |
-| Warm-up        | 30 s     | 1 → 10     | Ramp up gradually, cache warm              |
-| Sustained Load | 60 s     | 10 (const) | Normal operation baseline                  |
-| Spike          | 20 s     | 30 (peak)  | Test system under sudden traffic surge     |
+| Phase          | Duration | VU Range   | Purpose                                |
+| -------------- | -------- | ---------- | -------------------------------------- |
+| Warm-up        | 30 s     | 1 → 10     | Ramp up gradually, cache warm          |
+| Sustained Load | 60 s     | 10 (const) | Normal operation baseline              |
+| Spike          | 20 s     | 30 (peak)  | Test system under sudden traffic surge |
 
 **Endpoints Tested:**
+
 - `GET /health` (health check)
 - `GET /api/v1/needs/getall` (fetch needs with filters)
 - `GET /api/v1/items/available` (browse items)
 - `POST /api/v1/auth/login` (authentication)
 
 **Performance Thresholds:**
+
 - Response time p95: < 500ms
 - Error rate: < 1%
 - Throughput: > 50 requests/sec
@@ -471,7 +485,7 @@ Summary report:
   Scenarios completed: 98
   Requests launched:   1,200
   Requests completed:  1,190
-  
+
 Response time (ms):
   min: 45
   max: 2,340
@@ -485,6 +499,7 @@ High p95/p99 values indicate latency under peak load. Adjust database indexes or
 ### CI/CD Testing (GitHub Actions)
 
 Tests are configured to run in GitHub Actions with extended timeouts for slower CI environments:
+
 - **Local Testing:** 60 second timeout
 - **CI Testing:** 120 second timeout
 - **Global Setup:** Database seeding before test suite runs
@@ -497,13 +512,10 @@ This section documents the deployment of both backend and frontend applications 
 
 ### Deployment Summary
 
-| Component | Platform  | Status     | Live URL                                      |
-| --------- | --------- | ---------- | --------------------------------------------- |
-| Backend   | Render    | ✅ Active   | `https://af-sliit-project.onrender.com`       |
-| Frontend  | Vercel    | ✅ Active   | `https://af-sliit-project.vercel.app`         |
-
-**Last Deployment:** April 10, 2026  
-**Repository:** [GitHub - AF_SLIIT_Project](https://github.com/venura449/AF_SLIIT_Project)
+| Component | Platform | Status    | Live URL                                |
+| --------- | -------- | --------- | --------------------------------------- |
+| Backend   | Render   | ✅ Active | `https://af-sliit-project.onrender.com` |
+| Frontend  | Vercel   | ✅ Active | `https://af-sliit-project.vercel.app`   |
 
 ### Deployment Evidence
 
@@ -512,12 +524,14 @@ This section documents the deployment of both backend and frontend applications 
 **Status:** ✅ Live and operational
 
 **Evidence:** [Backend_server_log.png](Images/Backend_server_log.png)
+
 - Build: ✅ Successful
 - MongoDB: ✅ Connected
 - Service: ✅ Live on port 5001
 - Auto-deployment: ✅ Enabled
 
 **Health Check:**
+
 ```bash
 curl https://af-sliit-project.onrender.com/health
 # Response: {"status":"ok","message":"Server is running","timestamp":"2026-04-10T..."}
@@ -528,12 +542,14 @@ curl https://af-sliit-project.onrender.com/health
 **Status:** ✅ Live and operational
 
 **Evidence:** [Frontend.png](Images/Frontend.png) | [Frontend_logs.png](Images/Frontend_logs.png)
+
 - Build: ✅ Successful (Vite)
 - Deployment: ✅ Ready
 - Domain: ✅ af-sliit-project.vercel.app
 - Analytics: ✅ 26 edge requests
 
 **Live App:** https://af-sliit-project.vercel.app
+
 - Application Name: BridgeConnect
 - Features: All functional (Donor Dashboard, Item Listings, Notifications)
 
@@ -542,6 +558,7 @@ curl https://af-sliit-project.onrender.com/health
 ### Backend Deployment Setup (Render)
 
 #### Prerequisites
+
 - Free or paid Render account
 - GitHub repository with code
 - All environment variables configured
@@ -549,119 +566,130 @@ curl https://af-sliit-project.onrender.com/health
 #### Step-by-Step Setup
 
 **1. Create a new Web Service on Render**
-   - Login to [Render Dashboard](https://dashboard.render.com)
-   - Click **New** → **Web Service**
-   - Select **Build and deploy from a Git repository**
-   - Connect your GitHub account and authorize Render
-   - Select the `AF_SLIIT_Project` repository
-   - Select `main` branch
+
+- Login to [Render Dashboard](https://dashboard.render.com)
+- Click **New** → **Web Service**
+- Select **Build and deploy from a Git repository**
+- Connect your GitHub account and authorize Render
+- Select the `AF_SLIIT_Project` repository
+- Select `main` branch
 
 **2. Configure the service**
-   - **Name:** `af-sliit-project`
-   - **Runtime:** `Node`
-   - **Region:** Choose closest to your users (e.g., Singapore, Mumbai)
-   - **Branch:** `main`
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
+
+- **Name:** `af-sliit-project`
+- **Runtime:** `Node`
+- **Region:** Choose closest to your users (e.g., Singapore, Mumbai)
+- **Branch:** `main`
+- **Build Command:** `npm install`
+- **Start Command:** `npm start`
 
 **3. Add environment variables**
-   
-   In Render Dashboard → **Environment** tab, add all backend variables:
-   ```
-   PORT=5001
-   NODE_ENV=production
-   MONGO_URI=<your-mongodb-atlas-uri>
-   JWT_SECRET=<your-jwt-secret>
-   CLOUDINARY_NAME=<cloudinary-cloud-name>
-   CLOUDINARY_KEY=<cloudinary-api-key>
-   CLOUDINARY_SECRET=<cloudinary-api-secret>
-   FIREBASE_PROJECT_ID=<firebase-project-id>
-   FIREBASE_PRIVATE_KEY=<firebase-private-key>
-   FIREBASE_CLIENT_EMAIL=<firebase-client-email>
-   OPENWEATHER_API_KEY=<openweather-api-key>
-   FRONTEND_URL=https://af-sliit-project.vercel.app
-   ```
+
+In Render Dashboard → **Environment** tab, add all backend variables:
+
+```
+PORT=5001
+NODE_ENV=production
+MONGO_URI=<your-mongodb-atlas-uri>
+JWT_SECRET=<your-jwt-secret>
+CLOUDINARY_NAME=<cloudinary-cloud-name>
+CLOUDINARY_KEY=<cloudinary-api-key>
+CLOUDINARY_SECRET=<cloudinary-api-secret>
+FIREBASE_PROJECT_ID=<firebase-project-id>
+FIREBASE_PRIVATE_KEY=<firebase-private-key>
+FIREBASE_CLIENT_EMAIL=<firebase-client-email>
+OPENWEATHER_API_KEY=<openweather-api-key>
+FRONTEND_URL=https://af-sliit-project.vercel.app
+```
 
 **4. Deploy**
-   - Click **Create Web Service**
-   - Render automatically builds and deploys
-   - Wait for "Your service is live" message
-   - Service accessible at: `https://af-sliit-project.onrender.com`
+
+- Click **Create Web Service**
+- Render automatically builds and deploys
+- Wait for "Your service is live" message
+- Service accessible at: `https://af-sliit-project.onrender.com`
 
 **5. Enable auto-deployment**
-   - Every push to `main` branch triggers automatic rebuild and deployment
-   - Monitor deployment status in Render Dashboard → **Events** tab
+
+- Every push to `main` branch triggers automatic rebuild and deployment
+- Monitor deployment status in Render Dashboard → **Events** tab
 
 #### Render Configuration Details
 
-| Setting              | Value                  |
-| -------------------- | ---------------------- |
-| **Memory**           | Standard (0.5 GB)      |
-| **CPU**              | Shared                 |
-| **Max Connections**  | 100                    |
-| **Health Check URL** | `/health`              |
+| Setting               | Value                 |
+| --------------------- | --------------------- |
+| **Memory**            | Standard (0.5 GB)     |
+| **CPU**               | Shared                |
+| **Max Connections**   | 100                   |
+| **Health Check URL**  | `/health`             |
 | **Health Check Path** | Enable                |
-| **Auto-Deploy**      | Enabled (on Git push)  |
+| **Auto-Deploy**       | Enabled (on Git push) |
 
 ---
 
 ### Frontend Deployment Setup (Vercel)
 
 #### Prerequisites
+
 - Free or pro Vercel account
 - GitHub repository connected to Vercel
-- All VITE_* environment variables ready
+- All VITE\_\* environment variables ready
 
 #### Step-by-Step Setup
 
 **1. Import project to Vercel**
-   - Login to [Vercel Dashboard](https://vercel.com/dashboard)
-   - Click **Add New** → **Project**
-   - Select **GitHub** (or connect account if not done)
-   - Choose `AF_SLIIT_Project` repository
-   - Click **Import**
+
+- Login to [Vercel Dashboard](https://vercel.com/dashboard)
+- Click **Add New** → **Project**
+- Select **GitHub** (or connect account if not done)
+- Choose `AF_SLIIT_Project` repository
+- Click **Import**
 
 **2. Configure build settings**
-   - **Framework:** React
-   - **Root Directory:** `frontend` ✅ (Auto-detected)
-   - **Build Command:** `npm run build`
-   - **Output Directory:** `dist`
-   - **Install Command:** `npm install`
+
+- **Framework:** React
+- **Root Directory:** `frontend` ✅ (Auto-detected)
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Install Command:** `npm install`
 
 **3. Add environment variables**
-   
-   In Vercel Dashboard → **Settings** → **Environment Variables**, add:
-   ```
-   VITE_API_URL=https://af-sliit-project.onrender.com/api/v1
-   VITE_FIREBASE_API_KEY=<firebase-web-api-key>
-   VITE_FIREBASE_AUTH_DOMAIN=<firebase-auth-domain>
-   VITE_FIREBASE_PROJECT_ID=<firebase-project-id>
-   VITE_FIREBASE_STORAGE_BUCKET=<firebase-storage-bucket>
-   VITE_FIREBASE_MESSAGING_SENDER_ID=<firebase-sender-id>
-   VITE_FIREBASE_APP_ID=<firebase-app-id>
-   VITE_FIREBASE_VAPID_KEY=<firebase-vapid-key>
-   ```
+
+In Vercel Dashboard → **Settings** → **Environment Variables**, add:
+
+```
+VITE_API_URL=https://af-sliit-project.onrender.com/api/v1
+VITE_FIREBASE_API_KEY=<firebase-web-api-key>
+VITE_FIREBASE_AUTH_DOMAIN=<firebase-auth-domain>
+VITE_FIREBASE_PROJECT_ID=<firebase-project-id>
+VITE_FIREBASE_STORAGE_BUCKET=<firebase-storage-bucket>
+VITE_FIREBASE_MESSAGING_SENDER_ID=<firebase-sender-id>
+VITE_FIREBASE_APP_ID=<firebase-app-id>
+VITE_FIREBASE_VAPID_KEY=<firebase-vapid-key>
+```
 
 **4. Deploy**
-   - Click **Deploy**
-   - Vite builds the React application
-   - Deployment completes in ~2-3 minutes
-   - Live at: `https://af-sliit-project.vercel.app`
+
+- Click **Deploy**
+- Vite builds the React application
+- Deployment completes in ~2-3 minutes
+- Live at: `https://af-sliit-project.vercel.app`
 
 **5. Enable auto-deployment**
-   - Default: Every push to `main` branch auto-deploys
-   - Automatic git integration handles all deployments
+
+- Default: Every push to `main` branch auto-deploys
+- Automatic git integration handles all deployments
 
 #### Vercel Configuration Files
 
 **`frontend/vercel.json`** - SPA Routing Configuration
+
 ```json
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
 ```
+
 This ensures all client-side routes redirect to `index.html` for single-page app routing.
 
 #### Vercel Settings Details
@@ -677,28 +705,24 @@ This ensures all client-side routes redirect to `index.html` for single-page app
 
 ---
 
-### Production Environment Variables
-
-> ⚠️ **SECURITY WARNING:** Never commit `.env` files or secrets to version control.
-
 #### Backend Environment Variables
 
 All variables should be set in **Render Dashboard → Environment** tab:
 
-| Variable                | Type     | Notes                                                        |
-| ----------------------- | -------- | ------------------------------------------------------------ |
-| `PORT`                  | Number   | Set to `5001` (Render assigns automatically if omitted)      |
-| `NODE_ENV`              | String   | Must be `production` for production deployment               |
-| `MONGO_URI`             | Secret   | MongoDB Atlas connection string (includes auth credentials)  |
-| `JWT_SECRET`            | Secret   | Use strong random string (min 32 characters)                 |
-| `CLOUDINARY_NAME`       | String   | From Cloudinary Dashboard                                    |
-| `CLOUDINARY_KEY`        | Secret   | From Cloudinary API Keys                                     |
-| `CLOUDINARY_SECRET`     | Secret   | From Cloudinary API Keys (keep private)                      |
-| `FIREBASE_PROJECT_ID`   | String   | From Firebase Console                                        |
-| `FIREBASE_PRIVATE_KEY`  | Secret   | From Firebase Service Account (include literal `\n`)         |
-| `FIREBASE_CLIENT_EMAIL` | String   | From Firebase Service Account                                |
-| `OPENWEATHER_API_KEY`   | Secret   | From OpenWeather API (free tier sufficient)                  |
-| `FRONTEND_URL`          | String   | Production frontend URL for CORS                             |
+| Variable                | Type   | Notes                                                       |
+| ----------------------- | ------ | ----------------------------------------------------------- |
+| `PORT`                  | Number | Set to `5001` (Render assigns automatically if omitted)     |
+| `NODE_ENV`              | String | Must be `production` for production deployment              |
+| `MONGO_URI`             | Secret | MongoDB Atlas connection string (includes auth credentials) |
+| `JWT_SECRET`            | Secret | Use strong random string (min 32 characters)                |
+| `CLOUDINARY_NAME`       | String | From Cloudinary Dashboard                                   |
+| `CLOUDINARY_KEY`        | Secret | From Cloudinary API Keys                                    |
+| `CLOUDINARY_SECRET`     | Secret | From Cloudinary API Keys (keep private)                     |
+| `FIREBASE_PROJECT_ID`   | String | From Firebase Console                                       |
+| `FIREBASE_PRIVATE_KEY`  | Secret | From Firebase Service Account (include literal `\n`)        |
+| `FIREBASE_CLIENT_EMAIL` | String | From Firebase Service Account                               |
+| `OPENWEATHER_API_KEY`   | Secret | From OpenWeather API (free tier sufficient)                 |
+| `FRONTEND_URL`          | String | Production frontend URL for CORS                            |
 
 #### Frontend Environment Variables
 
@@ -706,7 +730,7 @@ All variables should be set in **Vercel Dashboard → Settings → Environment V
 
 | Variable                            | Type   | Notes                                                  |
 | ----------------------------------- | ------ | ------------------------------------------------------ |
-| `VITE_API_URL`                      | String | Backend API base URL (use production Render URL)      |
+| `VITE_API_URL`                      | String | Backend API base URL (use production Render URL)       |
 | `VITE_FIREBASE_API_KEY`             | String | Web API key from Firebase Console                      |
 | `VITE_FIREBASE_AUTH_DOMAIN`         | String | Firebase auth domain (e.g., `project.firebaseapp.com`) |
 | `VITE_FIREBASE_PROJECT_ID`          | String | Firebase project ID                                    |
@@ -737,11 +761,13 @@ After deployment, verify:
 ### Monitoring Deployed Applications
 
 **Render:**
+
 - Dashboard → **Metrics** tab: CPU, memory, requests
 - Dashboard → **Logs** tab: Real-time application logs
 - Dashboard → **Events** tab: Deployment history
 
 **Vercel:**
+
 - Dashboard → **Analytics** tab: Web Vitals, Core Web Performance
 - Dashboard → **Logs** tab: Build and deployment logs
 - Dashboard → **Observability** → **Speed Insights**: Page performance
@@ -754,16 +780,17 @@ The project was developed collaboratively by a team of four members. Each member
 
 ### Team Structure
 
-| Member    | Role               | Components                           | Responsibilities                                                                         |
-| --------- | ------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------- |
-| **Venura**  | Backend Developer  | Auth & User Management               | JWT authentication, user signup/login/profile, NIC document verification, admin controls |
-| **Lochana** | Backend Developer  | Needs & Donations                    | Need request CRUD, donation flow (cash/card/goods), fulfillment tracking, filtering      |
-| **Risini**  | Full-Stack Developer | Item Listings & Messaging            | Donor item listings, browse/search, image uploads, messaging system per item             |
-| **Heyli**   | Frontend & Backend | Feedback & Admin Dashboard           | Feedback/reviews CRUD, admin statistics, OpenWeather API integration, dashboard UI       |
+| Member      | Role                 | Components                 | Responsibilities                                                                         |
+| ----------- | -------------------- | -------------------------- | ---------------------------------------------------------------------------------------- |
+| **Venura**  | Backend Developer    | Auth & User Management     | JWT authentication, user signup/login/profile, NIC document verification, admin controls |
+| **Lochana** | Backend Developer    | Needs & Donations          | Need request CRUD, donation flow (cash/card/goods), fulfillment tracking, filtering      |
+| **Risini**  | Full-Stack Developer | Item Listings & Messaging  | Donor item listings, browse/search, image uploads, messaging system per item             |
+| **Heyli**   | Frontend & Backend   | Feedback & Admin Dashboard | Feedback/reviews CRUD, admin statistics, OpenWeather API integration, dashboard UI       |
 
 ### Individual Contributions Summary
 
 #### Venura - Authentication & User Management (40%)
+
 - **Backend Services:**
   - User signup with validation (username, email, password)
   - JWT token generation and verification
@@ -781,6 +808,7 @@ The project was developed collaboratively by a team of four members. Each member
 - **Commits:** Regular meaningful commits tracking auth feature development
 
 #### Lochana - Needs & Donations (30%)
+
 - **Backend Services:**
   - Need request creation with verification docs
   - Donation flow (cash, card, goods)
@@ -795,6 +823,7 @@ The project was developed collaboratively by a team of four members. Each member
 - **Commits:** Consistent commits for needs and donations features
 
 #### Risini - Item Listings & Messaging (25%)
+
 - **Backend Services:**
   - Item listing CRUD operations
   - Multi-image upload (up to 5 per listing) with Cloudinary
@@ -809,6 +838,7 @@ The project was developed collaboratively by a team of four members. Each member
 - **Commits:** Regular updates for item and messaging features
 
 #### Heyli - Feedback & Admin Dashboard (25%)
+
 - **Backend Services:**
   - Feedback CRUD operations
   - Platform reviews submission
@@ -851,39 +881,6 @@ Each commit follows the conventional commits format for clarity:
 <footer>
 ```
 
-#### Commit Types
-- `feat:` New feature development
-- `fix:` Bug fixes
-- `test:` Adding or updating tests
-- `refactor:` Code refactoring without behavior change
-- `docs:` Documentation updates
-- `chore:` Maintenance tasks
-
-#### Example Commits
-
-```
-feat(auth): implement JWT token refresh mechanism
-Adds automatic token refresh for expired sessions, improving UX
-
-fix(needs): correct filtering logic for urgent needs
-Resolves issue where urgency filter was inverted
-
-test(donations): add integration tests for payment flow
-Adds 15 new test cases covering donation payment scenarios
-
-docs(readme): update deployment instructions for Render
-```
-
-### Branching Strategy
-
-While primary development is on `main`, team members should follow this for larger features:
-
-1. Create feature branch: `git checkout -b feature/component-name`
-2. Make changes and commit regularly
-3. Push to origin: `git push origin feature/component-name`
-4. Create Pull Request for review
-5. Merge after approval: `git merge feature/component-name`
-
 ### Viewing Commit History
 
 ```bash
@@ -900,28 +897,9 @@ git log --oneline --since="2026-02-27" --until="2026-04-12"
 git log -p --follow src/auth/authController.js
 ```
 
-### Code Review Checklist
-
-Before merging, ensure:
-
-- [ ] Code follows project conventions (naming, formatting)
-- [ ] All tests pass: `npm test`
-- [ ] No console.log statements left behind
-- [ ] Environment variables not committed
-- [ ] `.env` file in `.gitignore`
-- [ ] Commit message is clear and descriptive
-- [ ] Related issue/PR is referenced
-
 ### Deployment Workflow
 
 1. All changes merged to `main` branch
 2. Tests pass in CI/CD pipeline
 3. Automatic deployment to Render (backend) and Vercel (frontend)
 4. Verify deployment health: `curl https://af-sliit-project.onrender.com/health`
-
-### Evaluation Periods
-
-During evaluation milestones, git commit history is reviewed:
-
-- **Evaluation 01 (Feb 27):** Commits from project start to evaluation date
-- **Evaluation 02 (Apr 12):** Complete commit history from start to final submission

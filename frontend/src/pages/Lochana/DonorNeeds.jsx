@@ -130,110 +130,108 @@ const DonorNeeds = () => {
   };
 
   const handleDonate = async () => {
-  setDonateError("");
-  setDonateSuccess("");
+    setDonateError("");
+    setDonateSuccess("");
 
-  if (!donateTarget) return;
+    if (!donateTarget) return;
 
-  // validation
-  if (
-    (donationType === "Cash" || donationType === "Card") &&
-    (!donateAmount || Number(donateAmount) <= 0)
-  ) {
-    setDonateError("Please enter a valid amount");
-    return;
-  }
-
-  if (donationType === "Goods" && !goodsDescription.trim()) {
-    setDonateError("Please describe the goods you want to donate");
-    return;
-  }
-
-  const remaining =
-    (donateTarget.goalAmount || 0) - (donateTarget.currentAmount || 0);
-
-  if (
-    (donationType === "Cash" || donationType === "Card") &&
-    Number(donateAmount) > remaining
-  ) {
-    setDonateError(
-      `Amount exceeds remaining goal (LKR ${remaining.toLocaleString()})`
-    );
-    return;
-  }
-
-  setDonating(true);
-
-  try {
-    let paymentIntentId = null;
-
-    if (donationType === "Card") {
-      if (!stripe || !elements) {
-        throw new Error("Stripe not ready");
-      }
-
-      const cardElement = elements.getElement(CardElement);
-
-      if (!cardElement) {
-        throw new Error("Card element missing");
-      }
-
-      // 1. Create payment intent
-      const { clientSecret } = await paymentService.createPaymentIntent(
-        Number(donateAmount)
-      );
-
-      // 2. Confirm payment
-      const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardElement,
-        },
-      });
-
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
-
-      paymentIntentId = result.paymentIntent.id;
+    // validation
+    if (
+      (donationType === "Cash" || donationType === "Card") &&
+      (!donateAmount || Number(donateAmount) <= 0)
+    ) {
+      setDonateError("Please enter a valid amount");
+      return;
     }
 
-    await needService.createDonation({
-      need: donateTarget._id,
-      donationType,
-      amount:
-        donationType === "Goods" ? 0 : Number(donateAmount),
-      goodsDescription:
-        donationType === "Goods" ? goodsDescription : undefined,
-      phoneNumber:
-        donationType !== "Goods" ? phoneNumber : undefined,
-      message:
-        donationType !== "Goods" ? donateMessage : undefined,
-      paymentIntentId: paymentIntentId || undefined,
-    });
+    if (donationType === "Goods" && !goodsDescription.trim()) {
+      setDonateError("Please describe the goods you want to donate");
+      return;
+    }
 
-    setDonateSuccess(
-      donationType === "Goods"
-        ? "Goods donation submitted!"
-        : "Donation successful!"
-    );
+    const remaining =
+      (donateTarget.goalAmount || 0) - (donateTarget.currentAmount || 0);
 
-    toast.success(
-      donationType === "Goods"
-        ? "Goods donation submitted!"
-        : "Donation successful!"
-    );
+    if (
+      (donationType === "Cash" || donationType === "Card") &&
+      Number(donateAmount) > remaining
+    ) {
+      setDonateError(
+        `Amount exceeds remaining goal (LKR ${remaining.toLocaleString()})`,
+      );
+      return;
+    }
 
-    await fetchNeeds();
-    setTimeout(() => setShowDonateModal(false), 1200);
+    setDonating(true);
 
-  } catch (err) {
-    console.error("DONATION ERROR:", err);
-    setDonateError(err.message || "Donation failed");
-    toast.error(err.message || "Donation failed");
-  } finally {
-    setDonating(false);
-  }
-};
+    try {
+      let paymentIntentId = null;
+
+      if (donationType === "Card") {
+        if (!stripe || !elements) {
+          throw new Error("Stripe not ready");
+        }
+
+        const cardElement = elements.getElement(CardElement);
+
+        if (!cardElement) {
+          throw new Error("Card element missing");
+        }
+
+        // 1. Create payment intent
+        const paymentData = await paymentService.createPaymentIntent(
+          Number(donateAmount),
+          donateTarget._id,
+        );
+        const { clientSecret } = paymentData;
+
+        // 2. Confirm payment
+        const result = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+          },
+        });
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+
+        paymentIntentId = result.paymentIntent.id;
+      }
+
+      await needService.createDonation({
+        need: donateTarget._id,
+        donationType,
+        amount: donationType === "Goods" ? 0 : Number(donateAmount),
+        goodsDescription:
+          donationType === "Goods" ? goodsDescription : undefined,
+        phoneNumber: donationType !== "Goods" ? phoneNumber : undefined,
+        message: donationType !== "Goods" ? donateMessage : undefined,
+        paymentIntentId: paymentIntentId || undefined,
+      });
+
+      setDonateSuccess(
+        donationType === "Goods"
+          ? "Goods donation submitted!"
+          : "Donation successful!",
+      );
+
+      toast.success(
+        donationType === "Goods"
+          ? "Goods donation submitted!"
+          : "Donation successful!",
+      );
+
+      await fetchNeeds();
+      setTimeout(() => setShowDonateModal(false), 1200);
+    } catch (err) {
+      console.error("DONATION ERROR:", err);
+      setDonateError(err.message || "Donation failed");
+      toast.error(err.message || "Donation failed");
+    } finally {
+      setDonating(false);
+    }
+  };
 
   const getUrgencyBadgeColor = (urgency) => {
     switch (urgency) {
@@ -805,31 +803,31 @@ const DonorNeeds = () => {
                 </div>
               )}
               {donationType === "Card" && (
-  <div>
-    <label className="text-xs text-green-200/60 font-medium block mb-2">
-      Card Details
-    </label>
+                <div>
+                  <label className="text-xs text-green-200/60 font-medium block mb-2">
+                    Card Details
+                  </label>
 
-    <div className="bg-white/5 border border-white/10 rounded-xl p-3">
-      <CardElement
-        options={{
-          style: {
-            base: {
-              color: "#fff",
-              fontSize: "14px",
-              "::placeholder": {
-                color: "#9CA3AF",
-              },
-            },
-            invalid: {
-              color: "#EF4444",
-            },
-          },
-        }}
-      />
-    </div>
-  </div>
-)}
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+                    <CardElement
+                      options={{
+                        style: {
+                          base: {
+                            color: "#fff",
+                            fontSize: "14px",
+                            "::placeholder": {
+                              color: "#9CA3AF",
+                            },
+                          },
+                          invalid: {
+                            color: "#EF4444",
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Phone Number (Cash/Card) */}
               {(donationType === "Cash" || donationType === "Card") && (

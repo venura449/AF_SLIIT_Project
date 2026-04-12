@@ -45,7 +45,7 @@ exports.createCheckoutSession = async ({ amount, donationId }) => {
     throw new Error("Donation ID is required");
   }
 
-  const stripe = getStripe(); 
+  const stripe = getStripe();
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
@@ -73,4 +73,32 @@ exports.createCheckoutSession = async ({ amount, donationId }) => {
   });
 
   return session;
+};
+
+/**
+ * Create Payment Intent for card payments
+ */
+exports.createPaymentIntent = async (amount, needId) => {
+  if (!amount || amount <= 0) {
+    throw new Error("Invalid amount");
+  }
+
+  if (!needId) {
+    throw new Error("Need ID is required");
+  }
+
+  const stripe = getStripe();
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: Math.round(amount * 100), // Convert to cents for LKR
+    currency: "lkr",
+    metadata: {
+      needId: needId.toString(),
+    },
+  });
+
+  return {
+    clientSecret: paymentIntent.client_secret,
+    paymentIntentId: paymentIntent.id,
+  };
 };

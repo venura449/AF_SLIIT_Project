@@ -32,7 +32,7 @@ exports.createDonationAfterPayment = async (req, res, next) => {
     }
 
     // Check if Need exists
-   // Check Need
+    // Check Need
     const existingNeed = await Need.findById(need);
 
     if (!existingNeed) {
@@ -108,20 +108,10 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       } else {
         existingNeed.status = "Partially Funded";
       }
-    },
-    { new: true }
-  );
 
-  // Fix negative values
-  if (updatedNeed.goalAmount < 0) {
-    updatedNeed.goalAmount = 0;
-  }
-
-  updatedNeed.status =
-    updatedNeed.goalAmount === 0 ? "Fulfilled" : "Partially Funded";
-
-  await updatedNeed.save();
-}
+      // Save the updated need
+      await existingNeed.save();
+    }
 
     // Send notification to recipient
     try {

@@ -9,7 +9,7 @@ import { useEffect } from "react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login: authLogin } = useAuth();
+  const { login: authLogin, rememberMe: contextRememberMe } = useAuth();
   const [searchParams] = useSearchParams();
   const hasProcessedCallback = useRef(false);
 
@@ -18,7 +18,7 @@ const Login = () => {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => contextRememberMe ?? true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fcmToken, setFcmToken] = useState("");
@@ -45,6 +45,7 @@ const Login = () => {
       hasProcessedCallback.current = true;
       try {
         const user = JSON.parse(userStr);
+        // For Google OAuth, always remember the user (localStorage)
         authLogin(token, user, true);
         toast.success(`Welcome back, ${user.username || "User"}!`);
 
@@ -102,7 +103,11 @@ const Login = () => {
     setError("");
 
     try {
-      const result = await loginApi(formData.email, formData.password);
+      const result = await loginApi(
+        formData.email,
+        formData.password,
+        rememberMe,
+      );
 
       // Update AuthContext state (also persists token to storage)
       authLogin(result.token, result.user, rememberMe);
@@ -165,9 +170,6 @@ const Login = () => {
     setError("");
 
     try {
-      // Initiate Google sign-in - this will redirect to Google OAuth,
-      // then to backend callback, which will redirect back to /login with token in URL
-      // The useEffect above will handle the redirect and login
       await signInWithGoogle();
     } catch (err) {
       console.error("Google sign-in error:", err);
@@ -330,21 +332,40 @@ const Login = () => {
           </div>
 
           {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center space-x-2 text-green-200/70 cursor-pointer group">
+          <div className="flex items-center justify-between text-sm mt-3">
+            <label className="flex items-center space-x-2 text-green-200/70 cursor-pointer group hover:text-green-300 transition-all duration-300 select-none">
               <input
                 type="checkbox"
                 checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-white/20 bg-white/5 text-green-500 focus:ring-green-500/20 transition-all duration-300"
+                onChange={(e) => {
+                  setRememberMe(e.target.checked);
+                  if (e.target.checked) {
+                    toast.info("You'll stay logged in for 7 days", {
+                      autoClose: 2000,
+                      hideProgressBar: true,
+                    });
+                  } else {
+                    toast.info(
+                      "You'll be logged out when closing the browser",
+                      {
+                        autoClose: 2000,
+                        hideProgressBar: true,
+                      },
+                    );
+                  }
+                }}
+                className="w-4 h-4 rounded border border-green-400/50 bg-white/5 text-green-500 focus:ring-2 focus:ring-green-500/50 focus:ring-offset-0 transition-all duration-300 cursor-pointer accent-green-500"
               />
-              <span className="group-hover:text-green-300 transition-colors duration-300">
-                <i className="fas fa-check-circle mr-1 text-xs"></i>Remember me
+              <span className="transition-colors duration-300">
+                <i
+                  className={`fas ${rememberMe ? "fa-check-circle" : "fa-circle"} mr-1 text-xs`}
+                ></i>
+                Remember me
               </span>
             </label>
             <Link
               to="/forgot-password"
-              className="text-green-300/70 hover:text-green-300 transition-colors duration-300 border-b border-transparent hover:border-green-400/50 text-xs"
+              className="text-green-300/70 hover:text-green-300 transition-colors duration-300 border-b border-transparent hover:border-green-400/50 text-xs font-medium"
             >
               Forgot password?
             </Link>

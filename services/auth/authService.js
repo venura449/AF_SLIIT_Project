@@ -5,8 +5,10 @@ const sendEmail = require('../../utils/sendEmail');
 const admin = require('../../utils/notificationConfig');
 
 // Generate JWT Token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+// If rememberMe is true, token expires in 30 days; otherwise 7 days
+const generateToken = (userId, rememberMe = false) => {
+  const expiresIn = rememberMe ? '30d' : '7d';
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn });
 };
 
 // Signup Service
@@ -56,7 +58,7 @@ exports.signupService = async (username, email, password, role = 'Donor') => {
 };
 
 // Login Service
-exports.loginService = async (email, password) => {
+exports.loginService = async (email, password, rememberMe = false) => {
   // Validate inputs
   if (!email || !password) {
     throw new Error('Email and password are required');
@@ -74,8 +76,8 @@ exports.loginService = async (email, password) => {
     throw new Error('Invalid email or password');
   }
 
-  // Generate token
-  const token = generateToken(user._id);
+  // Generate token with rememberMe flag
+  const token = generateToken(user._id, rememberMe);
 
   return {
     token,
@@ -127,8 +129,8 @@ exports.googleLoginService = async (idToken) => {
       await user.save();
     }
 
-    // Generate JWT token
-    const token = generateToken(user._id);
+    // Generate JWT token (always remember for OAuth users)
+    const token = generateToken(user._id, true);
 
     return {
       token,

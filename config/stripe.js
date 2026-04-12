@@ -1,17 +1,16 @@
-const Stripe = require("stripe");
-let stripe;
+require("dotenv").config();
 
-if (process.env.NODE_ENV === "test") {
-  stripe = {
-    paymentIntents: {
-      create: async () => ({
-        client_secret: "test_client_secret",
-        id: "pi_test_123",
-      }),
-    },
-  };
-} else {
-  stripe = new Stripe(process.env.STRIPE_SECRET);
-}
+const stripe = process.env.STRIPE_SECRET
+  ? require("stripe")(process.env.STRIPE_SECRET)
+  : {
+      checkout: {
+        sessions: {
+          create: async () => ({ id: "test" })
+        }
+      },
+      paymentIntents: {
+        create: async () => ({ id: "test_payment" })
+      }
+    };
 
 module.exports = stripe;

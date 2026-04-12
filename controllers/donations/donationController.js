@@ -1,7 +1,8 @@
-
+require("dotenv").config()
 const donationService = require('../../services/donations/donationService');
 const Need = require('../../models/donations/Need');
 const { sendNotificationSingleUser } = require("../../services/notifications/notificationService");
+const stripe = require("../../config/stripe");
 
 
 // Create Donation
@@ -21,14 +22,16 @@ exports.createDonationAfterPayment = async (req, res, next) => {
         success: false,
         message: "Amount is required for Cash/Card donations",
       });
-
     }
+
     if (donationType === 'Card' && !paymentIntentId) {
       return res.status(400).json({
         success: false,
         message: "Payment ID is required for card donations",
       });
     }
+
+    // Check if Need exists
    // Check Need
     const existingNeed = await Need.findById(need);
 
@@ -39,6 +42,7 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       });
     }
 
+    // Must be verified
     if (!existingNeed.isVerified) {
       return res.status(400).json({
         success: false,
@@ -56,16 +60,12 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       });
     }
 
-    // Check remaining amount
-    if (donationType === "Cash" || donationType === "Card") {
-      const remaining =
-        Number(existingNeed.goalAmount) -
-        Number(existingNeed.currentAmount);
 
-      if (Number(amount) > remaining) {
+    if (donationType === 'Cash' || donationType === 'Card') {
+      if (Number(amount) > existingNeed.goalAmount) {
         return res.status(400).json({
           success: false,
-          message: `Only LKR ${remaining} remaining`,
+          message: `Only LKR ${existingNeed.goalAmount} remaining`,
         });
       }
     }
@@ -86,6 +86,7 @@ exports.createDonationAfterPayment = async (req, res, next) => {
 
     let finalDonation = donation;
 
+    // Confirm card payment
     if (donationType === "Card") {
       finalDonation = await donationService.confirmDonation(
         donation._id,
@@ -93,16 +94,19 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       );
     }
 
-    // Update Need progress only for Cash/Card
-    
-if (donationType === 'Cash' || donationType === 'Card') {
+    // ✅ UPDATED: Deduct from goalAmount + update currentAmount
+    if (donationType === 'Cash' || donationType === 'Card') {
+      existingNeed.currentAmount =
+        Number(existingNeed.currentAmount) + Number(amount);
 
-  const updatedNeed = await Need.findByIdAndUpdate(
-    existingNeed._id,
-    {
-      $inc: {
-        currentAmount: Number(amount),
-        goalAmount: -Number(amount)   // 👈 reduce goal
+      existingNeed.goalAmount =
+        Number(existingNeed.goalAmount) - Number(amount);
+
+      if (existingNeed.goalAmount <= 0) {
+        existingNeed.goalAmount = 0;
+        existingNeed.status = "Fulfilled";
+      } else {
+        existingNeed.status = "Partially Funded";
       }
     },
     { new: true }
@@ -119,13 +123,14 @@ if (donationType === 'Cash' || donationType === 'Card') {
   await updatedNeed.save();
 }
 
+    // Send notification to recipient
     try {
-      // Send notification to recipient
       if (existingNeed.recipient && String(existingNeed.recipient) !== String(req.user._id)) {
         const recipientId = existingNeed.recipient;
         const donorName = req.user?.username || "A donor";
         const title = "New Donation Received";
         const body = `${donorName} donated to your need "${existingNeed.title}".`;
+
         await sendNotificationSingleUser(recipientId, title, body, {
           type: "need_donation",
           needId: existingNeed._id.toString(),
@@ -147,7 +152,8 @@ if (donationType === 'Cash' || donationType === 'Card') {
   }
 };
 
-// Confirm Donation (Admin)
+
+// Confirm Donation
 exports.confirmDonation = async (req, res, next) => {
   try {
     const donationId = req.params.id;
@@ -160,7 +166,6 @@ exports.confirmDonation = async (req, res, next) => {
       });
     }
 
-    // Find Donation
     const donation = await donationService.getDonationById(donationId);
 
     if (!donation) {
@@ -169,7 +174,7 @@ exports.confirmDonation = async (req, res, next) => {
         message: "Donation not found",
       });
     }
-    // Prevent double confirmation
+
     if (donation.status === "Confirmed") {
       return res.status(400).json({
         success: false,
@@ -177,7 +182,6 @@ exports.confirmDonation = async (req, res, next) => {
       });
     }
 
-    // Update Donation
     const updatedDonation = await donationService.confirmDonation(
       donationId,
       transactionId
@@ -198,9 +202,7 @@ exports.confirmDonation = async (req, res, next) => {
 // Get My Donations
 exports.getMyDonations = async (req, res, next) => {
   try {
-    const donations = await donationService.getDonationsByUser(
-      req.user._id
-    );
+    const donations = await donationService.getDonationsByUser(req.user._id);
 
     res.status(200).json({
       success: true,
@@ -245,12 +247,13 @@ exports.getDonationById = async (req, res, next) => {
     next(error);
   }
 };
+
+
 // Delete Donation (Admin Only)
 exports.deleteDonation = async (req, res, next) => {
   try {
     const donationId = req.params.id;
 
-    // Service handles both deleting donation AND updating Need
     const deletedDonation = await donationService.deleteDonation(donationId);
 
     res.status(200).json({
@@ -264,29 +267,35 @@ exports.deleteDonation = async (req, res, next) => {
   }
 };
 
-// Get Donations by Need ID (Recipient views donations on their need)
+
+// Get Donations by Need ID
 exports.getDonationsByNeed = async (req, res, next) => {
   try {
     const donations = await donationService.getDonationsByNeed(req.params.needId);
+
     res.status(200).json({
       success: true,
       count: donations.length,
       data: donations,
     });
+
   } catch (error) {
     next(error);
   }
 };
 
+
 // Get Fulfilled Needs (Admin log)
 exports.getFulfilledNeeds = async (req, res, next) => {
   try {
     const needs = await donationService.getFulfilledNeeds();
+
     res.status(200).json({
       success: true,
       count: needs.length,
       data: needs,
     });
+
   } catch (error) {
     next(error);
   }

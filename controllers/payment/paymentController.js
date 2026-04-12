@@ -1,20 +1,28 @@
-const { createPaymentIntentService } = require("../../services/payment/paymentService");
+const { createCheckoutSession } = require("../../services/payment/paymentService");
 
-exports.createPaymentIntent = async (req, res) => {
+exports.createCheckoutSessionController = async (req, res, next) => {
   try {
-    const { amount } = req.body;
+    const { amount, donationId } = req.body;
 
-    const paymentIntent = await createPaymentIntentService(amount);
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
+    }
+
+    if (!donationId) {
+      return res.status(400).json({ message: "Donation ID is required" });
+    }
+
+    const session = await createCheckoutSession({
+      amount,
+      donationId
+    });
 
     res.status(200).json({
-      clientSecret: paymentIntent.client_secret,
+      id: session.id,
+      url: session.url
     });
 
   } catch (error) {
-    if (error.message === "Invalid amount") {
-      return res.status(400).json({ message: error.message });
-    }
-
     res.status(500).json({ message: error.message });
   }
 };

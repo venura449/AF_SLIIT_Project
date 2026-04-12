@@ -32,6 +32,7 @@ exports.createDonationAfterPayment = async (req, res, next) => {
     }
 
     // Check if Need exists
+   // Check Need
     const existingNeed = await Need.findById(need);
 
     if (!existingNeed) {
@@ -49,7 +50,6 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       });
     }
 
-    // Cannot donate if cancelled or fulfilled
     if (
       existingNeed.status === "Cancelled" ||
       existingNeed.status === "Fulfilled"
@@ -70,7 +70,7 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       }
     }
 
-    // Create Donation
+    // Create Donation - PENDING
     const donation = await donationService.createDonation({
       donor: req.user._id,
       need: existingNeed._id,
@@ -80,6 +80,8 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       phoneNumber: (donationType === 'Cash' || donationType === 'Card') ? phoneNumber : undefined,
       message: (donationType === 'Cash' || donationType === 'Card') ? message : undefined,
       isAnonymous,
+      status: "Pending",
+      paymentIntentId: donationType === "Card" ? paymentIntentId : undefined,
     });
 
     let finalDonation = donation;
@@ -106,9 +108,20 @@ exports.createDonationAfterPayment = async (req, res, next) => {
       } else {
         existingNeed.status = "Partially Funded";
       }
+    },
+    { new: true }
+  );
 
-      await existingNeed.save();
-    }
+  // Fix negative values
+  if (updatedNeed.goalAmount < 0) {
+    updatedNeed.goalAmount = 0;
+  }
+
+  updatedNeed.status =
+    updatedNeed.goalAmount === 0 ? "Fulfilled" : "Partially Funded";
+
+  await updatedNeed.save();
+}
 
     // Send notification to recipient
     try {

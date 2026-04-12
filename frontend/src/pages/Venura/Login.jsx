@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { login as loginApi, loginWithGoogle } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
@@ -11,6 +11,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
   const [searchParams] = useSearchParams();
+  const hasProcessedCallback = useRef(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -24,17 +25,24 @@ const Login = () => {
 
   // Handle OAuth callback from Google
   useEffect(() => {
+    // Prevent processing the same callback multiple times
+    if (hasProcessedCallback.current) {
+      return;
+    }
+
     const token = searchParams.get("token");
     const userStr = searchParams.get("user");
     const errorMsg = searchParams.get("error");
 
     if (errorMsg) {
+      hasProcessedCallback.current = true;
       setError(errorMsg);
       toast.error(`Google Sign-In failed: ${errorMsg}`);
       return;
     }
 
     if (token && userStr) {
+      hasProcessedCallback.current = true;
       try {
         const user = JSON.parse(userStr);
         authLogin(token, user, true);
@@ -81,7 +89,7 @@ const Login = () => {
         setError("Failed to process login. Please try again.");
       }
     }
-  }, [searchParams, authLogin, navigate]);
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

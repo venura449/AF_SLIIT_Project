@@ -1,10 +1,13 @@
+// Load environment variables FIRST, before any other imports that read process.
+require("dotenv").config();
+console.log("Server ENV:", process.env.STRIPE_SECRET);
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 
-// Load environment variables FIRST, before any other imports that read process.env
-dotenv.config();
+
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swaggerConfig.js');
@@ -26,6 +29,10 @@ const paymentRoutes = require("./routes/payment/paymentRoutes.js");
 
 // Initialize Express app
 const app = express();
+app.use(express.urlencoded({ extended: true }))
+
+const bodyParser = require("body-parser");
+const stripeWebhookController = require("./controllers/donations/stripeWebhookController");
 
 const defaultAllowedOrigins = [
   'https://af-sliit-project.vercel.app',
@@ -59,6 +66,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.post(
+  "/webhook/stripe",
+  bodyParser.raw({ type: "application/json" }),
+  stripeWebhookController.stripeWebhook
+);
 
 // Connect to MongoDB (skip in test environment)
 if (process.env.NODE_ENV !== 'test') {
@@ -94,7 +106,7 @@ app.use('/api/v1/donation', donationRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/items', itemListingRoutes);
 app.use('/api/v1/messages', messageRoutes);
-app.use('/api/payment', paymentRoutes);
+app.use('/api/v1/payment', paymentRoutes);
 
 // Serve uploaded files (protected - only admin can access via API)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

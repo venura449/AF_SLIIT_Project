@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { stripePromise } from "../../services/stripe";
+import * as paymentService from "../../services/paymentService";
+import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { getProfile, logout } from "../../services/authService";
 import * as needService from "../../services/needService";
 import ChatBubble from "./ChatBubble";
@@ -7,6 +10,9 @@ import { toast } from "react-toastify";
 
 const DonorNeeds = () => {
   const navigate = useNavigate();
+  const stripe = useStripe();
+  const elements = useElements();
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -127,6 +133,9 @@ const DonorNeeds = () => {
     setDonateError("");
     setDonateSuccess("");
 
+    if (!donateTarget) return;
+
+    // validation
     if (
       (donationType === "Cash" || donationType === "Card") &&
       (!donateAmount || Number(donateAmount) <= 0)
@@ -142,6 +151,7 @@ const DonorNeeds = () => {
 
     const remaining =
       (donateTarget.goalAmount || 0) - (donateTarget.currentAmount || 0);
+
     if (
       (donationType === "Cash" || donationType === "Card") &&
       Number(donateAmount) > remaining
@@ -153,37 +163,71 @@ const DonorNeeds = () => {
     }
 
     setDonating(true);
+
     try {
+      let paymentIntentId = null;
+
+      if (donationType === "Card") {
+        if (!stripe || !elements) {
+          throw new Error("Stripe not ready");
+        }
+
+        const cardElement = elements.getElement(CardElement);
+
+        if (!cardElement) {
+          throw new Error("Card element missing");
+        }
+
+        // 1. Create payment intent
+        const paymentData = await paymentService.createPaymentIntent(
+          Number(donateAmount),
+          donateTarget._id,
+        );
+        const { clientSecret } = paymentData;
+
+        // 2. Confirm payment
+        const result = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+          },
+        });
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+
+        paymentIntentId = result.paymentIntent.id;
+      }
+
       await needService.createDonation({
         need: donateTarget._id,
         donationType,
         amount: donationType === "Goods" ? 0 : Number(donateAmount),
         goodsDescription:
           donationType === "Goods" ? goodsDescription : undefined,
-        phoneNumber:
-          donationType === "Cash" || donationType === "Card"
-            ? phoneNumber
-            : undefined,
-        message:
-          donationType === "Cash" || donationType === "Card"
-            ? donateMessage
-            : undefined,
+        phoneNumber: donationType !== "Goods" ? phoneNumber : undefined,
+        message: donationType !== "Goods" ? donateMessage : undefined,
+        paymentIntentId: paymentIntentId || undefined,
       });
+
       setDonateSuccess(
         donationType === "Goods"
           ? "Goods donation submitted!"
           : "Donation successful!",
       );
+
       toast.success(
         donationType === "Goods"
           ? "Goods donation submitted!"
           : "Donation successful!",
       );
+
       await fetchNeeds();
       setTimeout(() => setShowDonateModal(false), 1200);
     } catch (err) {
-      setDonateError(err.response?.data?.message || "Donation failed");
-      toast.error(err.response?.data?.message || "Donation failed.");
+      console.error("DONATION ERROR:", err);
+      setDonateError(err.message || "Donation failed");
+      toast.error(err.message || "Donation failed");
     } finally {
       setDonating(false);
     }
@@ -756,6 +800,32 @@ const DonorNeeds = () => {
                     placeholder={`Max LKR ${((donateTarget.goalAmount || 0) - (donateTarget.currentAmount || 0)).toLocaleString()}`}
                     className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white placeholder-white/30 focus:border-green-400/40 focus:ring-1 focus:ring-green-400/20 transition-all outline-none"
                   />
+                </div>
+              )}
+              {donationType === "Card" && (
+                <div>
+                  <label className="text-xs text-green-200/60 font-medium block mb-2">
+                    Card Details
+                  </label>
+
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+                    <CardElement
+                      options={{
+                        style: {
+                          base: {
+                            color: "#fff",
+                            fontSize: "14px",
+                            "::placeholder": {
+                              color: "#9CA3AF",
+                            },
+                          },
+                          invalid: {
+                            color: "#EF4444",
+                          },
+                        },
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 

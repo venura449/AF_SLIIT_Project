@@ -1,6 +1,9 @@
 const {
   signupService,
   loginService,
+  googleLoginService,
+  getGoogleAuthUrl,
+  handleGoogleCallback,
   deleteProfileService,
   getAllUsersService,
   updateUserStatusService,
@@ -46,6 +49,65 @@ exports.login = async (req, res) => {
     ];
     const status = authErrors.includes(error.message) ? 401 : 500;
     res.status(status).json({ error: error.message });
+  }
+};
+
+// Google Login Controller
+exports.googleLogin = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ error: "ID token is required" });
+    }
+
+    const result = await googleLoginService(idToken);
+
+    res.status(200).json({
+      message: "Google login successful",
+      ...result,
+    });
+  } catch (error) {
+    const authErrors = [
+      "ID token is required",
+      "Invalid ID token",
+      "ID token has expired",
+      "Email not found in token",
+    ];
+    const status = authErrors.includes(error.message) ? 401 : 500;
+    res.status(status).json({ error: error.message });
+  }
+};
+
+// Get Google Auth URL Controller
+exports.getGoogleAuthUrl = (req, res) => {
+  try {
+    const result = getGoogleAuthUrl();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Google OAuth Callback Controller
+exports.googleCallback = async (req, res) => {
+  try {
+    const { code, state } = req.query;
+
+    if (!code) {
+      return res.status(400).json({ error: "No authorization code provided" });
+    }
+
+    const result = await handleGoogleCallback(code, state);
+
+    // Redirect to frontend with token
+    const frontendUrl = process.env.VITE_FRONTEND_URL || "http://localhost:5173";
+    const redirectUrl = `${frontendUrl}/login?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
+
+    res.redirect(redirectUrl);
+  } catch (error) {
+    const frontendUrl = process.env.VITE_FRONTEND_URL || "http://localhost:5173";
+    res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(error.message)}`);
   }
 };
 

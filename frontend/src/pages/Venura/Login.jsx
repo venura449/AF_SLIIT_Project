@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { login as loginApi } from "../../services/authService";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { login as loginApi, loginWithGoogle } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
-import { requestForToken } from "../../../firebase";
+import { requestForToken, signInWithGoogle } from "../../../firebase";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useEffect } from "react";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
+  const [searchParams] = useSearchParams();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -18,6 +21,67 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fcmToken, setFcmToken] = useState("");
+
+  // Handle OAuth callback from Google
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const userStr = searchParams.get("user");
+    const errorMsg = searchParams.get("error");
+
+    if (errorMsg) {
+      setError(errorMsg);
+      toast.error(`Google Sign-In failed: ${errorMsg}`);
+      return;
+    }
+
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        authLogin(token, user, true);
+        toast.success(`Welcome back, ${user.username || "User"}!`);
+
+        // Setup FCM token
+        (async () => {
+          try {
+            const fcmToken = await requestForToken();
+            if (typeof fcmToken === "string" && fcmToken.trim()) {
+              console.log("FCM Token:", fcmToken);
+              setFcmToken(fcmToken);
+              const apiUrl =
+                import.meta.env.VITE_API_URL ||
+                "https://af-sliit-project.onrender.com/api/v1";
+              await axios.patch(
+                `${apiUrl}/notifications/save-fcm-token`,
+                { fcmToken: fcmToken },
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                },
+              );
+              console.log("FCM Token saved to backend");
+            }
+          } catch (fcmError) {
+            console.error("FCM setup failed:", fcmError);
+          }
+        })();
+
+        // Redirect based on role
+        setTimeout(() => {
+          if (user.role === "Admin") {
+            navigate("/admin-dashboard");
+          } else if (user.role === "Donor") {
+            navigate("/donor-dashboard");
+          } else {
+            navigate("/dashboard");
+          }
+        }, 500);
+      } catch (err) {
+        console.error("Error processing OAuth callback:", err);
+        setError("Failed to process login. Please try again.");
+      }
+    }
+  }, [searchParams, authLogin, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -35,16 +99,22 @@ const Login = () => {
       // Update AuthContext state (also persists token to storage)
       authLogin(result.token, result.user, rememberMe);
 
-      toast.success(`Welcome back, ${result.user?.username || "User"}!`);
+      // Show single success notification
+      toast.success(`Welcome back, ${result.user?.username || "User"}!`, {
+        autoClose: 2000,
+        pauseOnHover: false,
+      });
 
       // Redirect based on user role
-      if (result.user?.role === "Admin") {
-        navigate("/admin-dashboard");
-      } else if (result.user?.role === "Donor") {
-        navigate("/donor-dashboard");
-      } else {
-        navigate("/dashboard");
-      }
+      setTimeout(() => {
+        if (result.user?.role === "Admin") {
+          navigate("/admin-dashboard");
+        } else if (result.user?.role === "Donor") {
+          navigate("/donor-dashboard");
+        } else {
+          navigate("/dashboard");
+        }
+      }, 500);
 
       try {
         const token = await requestForToken();
@@ -78,6 +148,23 @@ const Login = () => {
       );
       setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      // Initiate Google sign-in - this will redirect to Google OAuth,
+      // then to backend callback, which will redirect back to /login with token in URL
+      // The useEffect above will handle the redirect and login
+      await signInWithGoogle();
+    } catch (err) {
+      console.error("Google sign-in error:", err);
+      setError("Failed to initiate Google sign-in. Please try again.");
+      toast.error("Failed to initiate Google sign-in. Please try again.");
       setLoading(false);
     }
   };
@@ -290,17 +377,18 @@ const Login = () => {
           <div className="flex space-x-3 mt-4">
             <button
               type="button"
-              className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <i className="fab fa-google text-lg"></i>
-              <span className="text-sm">Google</span>
-            </button>
-            <button
-              type="button"
-              className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2"
-            >
-              <i className="fab fa-facebook-f text-lg"></i>
-              <span className="text-sm">Facebook</span>
+              {loading ? (
+                <i className="fas fa-spinner fa-spin text-lg"></i>
+              ) : (
+                <>
+                  <i className="fab fa-google text-lg"></i>
+                  <span className="text-sm">Google</span>
+                </>
+              )}
             </button>
           </div>
         </div>

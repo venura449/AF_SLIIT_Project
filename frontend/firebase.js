@@ -49,3 +49,25 @@ export const listenForForegroundMessages = (onPayload) => {
     onPayload?.(payload);
   });
 };
+
+export const signInWithGoogle = async () => {
+  try {
+    console.log("Starting Google sign-in...");
+    const API_URL = import.meta.env.VITE_API_URL || "https://af-sliit-project.onrender.com/api/v1";
+
+    // Get the OAuth redirect URL from backend
+    const response = await fetch(`${API_URL}/auth/google-auth-url`);
+    const data = await response.json();
+
+    if (!data.authUrl) {
+      throw new Error("Failed to get Google auth URL from backend");
+    }
+
+    // Redirect to Google OAuth (backend will handle the callback)
+    window.location.href = data.authUrl;
+
+  } catch (error) {
+    console.error("Google sign-in error:", error);
+    throw error;
+  }
+};

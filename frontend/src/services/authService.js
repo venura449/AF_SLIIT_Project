@@ -51,6 +51,11 @@ export const login = async (email, password) => {
   return response.data;
 };
 
+export const loginWithGoogle = async (idToken) => {
+  const response = await api.post("/auth/google-login", { idToken });
+  return response.data;
+};
+
 // Forgot / Reset Password
 export const forgotPassword = async (email) => {
   const response = await api.post("/auth/forgot-password", { email });

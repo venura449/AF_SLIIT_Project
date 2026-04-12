@@ -2,6 +2,9 @@ const express = require('express');
 const {
   signup,
   login,
+  googleLogin,
+  getGoogleAuthUrl,
+  googleCallback,
   getProfile,
   updateProfile,
   deleteProfile,
@@ -108,6 +111,102 @@ router.post('/signup', signup);
  *               $ref: '#/components/schemas/Error'
  */
 router.post('/login', login);
+
+/**
+ * @swagger
+ * /api/v1/auth/google-login:
+ *   post:
+ *     summary: Google OAuth Login
+ *     description: Authenticate user with Google ID token (creates account if not exists)
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - idToken
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *                 description: Google Firebase ID token from client
+ *                 example: eyJhbGciOiJSUzI1NiIsImtpZCI6IjI4YTQyMWNxNmI...
+ *     responses:
+ *       200:
+ *         description: Google login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Invalid or expired ID token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post('/google-login', googleLogin);
+
+/**
+ * @swagger
+ * /api/v1/auth/google-auth-url:
+ *   get:
+ *     summary: Get Google OAuth Authorization URL
+ *     description: Returns the Google OAuth URL for frontend redirect oauth flow
+ *     tags:
+ *       - Authentication
+ *     responses:
+ *       200:
+ *         description: OAuth URL retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 authUrl:
+ *                   type: string
+ *                   description: URL to redirect user to for Google authentication
+ *                 state:
+ *                   type: string
+ *                   description: State parameter for CSRF protection
+ */
+router.get('/google-auth-url', getGoogleAuthUrl);
+
+/**
+ * @swagger
+ * /api/v1/auth/google-callback:
+ *   get:
+ *     summary: Google OAuth Callback
+ *     description: Handles callback from Google OAuth, exchanges code for token, and redirects to frontend
+ *     tags:
+ *       - Authentication
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Authorization code from Google
+ *       - in: query
+ *         name: state
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: State parameter for CSRF validation
+ *     responses:
+ *       302:
+ *         description: Redirect to frontend with token
+ *       400:
+ *         description: Missing authorization code
+ */
+router.get('/google-callback', googleCallback);
 
 /**
  * @swagger

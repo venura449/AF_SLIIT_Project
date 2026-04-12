@@ -15,6 +15,9 @@ export function AuthProvider({ children }) {
     () =>
       localStorage.getItem("token") || sessionStorage.getItem("token") || null,
   );
+  const [rememberMe, setRememberMe] = useState(
+    () => localStorage.getItem("rememberMe") === "true",
+  );
   const [loading, setLoading] = useState(true);
 
   // Derive role directly from user object
@@ -48,20 +51,27 @@ export function AuthProvider({ children }) {
     // Clear both storages first to avoid stale tokens from a previous session
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
+    localStorage.removeItem("rememberMe");
+
     if (remember) {
       localStorage.setItem("token", newToken);
+      localStorage.setItem("rememberMe", "true");
     } else {
       sessionStorage.setItem("token", newToken);
+      localStorage.setItem("rememberMe", "false");
     }
     setToken(newToken);
     setUser(userData);
+    setRememberMe(remember);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
+    localStorage.removeItem("rememberMe");
     setToken(null);
     setUser(null);
+    setRememberMe(false);
   };
 
   const value = {
@@ -70,6 +80,7 @@ export function AuthProvider({ children }) {
     role,
     isAuthenticated,
     loading,
+    rememberMe,
     login,
     logout,
     refreshUser: loadUser,

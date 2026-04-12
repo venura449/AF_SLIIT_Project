@@ -1,12 +1,17 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { signup } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
+import { requestForToken, signInWithGoogle } from "../../../firebase";
+import axios from "axios";
 import { toast } from "react-toastify";
 
 const Register = () => {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
+  const [searchParams] = useSearchParams();
+  const hasProcessedCallback = useRef(false);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -16,6 +21,77 @@ const Register = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [fcmToken, setFcmToken] = useState("");
+
+  // Handle OAuth callback from Google
+  useEffect(() => {
+    // Prevent processing the same callback multiple times
+    if (hasProcessedCallback.current) {
+      return;
+    }
+
+    const token = searchParams.get("token");
+    const userStr = searchParams.get("user");
+    const errorMsg = searchParams.get("error");
+
+    if (errorMsg) {
+      hasProcessedCallback.current = true;
+      setError(errorMsg);
+      toast.error(`Google Sign-Up failed: ${errorMsg}`);
+      return;
+    }
+
+    if (token && userStr) {
+      hasProcessedCallback.current = true;
+      try {
+        const user = JSON.parse(userStr);
+        // For Google OAuth, always remember the user (localStorage)
+        authLogin(token, user, true);
+        toast.success(`Welcome, ${user.username || "User"}!`);
+
+        // Setup FCM token
+        (async () => {
+          try {
+            const fcmToken = await requestForToken();
+            if (typeof fcmToken === "string" && fcmToken.trim()) {
+              console.log("FCM Token:", fcmToken);
+              setFcmToken(fcmToken);
+              const apiUrl =
+                import.meta.env.VITE_API_URL ||
+                "https://af-sliit-project.onrender.com/api/v1";
+              await axios.patch(
+                `${apiUrl}/notifications/save-fcm-token`,
+                { fcmToken: fcmToken },
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                },
+              );
+              console.log("FCM Token saved to backend");
+            }
+          } catch (fcmError) {
+            console.error("FCM setup failed:", fcmError);
+          }
+        })();
+
+        // Redirect based on role
+        setTimeout(() => {
+          if (user.role === "Admin") {
+            navigate("/admin-dashboard");
+          } else if (user.role === "Donor") {
+            navigate("/donor-dashboard");
+          } else {
+            navigate("/dashboard");
+          }
+        }, 500);
+      } catch (err) {
+        console.error("Error processing OAuth callback:", err);
+        setError("Failed to process signup. Please try again.");
+      }
+    }
+  }, []);
 
   // Generate username from email
   const generateUsername = (email) => {
@@ -63,6 +139,19 @@ const Register = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setGoogleLoading(true);
+    setError("");
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      console.error("Google sign-up error:", err);
+      setError("Failed to initiate Google sign-up. Please try again.");
+      toast.error("Failed to initiate Google sign-up. Please try again.");
+      setGoogleLoading(false);
     }
   };
 
@@ -305,10 +394,18 @@ const Register = () => {
           <div className="flex space-x-3 mt-4">
             <button
               type="button"
-              className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2"
+              onClick={handleGoogleSignUp}
+              disabled={googleLoading}
+              className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <i className="fab fa-google text-lg"></i>
-              <span className="text-sm">Google</span>
+              {googleLoading ? (
+                <i className="fas fa-spinner fa-spin"></i>
+              ) : (
+                <>
+                  <i className="fab fa-google text-lg"></i>
+                  <span className="text-sm">Google</span>
+                </>
+              )}
             </button>
           </div>
         </div>

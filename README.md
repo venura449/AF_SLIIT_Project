@@ -11,11 +11,13 @@ A full-stack web application that connects **donors** with **underprivileged ind
 3. [Tech Stack](#tech-stack)
 4. [Getting Started (Local Setup)](#getting-started-local-setup)
 5. [Environment Variables](#environment-variables)
-6. [API Endpoint Documentation](#api-endpoint-documentation)
-7. [Testing](#testing)
-8. [Deployment](#deployment)
-9. [Team Contributions](#team-contributions)
-10. [Git Workflow](#git-workflow)
+6. [Google OAuth 2.0 Setup](#google-oauth-20-setup)
+7. [Production Deployment](#production-deployment)
+8. [API Endpoint Documentation](#api-endpoint-documentation)
+9. [Testing](#testing)
+10. [Deployment](#deployment)
+11. [Team Contributions](#team-contributions)
+12. [Git Workflow](#git-workflow)
 
 ---
 
@@ -145,20 +147,26 @@ The app will be available at `http://localhost:5173`.
 
 ### Backend (`.env`)
 
-| Variable                | Required | Description                                                       |
-| ----------------------- | -------- | ----------------------------------------------------------------- |
-| `PORT`                  | No       | Port to listen on (default: `5001`)                               |
-| `MONGO_URI`             | Yes      | MongoDB connection string                                         |
-| `JWT_SECRET`            | Yes      | Secret key for signing JWT tokens                                 |
-| `CLOUDINARY_NAME`       | Yes      | Cloudinary cloud name                                             |
-| `CLOUDINARY_KEY`        | Yes      | Cloudinary API key                                                |
-| `CLOUDINARY_SECRET`     | Yes      | Cloudinary API secret                                             |
-| `FIREBASE_PROJECT_ID`   | Yes      | Firebase project ID (for FCM)                                     |
-| `FIREBASE_PRIVATE_KEY`  | Yes      | Firebase service account private key (include `\n`)               |
-| `FIREBASE_CLIENT_EMAIL` | Yes      | Firebase service account client email                             |
-| `OPENWEATHER_API_KEY`   | Yes      | OpenWeather API key (Current Weather 2.5)                         |
-| `FRONTEND_URL`          | No       | Deployed frontend URL for CORS (default: `http://localhost:5173`) |
-| `NODE_ENV`              | No       | `development` / `production` / `test`                             |
+| Variable                          | Required | Description                                                                             |
+| --------------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| `PORT`                            | No       | Port to listen on (default: `5001`)                                                     |
+| `MONGO_URI`                       | Yes      | MongoDB connection string                                                               |
+| `JWT_SECRET`                      | Yes      | Secret key for signing JWT tokens                                                       |
+| `CLOUDINARY_NAME`                 | Yes      | Cloudinary cloud name                                                                   |
+| `CLOUDINARY_KEY`                  | Yes      | Cloudinary API key                                                                      |
+| `CLOUDINARY_SECRET`               | Yes      | Cloudinary API secret                                                                   |
+| `FIREBASE_PROJECT_ID`             | Yes      | Firebase project ID (for FCM)                                                           |
+| `FIREBASE_PRIVATE_KEY`            | Yes      | Firebase service account private key (include `\n`)                                     |
+| `FIREBASE_CLIENT_EMAIL`           | Yes      | Firebase service account client email                                                   |
+| `GOOGLE_OAUTH_CLIENT_ID`          | Yes      | Google OAuth 2.0 Client ID (get from Google Cloud Console)                              |
+| `GOOGLE_OAUTH_CLIENT_SECRET`      | Yes      | Google OAuth 2.0 Client Secret                                                          |
+| `GOOGLE_OAUTH_REDIRECT_URI`       | Yes      | OAuth redirect URI for development: `http://localhost:5001/api/v1/auth/google-callback` |
+| `CLIENT_URL`                      | No       | Client URL used for redirects (default: `http://localhost:5173`)                        |
+| `VITE_FRONTEND_URL`               | No       | Frontend URL for OAuth callbacks (default: `http://localhost:5173`)                     |
+| `PRODUCTION_FRONTEND_URL`         | No       | Production frontend URL (used when `NODE_ENV=production`)                               |
+| `PRODUCTION_BACKEND_REDIRECT_URI` | No       | Production OAuth redirect URI (used when `NODE_ENV=production`)                         |
+| `FRONTEND_URL`                    | No       | Deployed frontend URL for CORS (default: `http://localhost:5173`)                       |
+| `NODE_ENV`                        | No       | `development` / `production` / `test`                                                   |
 
 ### Frontend (`frontend/.env`)
 
@@ -172,6 +180,81 @@ The app will be available at `http://localhost:5173`.
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Yes      | Firebase sender ID                                       |
 | `VITE_FIREBASE_APP_ID`              | Yes      | Firebase app ID                                          |
 | `VITE_FIREBASE_VAPID_KEY`           | Yes      | VAPID key for web push notifications                     |
+
+---
+
+## Google OAuth 2.0 Setup
+
+The application uses Google OAuth 2.0 for authentication. Follow these steps to configure it:
+
+### 1. Create a Google Cloud Project
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project (or select existing one named `afsliitproject`)
+3. Enable the **Google+ API** for your project
+
+### 2. Create OAuth 2.0 Credentials
+
+1. Go to **APIs & Services** → **Credentials**
+2. Click **Create Credentials** → **OAuth 2.0 Client ID**
+3. Choose **Web Application**
+4. Add authorized redirect URIs:
+   - **Development:** `http://localhost:5001/api/v1/auth/google-callback`
+   - **Production:** `https://your-production-backend-url/api/v1/auth/google-callback`
+5. Copy the **Client ID** and **Client Secret**
+
+### 3. Configure Environment Variables
+
+Add to your `.env` file:
+
+```env
+GOOGLE_OAUTH_CLIENT_ID=your-client-id-here
+GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret-here
+GOOGLE_OAUTH_REDIRECT_URI=http://localhost:5001/api/v1/auth/google-callback  # Development
+# For Production (when NODE_ENV=production):
+PRODUCTION_BACKEND_REDIRECT_URI=https://your-production-backend-url/api/v1/auth/google-callback
+```
+
+### 4. How It Works
+
+The application automatically switches between development and production OAuth URIs based on `NODE_ENV`:
+
+- **Development (`NODE_ENV=development`):** Uses `GOOGLE_OAUTH_REDIRECT_URI` and `CLIENT_URL`
+- **Production (`NODE_ENV=production`):** Uses `PRODUCTION_BACKEND_REDIRECT_URI` and `PRODUCTION_FRONTEND_URL`
+
+This is implemented in:
+
+- [authService.js](services/auth/authService.js) - OAuth URL generation and token exchange
+- [authController.js](controllers/auth/authController.js) - OAuth callback handler
+- [paymentService.js](services/payment/paymentService.js) - Stripe redirect URLs
+
+---
+
+## Production Deployment
+
+### Environment Setup for Production
+
+When deploying to production, set the following environment variables:
+
+```env
+NODE_ENV=production
+PRODUCTION_FRONTEND_URL=https://af-sliit-project.vercel.app
+PRODUCTION_BACKEND_REDIRECT_URI=https://your-backend-domain.com/api/v1/auth/google-callback
+```
+
+The application will automatically:
+
+1. Use production URLs for OAuth redirects instead of localhost
+2. Use production frontend URL for payment/auth Success/Cancel pages
+3. Maintain separate development variables for local testing
+
+### Key Changes for Production
+
+| Component      | Development                 | Production                        |
+| -------------- | --------------------------- | --------------------------------- |
+| Frontend URL   | `http://localhost:5173`     | `PRODUCTION_FRONTEND_URL`         |
+| OAuth Redirect | `GOOGLE_OAUTH_REDIRECT_URI` | `PRODUCTION_BACKEND_REDIRECT_URI` |
+| Payment URLs   | `CLIENT_URL`                | `PRODUCTION_FRONTEND_URL`         |
 
 ---
 

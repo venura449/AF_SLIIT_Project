@@ -101,12 +101,12 @@ exports.googleCallback = async (req, res) => {
     const result = await handleGoogleCallback(code, state);
 
     // Redirect to frontend with token
-    const frontendUrl = process.env.VITE_FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL : (process.env.VITE_FRONTEND_URL || "http://localhost:5173");
     const redirectUrl = `${frontendUrl}/login?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
 
     res.redirect(redirectUrl);
   } catch (error) {
-    const frontendUrl = process.env.VITE_FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL : (process.env.VITE_FRONTEND_URL || "http://localhost:5173");
     res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(error.message)}`);
   }
 };

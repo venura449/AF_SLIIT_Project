@@ -277,7 +277,7 @@ exports.forgotPasswordService = async (email) => {
   const resetToken = user.generateResetToken();
   await user.save();
 
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  const clientUrl = process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL : (process.env.CLIENT_URL || 'http://localhost:5173');
   const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
 
   const html = `
@@ -340,7 +340,7 @@ exports.resetPasswordService = async (token, newPassword) => {
 // Google OAuth Service
 exports.getGoogleAuthUrl = () => {
   const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
-  const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI || 'http://localhost:5001/api/v1/auth/google-callback';
+  const redirectUri = process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_BACKEND_REDIRECT_URI : (process.env.GOOGLE_OAUTH_REDIRECT_URI || 'http://localhost:5001/api/v1/auth/google-callback');
   const scope = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
   const state = crypto.randomBytes(32).toString('hex');
 
@@ -371,7 +371,7 @@ exports.handleGoogleCallback = async (code, state) => {
   try {
     const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-    const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI || 'http://localhost:5001/api/v1/auth/google-callback';
+    const redirectUri = process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_BACKEND_REDIRECT_URI : (process.env.GOOGLE_OAUTH_REDIRECT_URI || 'http://localhost:5001/api/v1/auth/google-callback');
 
     // Exchange code for token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {

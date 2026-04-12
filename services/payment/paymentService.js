@@ -68,8 +68,8 @@ exports.createCheckoutSession = async ({ amount, donationId }) => {
       donationId: donationId.toString(),
     },
 
-    success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.CLIENT_URL}/cancel`,
+    success_url: `${process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL : (process.env.CLIENT_URL || 'http://localhost:5173')}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL : (process.env.CLIENT_URL || 'http://localhost:5173')}/cancel`,
   });
 
   return session;
